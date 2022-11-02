@@ -1,0 +1,11 @@
+[
+  {
+    "buildFromRootDir": "./packages/core",
+    "mainExports": ".",
+    "buildToRootDir": "./build/core",
+    "importMap": "./import_map.json",
+    "name": "@bfsx/core",
+    "version": "0.1.0",
+    "lib": ["es2020"]
+  }
+]
