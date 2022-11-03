@@ -6,16 +6,10 @@
     "importMap": "./import_map.json",
     "name": "@bfsx/plugin",
     "version": "0.1.0",
-    "lib": ["es2020", "dom"]
-  },
-  {
-    "buildFromRootDir": "./packages/gateway",
-    "mainExports": ".",
-    "buildToRootDir": "./build/gateway",
-    "importMap": "./import_map.json",
-    "name": "@bfsx/gateway",
-    "version": "0.1.0",
-    "lib": ["es2020"]
+    "lib": [
+      "es2020",
+      "dom"
+    ]
   },
   {
     "buildFromRootDir": "./packages/core",
@@ -24,7 +18,9 @@
     "importMap": "./import_map.json",
     "name": "@bfsx/core",
     "version": "0.1.0",
-    "lib": ["es2020"]
+    "lib": [
+      "es2020"
+    ]
   },
   {
     "buildFromRootDir": "./packages/metadata",
@@ -33,7 +29,9 @@
     "importMap": "./import_map.json",
     "name": "@bfsx/metadata",
     "version": "0.1.0",
-    "lib": ["es2020"]
+    "lib": [
+      "es2020"
+    ]
   },
   {
     "buildFromRootDir": "./packages/typings",
@@ -42,7 +40,9 @@
     "importMap": "./import_map.json",
     "name": "@bfsx/typings",
     "version": "0.1.0",
-    "lib": ["es2020"]
+    "lib": [
+      "es2020"
+    ]
   },
   {
     "buildFromRootDir": "./packages/vfs",
@@ -51,6 +51,8 @@
     "importMap": "./import_map.json",
     "name": "@bfsx/vfs",
     "version": "0.1.0",
-    "lib": ["es2020"]
+    "lib": [
+      "es2020"
+    ]
   }
 ]

@@ -1,5 +1,7 @@
 // deno-lint-ignore-file no-explicit-any
 /// <reference lib="dom" />
+import { TNative } from "@bfsx/typings";
+import { sleep } from "../../util/index.ts";
 let _serviceWorkerIsRead = false
 /**
  * 注册serverWorker方法
@@ -8,7 +10,7 @@ export function registerServiceWorker() {
   addEventListener("load", () => {
     // 能力检测
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("serviceWorker.js", { scope: "/" }).then(
+      navigator.serviceWorker.register("serviceWorker.js", { scope: "/", type: "module" }).then(
         () => {
           _serviceWorkerIsRead = true
           console.log("Service Worker register success");
@@ -69,9 +71,6 @@ export function postCallNativeUi(
   return postConnectChannel("/setUi", message);
 }
 
-// deno-lint-ignore ban-types
-type TNative = boolean | object | string | number;
-
 /**
  * 请求kotlin 代理转发 GET
  * @param url
@@ -122,10 +121,3 @@ export async function postConnectChannel(url: string, body: string) {
 }
 
 
-/**
- * 等待函数
- * @param delay
- * @returns
- */
-const sleep = (delay: number) =>
-  new Promise((resolve) => setTimeout(resolve, delay));

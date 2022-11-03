@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { getCallNativeUi } from "@bfsx/gateway";
+import { getCallNativeUi } from "../gateway/network.ts";
 import { DwebPlugin } from "./dweb-plugin.ts";
 import { NativeHandle, NativeUI } from "../common/nativeHandle.ts";
 

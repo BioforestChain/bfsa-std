@@ -1,4 +1,4 @@
-import { getCallNativeUi } from "@bfsx/gateway";
+import { getCallNativeUi } from "../gateway/network.ts";
 import { Dialogs } from "./bfcsDialogsType.ts";
 import { NativeUI } from "../common/nativeHandle.ts";
 

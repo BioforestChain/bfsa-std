@@ -156,5 +156,5 @@ export const doBuildFromJson = async (file: string, args = Deno.args) => {
 
 if (import.meta.main) {
   // deno-lint-ignore no-explicit-any
-  await doBuildFromJson((import.meta as any).resolve("./npm.tmp.json"));
+  await doBuildFromJson((import.meta as any).resolve("./npm.json"));
 }

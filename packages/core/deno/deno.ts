@@ -3,7 +3,6 @@
 /////////////////////////////
 
 import { eval_js, js_to_rust_buffer } from "./rust.op.ts";
-import { netCallNativeService } from "@bfsx/gateway";
 import { isAndroid } from "../runtime/device.ts";
 
 const versionView = new Uint8Array(new ArrayBuffer(1));
@@ -37,13 +36,13 @@ class Deno {
    * @param handleFn
    * @param data
    */
-  async callFunction(handleFn: string, data = "''") {
+  callFunction(handleFn: string, data = "''") {
     const uint8Array = this.structureBinary(handleFn, data);
     let msg = "";
     if (isAndroid) {
       js_to_rust_buffer(uint8Array); // android - denoOp
     } else {
-      msg = await netCallNativeService(handleFn, data); //  ios - javascriptCore
+      // msg = await netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
     return { versionView, headView, msg };
   }
@@ -57,7 +56,7 @@ class Deno {
     if (isAndroid) {
       eval_js(uint8Array); // android - denoOp
     } else {
-      netCallNativeService(handleFn, data); //  ios - javascriptCore
+      // netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
   }
 

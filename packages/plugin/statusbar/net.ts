@@ -1,5 +1,5 @@
 import { NativeUI } from "../common/nativeHandle.ts";
-import { getCallNativeUi } from "@bfsx/gateway";
+import { getCallNativeUi } from "../gateway/network.ts";
 import { Color } from "../types/colorType.ts";
 import { StatusBar } from "./bfcsStatusBarType.ts";
 

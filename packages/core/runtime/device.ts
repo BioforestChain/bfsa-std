@@ -1,5 +1,4 @@
 import { callDeno } from "../deno/android.fn.ts";
-import { netCallNativeService } from "@bfsx/gateway";
 import { js_to_rust_buffer, loopRustString } from "../deno/rust.op.ts";
 
 const versionView = new Uint8Array([1]);
@@ -14,7 +13,7 @@ export async function getDeviceInfo(): Promise<IDeviceInfo> {
     info = await asyncCallNativeFunction(callDeno.getDeviceInfo);
   } catch (e) {
     console.log("device:", e);
-    info = await netCallNativeService(callDeno.getDeviceInfo);
+    // info = await netCallNativeService(callDeno.getDeviceInfo);
   }
   return JSON.parse(info);
 }
