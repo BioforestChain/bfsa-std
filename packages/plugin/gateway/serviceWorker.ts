@@ -92,7 +92,7 @@ async function handleRequest(request: Request) {
 
 
 
-export class HttpRequestBuilder {
+class HttpRequestBuilder {
   static REQ_ID = new Uint16Array(1);
   static BODY_ID = new Uint16Array(1);
   static getReqId() {
@@ -151,7 +151,10 @@ export class HttpRequestBuilder {
 sw.addEventListener('message', event => {
   if (typeof event.data !== 'string') return
   const [channelId, end, dataHex] = String(event.data).split(':');
-  const chunk = String(dataHex).split(",") as any;
+  const chunk = new Uint8Array(String(dataHex).split(",").map((value) => {
+    return Number(value)
+  }))
+
   console.log(`serviceWorker chunk=> ${chunk},end:${end}`);
   const fetchTask = FETCH_EVENT_MAP.get(channelId);
   // 如果存在
@@ -161,8 +164,10 @@ sw.addEventListener('message', event => {
     console.log(`填入数据=> ${chunk}`);
     fetchTask.responseStreamController.enqueue(chunk);
 
-    console.log(`请求结束返回数据`);
-    fetchTask.responseStreamController.close();
+    if (end == "true") {
+      console.log(`请求结束返回数据`);
+      fetchTask.responseStreamController.close();
+    }
     // const data = hexDecode(chunk);
     // console.log(`请求结束返回数据=> ${data}`);
     // const [headers, status, statusText] = data.split("|");
@@ -203,7 +208,7 @@ function hexEncode(data: string) {
   return encoder.encode(data);
 }
 
-function hexDecode(buffer: ArrayBuffer) {
+export function hexDecode(buffer: ArrayBuffer) {
   return new TextDecoder().decode(new Uint8Array(buffer));
 }
 

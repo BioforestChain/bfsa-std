@@ -27,28 +27,28 @@ export async function isDenoRuntime() {
 
 function asyncCallNativeFunction(
   handleFn: string,
-  timeout = 3000
 ): Promise<string> {
   // deno-lint-ignore no-async-promise-executor
-  return new Promise(async (resolve, reject) => {
+  return new Promise(async (resolve, _reject) => {
     const { headView } = await callNativeFunction(handleFn); // 发送请求
     do {
       const data = await loopRustString("op_rust_to_js_system_buffer").next();
       if (data.done) {
         continue;
       }
-      // 如果请求是返回了是同一个表示头则返回成功
-      const isCur = data!.headView.filter((byte, index) => {
-        return byte === Array.from(headView)[index];
-      });
-      if (isCur.length === 2) {
-        resolve(data.value);
-        break;
+      try {
+        // 如果请求是返回了是同一个表示头则返回成功
+        const isCur = data!.headView.filter((byte, index) => {
+          return byte === Array.from(headView)[index];
+        });
+        if (isCur.length === 2) {
+          resolve(data.value);
+          break;
+        }
+      } catch (error) {
+        console.log("device err", error)
       }
     } while (true);
-    setTimeout(() => {
-      reject("call function timeout");
-    }, timeout);
   });
 }
 /**

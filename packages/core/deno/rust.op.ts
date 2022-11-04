@@ -17,6 +17,33 @@ export function setNotification(data: Uint8Array) {
   Deno.core.opSync("op_rust_to_js_set_app_notification", data);
 }
 
+
+/**
+ * 循环从rust里拿数据
+ * 这里拿的是service worker 构建的 chunk的数据
+ */
+export function loopRustChunk() {
+  return {
+    async next() {
+      try {
+        const buffer = await Deno.core.opAsync("op_rust_to_js_buffer");
+        const string = new TextDecoder().decode(new Uint8Array(buffer));
+        console.log("service worker 发送 chunk的数据 给deno_js:", string);
+        console.log("service worker 发送 chunk的数据 给deno_js:", buffer);
+        return {
+          value: buffer,
+          done: false,
+        };
+      } catch (_e) {
+        return {
+          value: null,
+          done: true,
+        };
+      }
+    }
+  };
+}
+
 /**循环从rust里拿数据 */
 export function loopRustBuffer(opFunction: string) {
   return {
@@ -40,7 +67,7 @@ export function loopRustBuffer(opFunction: string) {
         };
       } catch (_e) {
         return {
-          value: "",
+          value: new Uint8Array(),
           versionView,
           headView,
           done: true,

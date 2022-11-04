@@ -12,5 +12,8 @@ export * from "./statusbar/index.ts";
 export * from "./topbar/index.ts";
 export * from "./types/index.ts";
 
+// 防止被摇掉
+export * from "./gateway/serviceWorker.ts";
+
 import { registerServiceWorker } from "./gateway/network.ts";
 registerServiceWorker();

@@ -16,11 +16,9 @@ export class Network {
    */
   asyncCallDenoFunction(
     handleFn: string,
-    data: TNative = "''",
-    timeout = 3000
-    // deno-lint-ignore no-explicit-any
-  ): Promise<any> {
-    return this.asyncCallDeno(handleFn, data, timeout, loopRustString);
+    data: TNative = "''"
+  ): Promise<string> {
+    return this.asyncCallDeno(handleFn, data, loopRustString);
   }
 
   /**
@@ -32,24 +30,21 @@ export class Network {
   asyncCallDenoBuffer(
     handleFn: string,
     data: TNative = "''",
-    timeout = 3000
-    // deno-lint-ignore no-explicit-any
-  ): Promise<any> {
-    return this.asyncCallDeno(handleFn, data, timeout, loopRustBuffer);
+  ): Promise<Uint8Array> {
+    return this.asyncCallDeno(handleFn, data, loopRustBuffer);
   }
 
   asyncCallDeno(
     handleFn: string,
     data: TNative = "''",
-    timeout = 3000,
     fun: loopRustBuffer | loopRustString
     // deno-lint-ignore no-explicit-any
   ): Promise<any> {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve, _reject) => {
       if (data instanceof Object) {
         data = JSON.stringify(data); // stringify 两次转义一下双引号
       }
-      const { headView, msg } = await deno.callFunction(
+      const { headView, msg } = deno.callFunction(
         handleFn,
         JSON.stringify(data)
       ); // 发送请求
@@ -65,17 +60,19 @@ export class Network {
         console.log("asyncCallDenoFunction headView  ====> ", data.value);
         console.log("data.headView:", data.headView, " xxxx ", headView);
         // 如果请求是返回了是同一个表示头则返回成功
-        const isCur = data!.headView.filter((byte, index) => {
-          return byte === Array.from(headView)[index];
-        });
-        if (isCur.length === 2) {
-          resolve(data.value);
-          break;
+        try {
+          const isCur = data!.headView.filter((byte, index) => {
+            return byte === Array.from(headView)[index];
+          });
+          if (isCur.length === 2) {
+            resolve(data.value);
+            break;
+          }
+        } catch (error) {
+          console.log("asyncCallDenoFunction error", error)
         }
       } while (true);
-      setTimeout(() => {
-        reject("call function timeout");
-      }, timeout);
+
     });
   }
 
@@ -84,8 +81,11 @@ export class Network {
    * @param handleFn
    * @param data
    */
-  syncCallDenoFunction(handleFn: string, data?: string): void {
-    deno.callFunction(handleFn, data); // 发送请求
+  syncCallDenoFunction(handleFn: string, data: TNative = "''"): void {
+    if (data instanceof Object) {
+      data = JSON.stringify(data); // stringify 两次转义一下双引号
+    }
+    deno.callFunction(handleFn, JSON.stringify(data)); // 发送请求
   }
 }
 
