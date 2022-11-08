@@ -1,4 +1,4 @@
-import { callDeno, callKotlin, callDVebView } from "../../deno/android.fn.ts";
+import { callKotlin, callDVebView } from "../../deno/android.fn.ts";
 import { MetaData } from "@bfsx/metadata";
 import { network } from "../../deno/network.ts";
 import { loopRustChunk } from "../../deno/rust.op.ts";
@@ -9,6 +9,7 @@ import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-m
 import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
 import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/event-map_emitter/index.ts';
 import { parseNetData } from "./dataGateway.ts";
+import { callNative } from "../../native/native.fn.ts";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -268,7 +269,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   //     /// 如果是操作对象，拿出对象的操作函数和数据,传递给Kotlin
   //     const handler = JSON.parse(stringData);
   //     // // 保证存在操作函数中
-  //     if (!Object.values(callDeno).includes(handler.function)) {
+  //     if (!Object.values(callNative).includes(handler.function)) {
   //       return
   //     }
   //     const result = await network.asyncCallDenoFunction(
@@ -296,7 +297,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   // deno-lint-ignore ban-types
   callSWPostMessage(result: object) {
     this.isWaitingData--; // 完成闭环，减少一个等待数
-    network.syncCallDenoFunction(callDeno.evalJsRuntime,
+    network.syncCallDenoFunction(callNative.evalJsRuntime,
       `navigator.serviceWorker.controller.postMessage('${JSON.stringify(result)}')`);
   }
 
@@ -323,7 +324,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   handlerEvalJs(wb: string, data: string) {
     console.log("handlerEvalJs:", this.isWaitingData, wb, data);
     deno.callEvalJsStringFunction(
-      callDeno.evalJsRuntime,
+      callNative.evalJsRuntime,
       `"javascript:document.querySelector('${wb}').dispatchStringMessage('${data}')"`
     );
   }
@@ -335,7 +336,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   initAppMetaData(metaData: MetaData) {
     if (Object.keys(metaData).length === 0) return;
     network.syncCallDenoFunction(
-      callDeno.initMetaData,
+      callNative.initMetaData,
       metaData
     );
   }
@@ -347,7 +348,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   activity(entry: string) {
     // 判断在不在入口文件内
     if (this.entrys.toString().match(RegExp(`${entry}`))) {
-      network.syncCallDenoFunction(callDeno.openDWebView, entry);
+      network.syncCallDenoFunction(callNative.openDWebView, entry);
       return;
     }
     throw new Error("您传递的入口不在配置的入口内，需要在配置文件里配置入口");

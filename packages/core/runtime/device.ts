@@ -1,4 +1,4 @@
-import { callDeno } from "../deno/android.fn.ts";
+import { callNative } from "../native/native.fn.ts";
 import { network } from "../deno/network.ts";
 
 
@@ -8,7 +8,7 @@ export const isAndroid = await isDenoRuntime();
 export async function getDeviceInfo(): Promise<IDeviceInfo> {
   let info = "";
   try {
-    info = await network.asyncCallDenoFunction(callDeno.getDeviceInfo);
+    info = await network.asyncCallDenoFunction(callNative.getDeviceInfo);
   } catch (e) {
     console.log("device:", e);
     // info = await netCallNativeService(callNative.getDeviceInfo);
@@ -18,11 +18,6 @@ export async function getDeviceInfo(): Promise<IDeviceInfo> {
 
 /**判断是不是denoRuntime环境 */
 export function isDenoRuntime() {
-  try {
-    // PlaocJavascriptBridge.callJavaScriptFunction('isDenoRuntime', '参数')
-  } catch (_error) {
-
-  }
   // console.log("是android 环境吗？", info.isDeno);
   return true;
 }
