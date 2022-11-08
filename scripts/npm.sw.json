@@ -1,0 +1,14 @@
+[
+  {
+    "buildFromRootDir": "./packages/sw/serviceWorker.ts",
+    "mainExports": ".",
+    "buildToRootDir": "./build/sw",
+    "importMap": "./import_map.json",
+    "name": "@bfsx/sw",
+    "version": "0.1.1",
+    "lib": [
+      "es2020",
+      "dom"
+    ]
+  }
+]

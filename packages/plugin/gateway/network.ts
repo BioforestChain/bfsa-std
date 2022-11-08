@@ -13,10 +13,10 @@ export function registerServiceWorker() {
       navigator.serviceWorker.register("serviceWorker.js", { scope: "/", type: "module" }).then(
         () => {
           _serviceWorkerIsRead = true
-          console.log("Service Worker register success");
+          console.log("Service Worker register success 🤩");
         },
       ).catch(() => {
-        console.log("Service Worker register error");
+        console.log("Service Worker register error 🤯");
       });
     }
   });
@@ -34,7 +34,7 @@ export function createMessage(fun: string, data: TNative = ""): Promise<string> 
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = new TextEncoder().encode(message);
-  return getConnectChannel(`/poll=${buffer}`);
+  return getConnectChannel(`/poll?data=${buffer}`);
 }
 
 /**
@@ -51,7 +51,7 @@ export function getCallNativeUi(
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = new TextEncoder().encode(message);
-  return getConnectChannel(`/setUi=${buffer}`);
+  return getConnectChannel(`/setUi?data=${buffer}`);
 }
 
 /**
@@ -91,8 +91,9 @@ export async function getConnectChannel(url: string) {
     },
     mode: "cors",
   });
-  const data = await response.text();
-  return data;
+  const result = await response.text();
+  console.log("getConnectChannel2:", result);
+  return result;
 }
 
 /**
@@ -106,7 +107,7 @@ export async function postConnectChannel(url: string, body: string) {
   do {
     await sleep(10)
   } while (!_serviceWorkerIsRead);
-
+  console.log("postConnectChannel:", url, body)
   const response = await fetch(url, {
     method: "POST", // dwebview 无法获取post的body,曲线救国，发送到serverWorker去处理成数据片。
     headers: {

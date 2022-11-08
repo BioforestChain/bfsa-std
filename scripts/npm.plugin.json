@@ -4,8 +4,11 @@
     "mainExports": ".",
     "buildToRootDir": "./build/core",
     "importMap": "./import_map.json",
-    "name": "@bfsx/core",
-    "version": "0.1.0",
-    "lib": ["es2020"]
+    "name": "@bfsx/plugin",
+    "version": "0.1.1",
+    "lib": [
+      "es2020",
+      "dom"
+    ]
   }
 ]

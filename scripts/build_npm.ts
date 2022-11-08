@@ -23,9 +23,14 @@ export const doBuid = async (config: {
 
   const entryPoints: EntryPoint[] = [];
   // console.group("entry-point:", dirEntry.name, config);
+  // 适配入口不是index的情况
+  let entry = `${buildFromRootDir}/index.ts`
+  if (buildFromRootDir.includes(".ts")) {
+    entry = buildFromRootDir
+  }
   entryPoints.push({
     name: config.mainExports,
-    path: `${buildFromRootDir}/index.ts`,
+    path: entry,
   });
   console.group("buildFromDir :", buildFromRootDir);
   // console.groupEnd();
@@ -75,7 +80,12 @@ export const doBuid = async (config: {
 
   // post build steps
   for (const base of ["README.md", "LICENSE"]) {
-    const fromFilename = `${buildFromRootDir}/${base}`;
+    // 适配入口不是index的情况
+    let fromFile = `${buildFromRootDir}/${base}`
+    if (buildFromRootDir.includes(".ts")) {
+      fromFile = `${buildFromRootDir.slice(0, buildFromRootDir.lastIndexOf("/"))}/${base}`
+    }
+    const fromFilename = fromFile;
     const toFilename = `${buildToRootDir}/${base}`;
     try {
       copySync(fromFilename, toFilename, { overwrite: true });
@@ -144,17 +154,25 @@ export const getVersionGenerator = (version_input?: string) => {
 
 export const doBuildFromJson = async (file: string, args = Deno.args) => {
   const getVersion = getVersionGenerator(args[0]);
-  const npmConfigs = (await import(file, { assert: { type: "json" } })).default;
+  try {
+    const npmConfigs = (await import(file, { assert: { type: "json" } })).default;
 
-  for (const config of npmConfigs) {
-    await doBuid({
-      ...config,
-      version: getVersion(config.version),
-    });
+    for (const config of npmConfigs) {
+      await doBuid({
+        ...config,
+        version: getVersion(config.version),
+      });
+    }
+  } catch (error) {
+    throw new Error(`没有找到 npm.${args[1]}.json文件 ===> ${error.message}`);
   }
 };
 
 if (import.meta.main) {
+  let target = "sw"
+  if (Deno.args[1]) {
+    target = Deno.args[1]
+  }
   // deno-lint-ignore no-explicit-any
-  await doBuildFromJson((import.meta as any).resolve("./npm.json"));
+  await doBuildFromJson((import.meta as any).resolve(`./npm.${target}.json`));
 }

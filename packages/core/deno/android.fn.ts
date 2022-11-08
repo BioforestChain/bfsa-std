@@ -1,5 +1,4 @@
 export enum callKotlin {
-  callSWMessage = "CallSWMessage", // 发送消息给serviceWorker message
   setDWebViewUI = "SetDWebViewUI", // 设置dwebview的ui
 }
 

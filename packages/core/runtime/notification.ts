@@ -20,7 +20,17 @@ export async function sendNotification(data: INotification) {
   if (isAndroid) {
     return setNotification(buffer);
   }
-  return sendJsCoreNotification(message);
+  return sendNetNotification(buffer);
+}
+
+/**
+ *  非 denoRutime环境发送通知
+ * @param data
+ * @returns
+ */
+export async function sendNetNotification(_data: Uint8Array) {
+  //   const info = await netCallNativeService(callDeno.sendNotification, data);
+  //   return info;
 }
 
 export interface INotification {

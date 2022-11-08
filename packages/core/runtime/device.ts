@@ -1,8 +1,6 @@
-import { callNative } from "../native/native.fn.ts";
-import { js_to_rust_buffer, loopRustString } from "../deno/rust.op.ts";
+import { callDeno } from "../deno/android.fn.ts";
+import { network } from "../deno/network.ts";
 
-const versionView = new Uint8Array([1]);
-const headView = new Uint8Array([0, 0]);
 
 export const isAndroid = await isDenoRuntime();
 
@@ -10,7 +8,7 @@ export const isAndroid = await isDenoRuntime();
 export async function getDeviceInfo(): Promise<IDeviceInfo> {
   let info = "";
   try {
-    info = await asyncCallNativeFunction(callNative.getDeviceInfo);
+    info = await network.asyncCallDenoFunction(callDeno.getDeviceInfo);
   } catch (e) {
     console.log("device:", e);
     // info = await netCallNativeService(callNative.getDeviceInfo);
@@ -19,75 +17,16 @@ export async function getDeviceInfo(): Promise<IDeviceInfo> {
 }
 
 /**判断是不是denoRuntime环境 */
-export async function isDenoRuntime() {
-  const info = await getDeviceInfo();
-  console.log("是android 环境吗？", info.isDeno);
-  return info.isDeno ? true : false;
-}
+export function isDenoRuntime() {
+  try {
+    // PlaocJavascriptBridge.callJavaScriptFunction('isDenoRuntime', '参数')
+  } catch (_error) {
 
-function asyncCallNativeFunction(handleFn: string): Promise<string> {
-  // deno-lint-ignore no-async-promise-executor
-  return new Promise(async (resolve, _reject) => {
-    const { headView } = await callNativeFunction(handleFn); // 发送请求
-    do {
-      const data = await loopRustString("op_rust_to_js_system_buffer").next();
-      if (data.done) {
-        continue;
-      }
-      try {
-        // 如果请求是返回了是同一个表示头则返回成功
-        const isCur = data!.headView.filter((byte, index) => {
-          return byte === Array.from(headView)[index];
-        });
-        if (isCur.length === 2) {
-          resolve(data.value);
-          break;
-        }
-      } catch (error) {
-        console.log("device err", error);
-      }
-    } while (true);
-  });
-}
-/**
- * 生成android还是ios的请求
- * @param handleFn
- * @param data
- */
-function callNativeFunction(handleFn: string, data = "''") {
-  const uint8Array = structureBinary(handleFn, data);
-  // android - denoOp
-  js_to_rust_buffer(uint8Array);
-  return { versionView, headView };
-}
-
-function structureBinary(fn: string, data: string | Uint8Array = "") {
-  const message = `{"function":"${fn}","data":${data}}`;
-
-  // 字符 转 Uint8Array
-  const encoder = new TextEncoder();
-  const uint8Array = encoder.encode(message);
-
-  return concatenate(versionView, headView, uint8Array);
-}
-/**
- * 拼接Uint8Array
- * @param arrays Uint8Array[]
- * @returns Uint8Array
- */
-function concatenate(...arrays: Uint8Array[]) {
-  let totalLength = 0;
-  for (const arr of arrays) {
-    totalLength += arr.length;
   }
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-  for (const arr of arrays) {
-    result.set(arr, offset);
-    offset += arr.length;
-  }
-  return result;
+  // console.log("是android 环境吗？", info.isDeno);
+  return true;
 }
+
 
 interface IDeviceInfo {
   name: string; // 设备名称 ios / android

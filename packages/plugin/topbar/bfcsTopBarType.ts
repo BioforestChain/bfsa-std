@@ -1,6 +1,5 @@
 import { Icon } from "../icon/bfspIconType.ts";
 import { Color } from "../types/colorType.ts";
-import { Data } from "../types/dataType.ts";
 
 export namespace TopBar {
   export interface TopBarItem {

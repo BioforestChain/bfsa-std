@@ -4,6 +4,7 @@
     "@bfsx/core": "./packages/core/index.ts",
     "@bfsx/metadata": "./packages/metadata/index.ts",
     "@bfsx/plugin": "./packages/plugin/index.ts",
+    "@bfsx/sw": "./packages/sw/serviceWorker.ts",
     "@bfsx/vfs": "./packages/vfs/index.ts",
     "@bfsx/vfs/path": "./packages/vfs/path/index.ts",
     "@bottomBar/net": "./packages/plugin/bottombar/net.ts",
@@ -11,6 +12,8 @@
     "@icon/net": "./packages/plugin/icon/net.ts",
     "@keyboard/net": "./packages/plugin/keyboard/net.ts",
     "@statusbar/net": "./packages/plugin/statusbar/net.ts",
-    "@topbar/net": "./packages/plugin/topbar/net.ts"
+    "@topbar/net": "./packages/plugin/topbar/net.ts",
+    "!event-base/message": "https://deno.land/x/bnqkl_util@1.1.2/packages/event-base/message@node.ts",
+    "!platform/diff": "https://deno.land/x/bnqkl_util@1.1.2/packages/platform/diff@node.ts"
   }
 }
