@@ -1,5 +1,7 @@
 import { network } from "../deno/network.ts";
-import { callDeno } from "../deno/android.fn.ts";
+import { callNative } from "../native/native.fn.ts";
+// import jscore from "../jscore/jscore.ts";
+import { isAndroid } from "./device.ts";
 
 /**
  * 申请权限
@@ -7,10 +9,22 @@ import { callDeno } from "../deno/android.fn.ts";
  * @returns boolean
  */
 export async function applyPermissions(permissions: EPermissions) {
-  const per = await network.asyncCallDenoFunction(callDeno.ApplyPermissions, {
-    permissions,
-  });
-  return per;
+  if (isAndroid) {
+    const per = await network.asyncCallDenoFunction(
+      callNative.ApplyPermissions,
+      {
+        permissions,
+      }
+    );
+    return per;
+  } else {
+    // TODO(kingsword09): 权限和android有点对不上
+    // const per = jscore.callJavaScriptWith(
+    //   callNative.ApplyPermissions,
+    //   JSON.stringify(permissions)
+    // );
+    // return per;
+  }
 }
 
 export enum EPermissions {

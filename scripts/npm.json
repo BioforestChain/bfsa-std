@@ -1,14 +1,11 @@
 [
   {
-    "buildFromRootDir": "./packages/plugin",
+    "buildFromRootDir": "./packages/core",
     "mainExports": ".",
-    "buildToRootDir": "./build/plugin",
+    "buildToRootDir": "./build/core",
     "importMap": "./import_map.json",
-    "name": "@bfsx/plugin",
+    "name": "@bfsx/core",
     "version": "0.1.0",
-    "lib": [
-      "es2020",
-      "dom"
-    ]
+    "lib": ["es2020"]
   }
 ]

@@ -1,4 +1,4 @@
-import { callDeno } from "../deno/android.fn.ts";
+import { callNative } from "../native/native.fn.ts";
 import { js_to_rust_buffer, loopRustString } from "../deno/rust.op.ts";
 
 const versionView = new Uint8Array([1]);
@@ -10,10 +10,10 @@ export const isAndroid = await isDenoRuntime();
 export async function getDeviceInfo(): Promise<IDeviceInfo> {
   let info = "";
   try {
-    info = await asyncCallNativeFunction(callDeno.getDeviceInfo);
+    info = await asyncCallNativeFunction(callNative.getDeviceInfo);
   } catch (e) {
     console.log("device:", e);
-    // info = await netCallNativeService(callDeno.getDeviceInfo);
+    // info = await netCallNativeService(callNative.getDeviceInfo);
   }
   return JSON.parse(info);
 }
@@ -25,9 +25,7 @@ export async function isDenoRuntime() {
   return info.isDeno ? true : false;
 }
 
-function asyncCallNativeFunction(
-  handleFn: string,
-): Promise<string> {
+function asyncCallNativeFunction(handleFn: string): Promise<string> {
   // deno-lint-ignore no-async-promise-executor
   return new Promise(async (resolve, _reject) => {
     const { headView } = await callNativeFunction(handleFn); // 发送请求
@@ -46,7 +44,7 @@ function asyncCallNativeFunction(
           break;
         }
       } catch (error) {
-        console.log("device err", error)
+        console.log("device err", error);
       }
     } while (true);
   });

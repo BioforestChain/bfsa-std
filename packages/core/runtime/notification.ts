@@ -1,5 +1,6 @@
-import { callDeno } from "../deno/android.fn.ts";
+import { callNative } from "../native/native.fn.ts";
 import { setNotification } from "../deno/rust.op.ts";
+import { sendJsCoreNotification } from "../jscore/swift.op.ts";
 import { isAndroid } from "./device.ts";
 import { network } from "../deno/network.ts";
 
@@ -11,7 +12,7 @@ import { network } from "../deno/network.ts";
 export async function sendNotification(data: INotification) {
   // 如果是android需要在这里拿到app_id，如果是ios,会在ios端拼接
   if (data.app_id === undefined && isAndroid) {
-    const app_id = await network.asyncCallDenoFunction(callDeno.getBfsAppId);
+    const app_id = await network.asyncCallDenoFunction(callNative.getBfsAppId);
     data = Object.assign(data, { app_id: app_id });
   }
   const message = JSON.stringify(data);
@@ -19,17 +20,7 @@ export async function sendNotification(data: INotification) {
   if (isAndroid) {
     return setNotification(buffer);
   }
-  return sendNetNotification(buffer);
-}
-
-/**
- *  非 denoRutime环境发送通知
- * @param data
- * @returns
- */
-export async function sendNetNotification(data: Uint8Array) {
-  // const info = await netCallNativeService(callDeno.sendNotification, data);
-  // return info;
+  return sendJsCoreNotification(message);
 }
 
 export interface INotification {
