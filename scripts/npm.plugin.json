@@ -5,13 +5,7 @@
     "buildToRootDir": "./build/plugin",
     "importMap": "./import_map.json",
     "name": "@bfsx/plugin",
-    "devDependencies": {
-      "@types/react": "^18.0.25"
-    },
     "version": "1.0.0",
-    "lib": [
-      "es2020",
-      "dom"
-    ]
+    "lib": ["es2020", "dom"]
   }
 ]
