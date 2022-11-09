@@ -8,8 +8,18 @@ import {
 } from "./bfcsDialogs.ts";
 import { BfcsDialogButton } from "./bfcsDialogButton.ts";
 
-customElements.define("dweb-dialog-alert", BfcsDialogAlert);
-customElements.define("dweb-dialog-prompt", BfcsDialogPrompt);
-customElements.define("dweb-dialog-confirm", BfcsDialogConfirm);
-customElements.define("dweb-dialog-warning", BfcsDialogWarning);
-customElements.define("dweb-dialog-button", BfcsDialogButton);
+if (!customElements.get("dweb-dialog-alert")) {
+  customElements.define("dweb-dialog-alert", BfcsDialogAlert);
+}
+if (!customElements.get("dweb-dialog-prompt")) {
+  customElements.define("dweb-dialog-prompt", BfcsDialogPrompt);
+}
+if (!customElements.get("dweb-dialog-confirm")) {
+  customElements.define("dweb-dialog-confirm", BfcsDialogConfirm);
+}
+if (!customElements.get("dweb-dialog-warning")) {
+  customElements.define("dweb-dialog-warning", BfcsDialogWarning);
+}
+if (!customElements.get("dweb-dialog-button")) {
+  customElements.define("dweb-dialog-button", BfcsDialogButton);
+}

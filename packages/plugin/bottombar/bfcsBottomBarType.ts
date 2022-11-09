@@ -56,7 +56,6 @@ export namespace BottomBar {
     };
   }
 
-
   export interface IBottomBarNet {
     getHidden(): Promise<boolean>;
     setHidden(isEnabled: boolean): Promise<boolean>;
@@ -92,6 +91,36 @@ export namespace BottomBar {
     disabled?: boolean;
     colors?: IBottomBarColors;
   }
-}
 
-declare const bottom_bar: BottomBar.BottomBarAndroidFFI;
+  // 用于jsx
+  export interface DwebBottomBar {
+    hidden?: string;
+    "background-color"?: Color.RGBAHex;
+    "foreground-color"?: Color.RGBAHex;
+    overlay?: string;
+    height?: string;
+  }
+
+  export interface DwebBottomBarButton {
+    disabled?: string;
+    selected?: string;
+    diSelectable?: string;
+    "indicator-color"?: Color.RGBAHex;
+  }
+
+  export interface DwebBottomBarIcon {
+    source: string;
+    type?: Icon.IconType;
+    description?: string;
+    size?: string;
+    color?: Color.RGBAHex;
+    "selected-color"?: Color.RGBAHex;
+  }
+
+  export interface DwebBottomBarText {
+    value: string;
+    color?: Color.RGBAHex;
+    "selected-color"?: Color.RGBAHex;
+    "hide-value"?: Color.RGBAHex;
+  }
+}

@@ -16,7 +16,7 @@ export namespace TopBar {
     getTopBarOverlay(): Promise<boolean>;
     setTopBarOverlay(alpha: string): Promise<boolean>;
     getTopBarAlpha(): Promise<number>;
-    setTopBarAlpha(alpha: string): Promise<boolean>
+    setTopBarAlpha(alpha: string): Promise<boolean>;
     getTopBarTitle(): Promise<string>;
     setTopBarTitle(title: string): Promise<boolean>;
     hasTopBarTitle(): Promise<boolean>;
@@ -32,33 +32,46 @@ export namespace TopBar {
   export interface TopBarDesktopFFI {
     setTopbarHidden(
       scopedValue: boolean | undefined,
-      globalValue?: boolean,
+      globalValue?: boolean
     ): Promise<void>;
     getTopbarHidden(): Promise<boolean>;
     setTopbarOverlay(
       scopedValue: boolean | undefined,
-      globalValue?: boolean,
+      globalValue?: boolean
     ): Promise<void>;
     getTopbarOverlay(): Promise<boolean>;
     setTopbarTitle(
       scopedValue: string | undefined,
-      globalValue?: string,
+      globalValue?: string
     ): Promise<void>;
     getTopbarTitle(): Promise<string>;
     setTopbarHeight(
       scopedValue: string | undefined,
-      globalValue?: string,
+      globalValue?: string
     ): Promise<string>;
     getTopbarHeight(): Promise<string>;
     setTopbarBackgroundColor(
       scopedValue: string | undefined,
-      globalValue?: string,
+      globalValue?: string
     ): Promise<void>;
     getTopbarBackgroundColor(): Promise<Color.ColorFormatType>;
     setTopbarForegroundColor(
       scopedValue: string | undefined,
-      globalValue?: string,
+      globalValue?: string
     ): Promise<void>;
     getTopbarForegroundColor(): Promise<Color.ColorFormatType>;
+  }
+
+  // 用于jsx
+  export interface DwebTopBar {
+    title: string;
+    "background-color"?: Color.RGBAHex;
+    "foreground-color"?: Color.RGBAHex;
+    overlay?: string;
+    hidden?: string;
+  }
+
+  export interface DwebTopBarButton {
+    disabled: string;
   }
 }

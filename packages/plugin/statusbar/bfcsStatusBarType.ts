@@ -12,28 +12,27 @@ export namespace StatusBar {
     getStatusBarStyle(): boolean;
   }
 
-
   // desktop-dev端ffi
   export interface StatusBarDesktopFFI {
     getStatusBarIsDark(): unknown;
     setStatusbarBackgroundColor(
       scopedValue: Color.ColorFormatType | undefined,
-      globalValue?: Color.ColorFormatType,
+      globalValue?: Color.ColorFormatType
     ): Promise<void>;
     getStatusbarBackgroundColor(): Promise<Color.ColorFormatType>;
     setStatusbarOverlay(
       scopedValue: boolean | undefined,
-      globalValue?: boolean,
+      globalValue?: boolean
     ): Promise<boolean>;
     getStatusbarOverlay(): Promise<boolean>;
     setStatusbarHidden(
       scopedValue: boolean | undefined,
-      globalValue?: boolean,
+      globalValue?: boolean
     ): Promise<boolean>;
     getStatusbarHidden(): Promise<boolean>;
     setStatusbarStyle(
       scopedValue: StatusBarStyle | undefined,
-      globalValue?: StatusBarStyle,
+      globalValue?: StatusBarStyle
     ): Promise<void>;
     getStatusbarStyle(): Promise<StatusBarStyle>;
   }
@@ -41,7 +40,7 @@ export namespace StatusBar {
   export interface IStatusBarNet {
     setStatusBarColor(
       colorHex?: string,
-      barStyle?: StatusBarStyle,
+      barStyle?: StatusBarStyle
     ): Promise<void>;
     getStatusBarColor(): Promise<Color.RGBAHex>;
     getStatusBarVisible(): Promise<boolean>;
@@ -71,5 +70,13 @@ export namespace StatusBar {
     DEFAULT = 0,
     LIGHT_CONTENT = -1,
     DARK_CONTENT = 1,
+  }
+
+  // 用于jsx
+  export interface DwebStatusBar {
+    overlay?: string;
+    hidden?: string;
+    "bar-style"?: StatusBarStyle;
+    "background-color"?: Color.RGBAHex;
   }
 }

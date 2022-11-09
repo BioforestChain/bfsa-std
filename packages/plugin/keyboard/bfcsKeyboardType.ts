@@ -45,4 +45,10 @@ export namespace Keyboard {
     showKeyboard(): Promise<boolean>;
     hideKeyboard(): Promise<boolean>;
   }
+
+  // 用于jsx
+  export interface DwebKeyboard {
+    overlay?: string;
+    hidden?: string;
+  }
 }

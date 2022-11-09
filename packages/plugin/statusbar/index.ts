@@ -2,6 +2,8 @@
 
 import { BfcsStatusBar } from "./bfcsStatusBar.ts";
 
-customElements.define("dweb-status-bar", BfcsStatusBar);
+if (!customElements.get("dweb-status-bar")) {
+  customElements.define("dweb-status-bar", BfcsStatusBar);
+}
 
 export { BfcsStatusBar };

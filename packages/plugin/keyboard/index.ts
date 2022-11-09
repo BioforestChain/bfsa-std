@@ -2,6 +2,8 @@
 
 import { BfcsKeyboard } from "./bfcsKeyboard.ts";
 
-customElements.define("dweb-keyboard", BfcsKeyboard);
+if (!customElements.get("dweb-keyboard")) {
+  customElements.define("dweb-keyboard", BfcsKeyboard);
+}
 
 export { BfcsKeyboard };

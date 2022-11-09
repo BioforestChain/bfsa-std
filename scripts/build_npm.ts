@@ -14,6 +14,9 @@ export const doBuid = async (config: {
   buildToRootDir: string;
   importMap?: string;
   lib?: (LibName | string)[];
+  devDependencies?: {
+    [packageName: string]: string;
+  };
 }) => {
   const { version, buildFromRootDir, buildToRootDir, importMap, name, lib } =
     config;
@@ -24,9 +27,9 @@ export const doBuid = async (config: {
   const entryPoints: EntryPoint[] = [];
   // console.group("entry-point:", dirEntry.name, config);
   // 适配入口不是index的情况
-  let entry = `${buildFromRootDir}/index.ts`
+  let entry = `${buildFromRootDir}/index.ts`;
   if (buildFromRootDir.includes(".ts")) {
-    entry = buildFromRootDir
+    entry = buildFromRootDir;
   }
   entryPoints.push({
     name: config.mainExports,
@@ -75,15 +78,19 @@ export const doBuid = async (config: {
       bugs: {
         url: "https://github.com/BioforestChain/plaoc/issues",
       },
+      devDependencies: config.devDependencies ?? {},
     },
   });
 
   // post build steps
   for (const base of ["README.md", "LICENSE"]) {
     // 适配入口不是index的情况
-    let fromFile = `${buildFromRootDir}/${base}`
+    let fromFile = `${buildFromRootDir}/${base}`;
     if (buildFromRootDir.includes(".ts")) {
-      fromFile = `${buildFromRootDir.slice(0, buildFromRootDir.lastIndexOf("/"))}/${base}`
+      fromFile = `${buildFromRootDir.slice(
+        0,
+        buildFromRootDir.lastIndexOf("/")
+      )}/${base}`;
     }
     const fromFilename = fromFile;
     const toFilename = `${buildToRootDir}/${base}`;
@@ -155,7 +162,8 @@ export const getVersionGenerator = (version_input?: string) => {
 export const doBuildFromJson = async (file: string, args = Deno.args) => {
   const getVersion = getVersionGenerator(args[0]);
   try {
-    const npmConfigs = (await import(file, { assert: { type: "json" } })).default;
+    const npmConfigs = (await import(file, { assert: { type: "json" } }))
+      .default;
 
     for (const config of npmConfigs) {
       await doBuid({
@@ -169,9 +177,9 @@ export const doBuildFromJson = async (file: string, args = Deno.args) => {
 };
 
 if (import.meta.main) {
-  let target = "sw"
+  let target = "sw";
   if (Deno.args[1]) {
-    target = Deno.args[1]
+    target = Deno.args[1];
   }
   // deno-lint-ignore no-explicit-any
   await doBuildFromJson((import.meta as any).resolve(`./npm.${target}.json`));

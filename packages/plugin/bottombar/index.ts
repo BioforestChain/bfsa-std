@@ -5,11 +5,17 @@ import { BfcsBottomBarButton } from "./bfcsBottomBarButton.ts";
 import { BfcsBottomBarIcon } from "./bfcsBottomBarIcon.ts";
 import { BfcsBottomBarText } from "./bfcsBottomBarText.ts";
 
-export {
-  BfcsBottomBar
-}
+export { BfcsBottomBar };
 
-customElements.define("dweb-bottom-bar", BfcsBottomBar);
-customElements.define("dweb-bottom-bar-button", BfcsBottomBarButton);
-customElements.define("dweb-bottom-bar-icon", BfcsBottomBarIcon);
-customElements.define("dweb-bottom-bar-text", BfcsBottomBarText);
+if (!customElements.get("dweb-bottom-bar")) {
+  customElements.define("dweb-bottom-bar", BfcsBottomBar);
+}
+if (!customElements.get("dweb-bottom-bar-button")) {
+  customElements.define("dweb-bottom-bar-button", BfcsBottomBarButton);
+}
+if (!customElements.get("dweb-bottom-bar-icon")) {
+  customElements.define("dweb-bottom-bar-icon", BfcsBottomBarIcon);
+}
+if (!customElements.get("dweb-bottom-bar-text")) {
+  customElements.define("dweb-bottom-bar-text", BfcsBottomBarText);
+}
