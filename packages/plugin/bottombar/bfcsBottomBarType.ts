@@ -1,4 +1,4 @@
-import { Icon } from "../icon/bfspIconType.ts";
+import { Icon } from "../icon/bfcsIconType.ts";
 import { Color } from "../types/colorType.ts";
 import { Data } from "../types/dataType.ts";
 export namespace BottomBar {

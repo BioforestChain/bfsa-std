@@ -1,14 +1,14 @@
 import { DwebPlugin } from "../native/dweb-plugin.ts";
-export class BfspIcon extends DwebPlugin {
+export class BfcsIcon extends DwebPlugin {
   // private _icon: Icon.IPlaocIcon = { source: "", type: Icon.IconType.NamedIcon };
 
   constructor() {
     super();
   }
 
-  connectedCallback() { }
+  connectedCallback() {}
 
-  disconnectedCallback() { }
+  disconnectedCallback() {}
 
   static get observedAttributes() {
     return ["type", "description", "size", "source"];

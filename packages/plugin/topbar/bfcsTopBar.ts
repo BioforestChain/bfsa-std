@@ -1,6 +1,6 @@
 import { TopBarNet } from "./net.ts";
 import { TopBar } from "./bfcsTopBarType.ts";
-import { Icon } from "../icon/bfspIconType.ts";
+import { Icon } from "../icon/bfcsIconType.ts";
 import { Color } from "../types/colorType.ts";
 import { DwebPlugin } from "../native/dweb-plugin.ts";
 import { convertToRGBAHex } from "../util/index.ts";

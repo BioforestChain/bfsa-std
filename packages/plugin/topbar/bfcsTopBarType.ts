@@ -1,4 +1,4 @@
-import { Icon } from "../icon/bfspIconType.ts";
+import { Icon } from "../icon/bfcsIconType.ts";
 import { Color } from "../types/colorType.ts";
 
 export namespace TopBar {

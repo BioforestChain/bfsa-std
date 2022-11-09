@@ -4,7 +4,7 @@ import { convertToRGBAHex } from "../util/index.ts";
 import { DwebPlugin } from "../native/dweb-plugin.ts";
 import { BottomBarNet } from "./net.ts";
 import { BottomBar } from "./bfcsBottomBarType.ts";
-import { Icon } from "../icon/bfspIconType.ts";
+import { Icon } from "../icon/bfcsIconType.ts";
 import { Color } from "../types/colorType.ts";
 
 export class BfcsBottomBar extends DwebPlugin {
