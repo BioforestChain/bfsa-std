@@ -1,61 +1,16 @@
-import { callKotlin, callDVebView } from "../../deno/android.fn.ts";
+import { callDVebView, callKotlin } from "../../deno/android.fn.ts";
 import { MetaData } from "@bfsx/metadata";
 import { network } from "../../deno/network.ts";
 import { loopRustChunk } from "../../deno/rust.op.ts";
 import deno from "../../deno/deno.ts";
-import { sleep } from "../../../util/index.ts";
+import { decoder, encoder, sleep } from "../../../util/index.ts";
 import { IImportMap } from "../../../metadata/metadataType.ts";
 import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
 import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
 import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/event-map_emitter/index.ts';
-import { parseNetData } from "./dataGateway.ts";
 import { callNative } from "../../native/native.fn.ts";
-
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
-
-
-class RequestEvent {
-  constructor(readonly request: Request, readonly response: RequestResponse, readonly channelId: string) {
-
-  }
-  // @cacheGetter
-  get url() {
-    return new URL(this.request.url, 'https://localhost')
-  }
-}
-class RequestResponse {
-  constructor(private _bodyCtrl: ReadableStreamController<Uint8Array>, private _onClose: (statusCode: number, headers: Record<string, string>) => void) {
-  }
-  public statusCode = 200
-  public headers: Record<string, string> = {}
-  setHeaders(key: string, value: string) {
-    this.headers[key] = value
-  }
-  getHeaders(key: string) {
-    return this.headers[key]
-  }
-  private _closed = false
-  write(data: string | Uint8Array) {
-    if (this._closed) {
-      throw new Error('closed')
-    }
-    if (typeof data === 'string') {
-      data = encoder.encode(data)
-    }
-    this._bodyCtrl.enqueue(data)
-  }
-
-  end() {
-    if (this._closed) {
-      return
-    }
-    this._closed = true
-    this._bodyCtrl.close()
-    this._onClose(this.statusCode, this.headers)
-  }
-}
-
+import { RequestEvent, RequestResponse } from "./netHandle.ts";
+import { parseNetData } from "./dataGateway.ts";
 
 export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   private isWaitingData = 0;
@@ -73,21 +28,38 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
 
     this.on("request", async (event) => {
       const { url } = event;
-      console.log("requestxxurl:", url)
+      // 是不是资源文件 （index.html,xxx.js）
+      const isAssetsFile = url.pathname.lastIndexOf(".") !== -1
+      let result = "no request body！";
+      // 填充response headers
+      event.request.headers.forEach((val, key) => {
+        event.response.setHeaders(key, val)
+      })
+      console.log("requestGETurl :", event.request.method, url)
+
       if (url.pathname.endsWith("/setUi")) {
-        console.log("searchParams:", url.searchParams.get("data"))
-        const result = await network.asyncCallDenoFunction(
+        let bodyString = url.searchParams.get("data")
+        console.log(`bodyString${event.request.method}:`, bodyString)
+        // 如果没有get请求参数，又没有携带body
+        if (!bodyString) {
+          try {
+            bodyString = await event.request.text();
+          } catch (error) {
+            console.error("xx", bodyString, error);
+          }
+          event.response.write(result)
+          event.response.end
+          return
+        }
+        result = await network.asyncCallDenoFunction(
           callKotlin.setDWebViewUI,
-          url.searchParams.get("data") ?? ''
+          bodyString
         );
         console.log("resolveNetworkHeaderRequest:", result)
         event.response.write(result)
         event.response.end()
         return
       }
-
-      // 是不是资源文件 （index.html,xxx.js）
-      const isAssetsFile = url.pathname.lastIndexOf(".") !== -1
       // 如果是需要转发的数据请求 pathname: "/getBlockInfo"
       if (!isAssetsFile) {
         const data = await parseNetData(event.request, url.pathname, this.importMap)
@@ -130,7 +102,6 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         strPath.lastIndexOf("/channel/") + 9, strPath.lastIndexOf("/chunk")
       );
       const stringHex = strPath.substring(strPath.lastIndexOf("=") + 1);
-      console.log("stringHex:", stringHex)
       const buffers = stringHex.split(",").map(v => Number(v))
       const chunk = (new Uint8Array(buffers))
 
@@ -140,7 +111,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
 
 
   private _request_body_cache = EasyMap.from({
-    creater(_boydId: number) {
+    // deno-lint-ignore no-unused-vars
+    creater(boydId: number) {
       let bodyStreamController: ReadableStreamController<ArrayBuffer>
       const bodyStream = new ReadableStream({ start(controller) { bodyStreamController = controller } })
       return {
@@ -170,7 +142,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       const { url, headers, method } = JSON.parse(decoder.decode(contentBytes));
       let req: Request;
       if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-        const body = this._request_body_cache.forceGet(headersId + 1);
+        const body = this._request_body_cache.forceGet(headersId + 1); // 获取body
         req = new Request(url, { method, headers, body: body.bodyStream });
       } else {
         req = new Request(url, { method, headers });
@@ -188,6 +160,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         });
       }), channelId);
       this.emit("request", event);
+      // 等待真正的请求回来
       const postBodyDone = new PromiseOut<void>()
       const responseBodyReader = responseBody.getReader()
       do {
@@ -203,7 +176,17 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
 
       } while (true)
       postBodyDone.resolve()
+      return
     }
+    // 如果是body 需要填充Request body
+    const body = this._request_body_cache.forceGet(headers_body_id); // 获取body
+    console.log("推入body:", headers_body_id, isEnd, contentBytes)
+    // body 流结束
+    if (isEnd) {
+      body.bodyStreamController.close()
+      return
+    }
+    body.bodyStreamController.enqueue(contentBytes)
   }
 
 

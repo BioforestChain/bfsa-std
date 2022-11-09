@@ -2,6 +2,7 @@
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
 import { sleep } from "../../util/index.ts";
+import { decoder } from '../../util/binary.ts';
 let _serviceWorkerIsRead = false
 /**
  * 注册serverWorker方法
@@ -79,9 +80,9 @@ export function postCallNativeUi(
 
 export async function getConnectChannel(url: string) {
   // 等待serviceWorker准备好
-  do {
+  while (!_serviceWorkerIsRead) {
     await sleep(10)
-  } while (!_serviceWorkerIsRead);
+  }
 
   const response = await fetch(url, {
     method: "GET", // dwebview 无法获取post的body
@@ -90,10 +91,16 @@ export async function getConnectChannel(url: string) {
       "Content-Type": "application/json",
     },
     mode: "cors",
-  });
-  const result = await response.text();
-  console.log("getConnectChannel2:", result);
-  return result;
+  })
+  console.log("getConnectChannel start")
+  let result = ""
+  try {
+    result = await response.text()
+  } catch (error) {
+    console.log("getConnectChannel err", error)
+  }
+  console.log("getConnectChannel:", result)
+  return result
 }
 
 /**

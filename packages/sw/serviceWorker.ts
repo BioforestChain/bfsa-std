@@ -65,7 +65,8 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
     if (path.lastIndexOf(".") !== -1) {
       return
     }
-
+    /// 开始向外发送数据，切片发送
+    console.log(`HttpRequestBuilder ${request.method},url: ${request.url}`)
 
     event.respondWith((async () => {
       const client = await self.clients.get(event.clientId)
@@ -75,21 +76,11 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
       const channelId = await CLIENT_FETCH_CHANNEL_ID_WM.forceGet(client)
       const task = FETCH_EVENT_TASK_MAP.forceGet({ event, channelId });
 
-      /// 开始向外发送数据，切片发送
-      console.log(`HttpRequestBuilder ${request.method},url: ${request.url}`)
-      const headers: Record<string, string> = {}
-      request.headers.forEach((value, key) => {
-        if (key === "user-agent") { // user-agent 太长了先不要
-          return
-        }
-        Object.assign(headers, { [key]: value })
-      })
-
       // Build chunks
       const chunks = new HttpRequestBuilder(
         task.reqHeadersId,
         task.reqBodyId,
-        request,
+        request
       );
 
       // 迭代发送
@@ -97,8 +88,9 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
         await fetch(`/channel/${channelId}/chunk=${chunk}`)
           .then(res => res.text(), _ => ({ success: false }));
       }
-
-      return task.po.promise
+      const response = await task.po.promise
+      console.log("swresponse:", response.url, response.status)
+      return response
     })())
   });
 
@@ -107,16 +99,23 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
     constructor(
       readonly headersId: number,
       readonly bodyId: number,
-      readonly request: Request
+      readonly request: Request,
     ) { }
 
     async *[Symbol.asyncIterator]() {
       const { request, headersId, bodyId } = this
       console.log("headerId:", headersId, "bodyId:", bodyId,)
+      const headers: Record<string, string> = {}
+      request.headers.forEach((value, key) => {
+        if (key === "user-agent") { // user-agent 太长了先不要
+          return
+        }
+        Object.assign(headers, { [key]: value })
+      })
       // 传递headers
       yield contactToHex(
         uint16_to_binary(headersId),
-        encoder.encode(JSON.stringify({ url: request.url, headers: request.headers, method: request.method.toUpperCase() })),
+        encoder.encode(JSON.stringify({ url: request.url, headers, method: request.method.toUpperCase() })),
         uint8_to_binary(0)
       );
       // 如果body为空
@@ -153,7 +152,7 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
     }
     const responseContent = chunk.slice(0, -1);
     if (returnId === headersId) { // parse headers
-      console.log("responseContent")
+      console.log("responseContent:", decoder.decode(responseContent))
       const { statusCode, headers } = JSON.parse(decoder.decode(responseContent))
       fetchTask.responseHeaders = headers;
       fetchTask.responseStatusCode = statusCode;
@@ -162,7 +161,7 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
         headers,
       }))
     } else if (returnId === bodyId) { // parse body
-      console.log("文件流推入", channelId, headersId, bodyId);
+      console.log("文件流推入", channelId, headersId, bodyId, responseContent.byteLength);
       fetchTask.responseBody.controller.enqueue(responseContent.buffer)
     } else {
       throw new Error("should not happen!! NAN? " + returnId)

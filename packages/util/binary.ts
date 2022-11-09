@@ -1,4 +1,7 @@
 
+export const encoder = new TextEncoder();
+export const decoder = new TextDecoder();
+
 /**
  * 合并Uint8array
  * @param arrs 

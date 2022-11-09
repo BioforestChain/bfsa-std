@@ -8,6 +8,7 @@ import { StatusBar } from "../statusbar/bfcsStatusBarType.ts";
 import { Dialogs } from "../dialogs/bfcsDialogsType.ts";
 import { Icon } from "../icon/bfspIconType.ts";
 import { Keyboard } from "../keyboard/bfcsKeyboardType.ts";
+import React from 'https://dev.jspm.io/react'
 
 declare global {
   namespace JSX {
@@ -32,107 +33,107 @@ declare global {
     // topbar
     interface DwebTopBarProps
       extends Omit<
-          React.DetailedHTMLProps<
-            React.HTMLAttributes<HTMLElement>,
-            HTMLElement
-          >,
-          keyof TopBar.DwebTopBar
-        >,
-        TopBar.DwebTopBar {}
-    interface DwebTopBarButtonProps
-      extends React.DetailedHTMLProps<
+        React.DetailedHTMLProps<
           React.HTMLAttributes<HTMLElement>,
           HTMLElement
         >,
-        TopBar.DwebTopBarButton {}
+        keyof TopBar.DwebTopBar
+      >,
+      TopBar.DwebTopBar { }
+    interface DwebTopBarButtonProps
+      extends React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >,
+      TopBar.DwebTopBarButton { }
     // bottombar
     interface DwebBottomBarProps
       extends Omit<
-          React.DetailedHTMLProps<
-            React.HTMLAttributes<HTMLElement>,
-            HTMLElement
-          >,
-          keyof BottomBar.DwebBottomBar
-        >,
-        BottomBar.DwebBottomBar {}
-    interface DwebBottomBarButtonProps
-      extends React.DetailedHTMLProps<
+        React.DetailedHTMLProps<
           React.HTMLAttributes<HTMLElement>,
           HTMLElement
         >,
-        BottomBar.DwebBottomBarButton {}
+        keyof BottomBar.DwebBottomBar
+      >,
+      BottomBar.DwebBottomBar { }
+    interface DwebBottomBarButtonProps
+      extends React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >,
+      BottomBar.DwebBottomBarButton { }
     interface DwebBottomBarIconProps
       extends Omit<
-          React.DetailedHTMLProps<
-            React.HTMLAttributes<HTMLElement>,
-            HTMLElement
-          >,
-          keyof BottomBar.DwebBottomBarIcon
+        React.DetailedHTMLProps<
+          React.HTMLAttributes<HTMLElement>,
+          HTMLElement
         >,
-        BottomBar.DwebBottomBarIcon {}
+        keyof BottomBar.DwebBottomBarIcon
+      >,
+      BottomBar.DwebBottomBarIcon { }
     interface DwebBottomBarTextProps
       extends Omit<
-          React.DetailedHTMLProps<
-            React.HTMLAttributes<HTMLElement>,
-            HTMLElement
-          >,
-          keyof BottomBar.DwebBottomBarText
+        React.DetailedHTMLProps<
+          React.HTMLAttributes<HTMLElement>,
+          HTMLElement
         >,
-        BottomBar.DwebBottomBarText {}
+        keyof BottomBar.DwebBottomBarText
+      >,
+      BottomBar.DwebBottomBarText { }
     // statusbar
     interface DwebStatusBarProps
       extends Omit<
-          React.DetailedHTMLProps<
-            React.HTMLAttributes<HTMLElement>,
-            HTMLElement
-          >,
-          keyof StatusBar.DwebStatusBar
-        >,
-        StatusBar.DwebStatusBar {}
-    // dialogs
-    interface DwebDialogAlertProps
-      extends Omit<
-          React.DetailedHTMLProps<
-            React.HTMLAttributes<HTMLElement>,
-            HTMLElement
-          >,
-          keyof Dialogs.IAlertConfig
-        >,
-        Dialogs.IAlertConfig {}
-    interface DwebDialogPromptProps
-      extends Omit<
-          React.DetailedHTMLProps<
-            React.HTMLAttributes<HTMLElement>,
-            HTMLElement
-          >,
-          keyof Dialogs.IPromptConfig
-        >,
-        Dialogs.IPromptConfig {}
-    interface DwebDialogConfirmProps
-      extends Omit<
-          React.DetailedHTMLProps<
-            React.HTMLAttributes<HTMLElement>,
-            HTMLElement
-          >,
-          keyof Dialogs.IConfirmConfig
-        >,
-        Dialogs.IConfirmConfig {}
-    // icon
-    interface DwebIconProps
-      extends React.DetailedHTMLProps<
+        React.DetailedHTMLProps<
           React.HTMLAttributes<HTMLElement>,
           HTMLElement
         >,
-        Icon.IPlaocIcon {}
+        keyof StatusBar.DwebStatusBar
+      >,
+      StatusBar.DwebStatusBar { }
+    // dialogs
+    interface DwebDialogAlertProps
+      extends Omit<
+        React.DetailedHTMLProps<
+          React.HTMLAttributes<HTMLElement>,
+          HTMLElement
+        >,
+        keyof Dialogs.IAlertConfig
+      >,
+      Dialogs.IAlertConfig { }
+    interface DwebDialogPromptProps
+      extends Omit<
+        React.DetailedHTMLProps<
+          React.HTMLAttributes<HTMLElement>,
+          HTMLElement
+        >,
+        keyof Dialogs.IPromptConfig
+      >,
+      Dialogs.IPromptConfig { }
+    interface DwebDialogConfirmProps
+      extends Omit<
+        React.DetailedHTMLProps<
+          React.HTMLAttributes<HTMLElement>,
+          HTMLElement
+        >,
+        keyof Dialogs.IConfirmConfig
+      >,
+      Dialogs.IConfirmConfig { }
+    // icon
+    interface DwebIconProps
+      extends React.DetailedHTMLProps<
+        React.HTMLAttributes<HTMLElement>,
+        HTMLElement
+      >,
+      Icon.IPlaocIcon { }
     // keyboard
     interface DwebKeyboardProps
       extends Omit<
-          React.DetailedHTMLProps<
-            React.HTMLAttributes<HTMLElement>,
-            HTMLElement
-          >,
-          keyof Keyboard.DwebKeyboard
+        React.DetailedHTMLProps<
+          React.HTMLAttributes<HTMLElement>,
+          HTMLElement
         >,
-        Keyboard.DwebKeyboard {}
+        keyof Keyboard.DwebKeyboard
+      >,
+      Keyboard.DwebKeyboard { }
   }
 }
