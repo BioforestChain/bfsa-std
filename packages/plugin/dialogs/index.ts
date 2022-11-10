@@ -23,3 +23,11 @@ if (!customElements.get("dweb-dialog-warning")) {
 if (!customElements.get("dweb-dialog-button")) {
   customElements.define("dweb-dialog-button", BfcsDialogButton);
 }
+
+export {
+  BfcsDialogAlert,
+  BfcsDialogConfirm,
+  BfcsDialogPrompt,
+  BfcsDialogWarning,
+  BfcsDialogButton,
+};

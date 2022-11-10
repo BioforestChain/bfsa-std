@@ -3,7 +3,7 @@
 import { BfcsTopBar } from "./bfcsTopBar.ts";
 import { BfcsTopBarButton } from "./bfcsTopBarButton.ts";
 
-export { BfcsTopBar };
+export { BfcsTopBar, BfcsTopBarButton };
 
 if (!customElements.get("dweb-top-bar")) {
   customElements.define("dweb-top-bar", BfcsTopBar);

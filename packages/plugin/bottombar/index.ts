@@ -5,7 +5,12 @@ import { BfcsBottomBarButton } from "./bfcsBottomBarButton.ts";
 import { BfcsBottomBarIcon } from "./bfcsBottomBarIcon.ts";
 import { BfcsBottomBarText } from "./bfcsBottomBarText.ts";
 
-export { BfcsBottomBar };
+export {
+  BfcsBottomBar,
+  BfcsBottomBarButton,
+  BfcsBottomBarText,
+  BfcsBottomBarIcon,
+};
 
 if (!customElements.get("dweb-bottom-bar")) {
   customElements.define("dweb-bottom-bar", BfcsBottomBar);
