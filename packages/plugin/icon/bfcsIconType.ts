@@ -1,8 +1,10 @@
 export namespace Icon {
-  export enum IconType {
+  export const enum EIconType {
     NamedIcon = "NamedIcon",
     AssetIcon = "AssetIcon",
   }
+
+  export type IconType = "NamedIcon" | "AssetIcon";
 
   export interface IPlaocIcon {
     source: string;

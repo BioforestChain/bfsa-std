@@ -143,7 +143,7 @@ export class BfcsBottomBar extends DwebPlugin {
     this.querySelectorAll("dweb-bottom-bar-button").forEach((childNode) => {
       const icon: Icon.IPlaocIcon = {
         source: "",
-        type: "NamedIcon" as Icon.IconType.NamedIcon,
+        type: "NamedIcon" as Icon.EIconType.NamedIcon,
       };
 
       const colors: BottomBar.IBottomBarColors = {};
@@ -156,7 +156,7 @@ export class BfcsBottomBar extends DwebPlugin {
         icon.source = $.getAttribute("source") ?? "";
         icon.type = $.hasAttribute("type")
           ? ($.getAttribute("type") as Icon.IconType)
-          : ("NamedIcon" as Icon.IconType.NamedIcon);
+          : ("NamedIcon" as Icon.EIconType.NamedIcon);
         icon.description = $.getAttribute("description") ?? "";
         icon.size = $.hasAttribute("size")
           ? ($.getAttribute("size") as unknown as number)

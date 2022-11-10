@@ -146,7 +146,7 @@ export class BfcsTopBar extends DwebPlugin {
       const icon: Icon.IPlaocIcon = {
         source: "",
         // type: TopBar.IconType.NamedIcon,
-        type: "NamedIcon" as Icon.IconType.NamedIcon,
+        type: "NamedIcon" as Icon.EIconType.NamedIcon,
       };
 
       if (childNode.querySelector("dweb-icon")) {
@@ -155,7 +155,7 @@ export class BfcsTopBar extends DwebPlugin {
         icon.source = $?.getAttribute("source") ?? "";
         icon.type = $?.hasAttribute("type")
           ? ($.getAttribute("type") as Icon.IconType)
-          : ("NamedIcon" as Icon.IconType.NamedIcon);
+          : ("NamedIcon" as Icon.EIconType.NamedIcon);
         icon.description = $?.getAttribute("description") ?? "";
         icon.size = $?.hasAttribute("size")
           ? ($.getAttribute("size") as unknown as number)
