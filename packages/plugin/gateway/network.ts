@@ -2,7 +2,7 @@
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
 import { sleep } from "../../util/index.ts";
-let _serviceWorkerIsRead = false
+let _serviceWorkerIsRead = false;
 /**
  * 注册serverWorker方法
  */
@@ -10,14 +10,15 @@ export function registerServiceWorker() {
   addEventListener("load", () => {
     // 能力检测
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("serviceWorker.js", { scope: "/", type: "module" }).then(
-        () => {
-          _serviceWorkerIsRead = true
+      navigator.serviceWorker
+        .register("serviceWorker.js", { scope: "/" })
+        .then(() => {
+          _serviceWorkerIsRead = true;
           console.log("Service Worker register success 🤩");
-        },
-      ).catch(() => {
-        console.log("Service Worker register error 🤯");
-      });
+        })
+        .catch(() => {
+          console.log("Service Worker register error 🤯");
+        });
     }
   });
 }
@@ -28,7 +29,10 @@ export function registerServiceWorker() {
  * @param data 数据
  * @returns Promise<Ok>
  */
-export function createMessage(fun: string, data: TNative = ""): Promise<string> {
+export function createMessage(
+  fun: string,
+  data: TNative = ""
+): Promise<string> {
   if (data instanceof Object) {
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
@@ -42,10 +46,7 @@ export function createMessage(fun: string, data: TNative = ""): Promise<string> 
  * @param url
  * @returns
  */
-export function getCallNativeUi(
-  fun: string,
-  data: TNative = "",
-): Promise<any> {
+export function getCallNativeUi(fun: string, data: TNative = ""): Promise<any> {
   if (data instanceof Object) {
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
@@ -61,7 +62,7 @@ export function getCallNativeUi(
  */
 export function postCallNativeUi(
   fun: string,
-  data: TNative = "",
+  data: TNative = ""
 ): Promise<any> {
   if (data instanceof Object) {
     data = JSON.stringify(data); // stringify 两次转义一下双引号
@@ -80,7 +81,7 @@ export function postCallNativeUi(
 export async function getConnectChannel(url: string) {
   // 等待serviceWorker准备好
   while (!_serviceWorkerIsRead) {
-    await sleep(10)
+    await sleep(10);
   }
 
   const response = await fetch(url, {
@@ -90,8 +91,8 @@ export async function getConnectChannel(url: string) {
       "Content-Type": "application/json",
     },
     mode: "cors",
-  })
-  return await response.text()
+  });
+  return await response.text();
 }
 
 /**
@@ -103,9 +104,9 @@ export async function getConnectChannel(url: string) {
 export async function postConnectChannel(url: string, body: string) {
   // 等待serviceWorker准备好
   do {
-    await sleep(10)
+    await sleep(10);
   } while (!_serviceWorkerIsRead);
-  console.log("postConnectChannel:", url, body)
+  console.log("postConnectChannel:", url, body);
   const response = await fetch(url, {
     method: "POST", // dwebview 无法获取post的body,曲线救国，发送到serverWorker去处理成数据片。
     headers: {
@@ -113,10 +114,8 @@ export async function postConnectChannel(url: string, body: string) {
       "Content-Type": "application/json",
     },
     mode: "cors",
-    body: body
+    body: body,
   });
   const data = await response.text();
   return data;
 }
-
-
