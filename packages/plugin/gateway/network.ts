@@ -2,7 +2,6 @@
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
 import { sleep } from "../../util/index.ts";
-import { decoder } from '../../util/binary.ts';
 let _serviceWorkerIsRead = false
 /**
  * 注册serverWorker方法
@@ -92,15 +91,7 @@ export async function getConnectChannel(url: string) {
     },
     mode: "cors",
   })
-  console.log("getConnectChannel start")
-  let result = ""
-  try {
-    result = await response.text()
-  } catch (error) {
-    console.log("getConnectChannel err", error)
-  }
-  console.log("getConnectChannel:", result)
-  return result
+  return await response.text()
 }
 
 /**

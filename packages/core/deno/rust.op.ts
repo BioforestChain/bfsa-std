@@ -27,9 +27,6 @@ export function loopRustChunk() {
     async next() {
       try {
         const buffer = await Deno.core.opAsync("op_rust_to_js_buffer");
-        const string = new TextDecoder().decode(new Uint8Array(buffer));
-        console.log("service worker 发送 chunk的数据 给deno_js:", string);
-        console.log("service worker 发送 chunk的数据 给deno_js:", buffer);
         return {
           value: buffer,
           done: false,

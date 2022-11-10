@@ -172,7 +172,7 @@ export const doBuildFromJson = async (file: string, args = Deno.args) => {
       });
     }
   } catch (error) {
-    throw new Error(`没有找到 npm.${args[1]}.json文件 ===> ${error.message}`);
+    throw new Error(error);
   }
 };
 

@@ -88,9 +88,7 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
         await fetch(`/channel/${channelId}/chunk=${chunk}`)
           .then(res => res.text(), _ => ({ success: false }));
       }
-      const response = await task.po.promise
-      console.log("swresponse:", response.url, response.status)
-      return response
+      return await task.po.promise
     })())
   });
 
@@ -162,7 +160,7 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
       }))
     } else if (returnId === bodyId) { // parse body
       console.log("文件流推入", channelId, headersId, bodyId, responseContent.byteLength);
-      fetchTask.responseBody.controller.enqueue(responseContent.buffer)
+      fetchTask.responseBody.controller.enqueue(responseContent)
     } else {
       throw new Error("should not happen!! NAN? " + returnId)
     }

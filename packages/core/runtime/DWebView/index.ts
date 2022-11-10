@@ -114,7 +114,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     // deno-lint-ignore no-unused-vars
     creater(boydId: number) {
       let bodyStreamController: ReadableStreamController<ArrayBuffer>
-      const bodyStream = new ReadableStream({ start(controller) { bodyStreamController = controller } })
+      const bodyStream = new ReadableStream<ArrayBuffer>({ start(controller) { bodyStreamController = controller } })
       return {
         bodyStream,
         bodyStreamController: bodyStreamController!
