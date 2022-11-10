@@ -46,9 +46,9 @@ export namespace Keyboard {
     hideKeyboard(): Promise<boolean>;
   }
 
-  // 用于jsx
+  // 用于类型安全
   export interface DwebKeyboard {
-    overlay?: string;
-    hidden?: string;
+    overlay?: string | boolean;
+    hidden?: string | boolean;
   }
 }

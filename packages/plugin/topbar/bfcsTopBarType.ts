@@ -62,16 +62,16 @@ export namespace TopBar {
     getTopbarForegroundColor(): Promise<Color.ColorFormatType>;
   }
 
-  // 用于jsx
+  // 用于类型安全
   export interface DwebTopBar {
     title: string;
     "background-color"?: Color.RGBAHex;
     "foreground-color"?: Color.RGBAHex;
-    overlay?: string;
-    hidden?: string;
+    overlay?: string | boolean;
+    hidden?: string | boolean;
   }
 
   export interface DwebTopBarButton {
-    disabled: string;
+    disabled?: string | boolean;
   }
 }

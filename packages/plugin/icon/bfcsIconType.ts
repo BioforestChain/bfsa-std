@@ -6,7 +6,7 @@ export namespace Icon {
 
   export interface IPlaocIcon {
     source: string;
-    type: IconType;
+    type?: IconType;
     description?: string;
     size?: number;
   }

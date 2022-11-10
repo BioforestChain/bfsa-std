@@ -72,10 +72,10 @@ export namespace StatusBar {
     DARK_CONTENT = 1,
   }
 
-  // 用于jsx
+  // 用于类型安全
   export interface DwebStatusBar {
-    overlay?: string;
-    hidden?: string;
+    overlay?: string | boolean;
+    hidden?: string | boolean;
     "bar-style"?: StatusBarStyle;
     "background-color"?: Color.RGBAHex;
   }

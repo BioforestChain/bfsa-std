@@ -92,19 +92,19 @@ export namespace BottomBar {
     colors?: IBottomBarColors;
   }
 
-  // 用于jsx
+  // 用于类型安全
   export interface DwebBottomBar {
-    hidden?: string;
+    hidden?: string | boolean;
     "background-color"?: Color.RGBAHex;
     "foreground-color"?: Color.RGBAHex;
-    overlay?: string;
+    overlay?: string | boolean;
     height?: string;
   }
 
   export interface DwebBottomBarButton {
-    disabled?: string;
-    selected?: string;
-    diSelectable?: string;
+    disabled?: string | boolean;
+    selected?: string | boolean;
+    diSelectable?: string | boolean;
     "indicator-color"?: Color.RGBAHex;
   }
 
