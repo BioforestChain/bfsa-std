@@ -1,12 +1,12 @@
-// deno-lint-ignore-file no-async-promise-executor
 /////////////////////////////
 /// 这里封装后端调用的异步方法
 /////////////////////////////
 import { TNative } from "@bfsx/typings";
+import { decoder } from "../../util/binary.ts";
 import deno from "./deno.ts";
-import { loopRustString, loopRustBuffer } from "./rust.op.ts";
+import { loopRustBuffer } from "./rust.op.ts";
 
-// const deno = new Deno();
+const RUST_DATA_CATCH = new Map<number, Uint8Array>()
 export class Network {
   /**
    * 异步调用方法,这个是给后端调用的方法，不会传递数据到前端
@@ -14,11 +14,12 @@ export class Network {
    * @param data
    * @returns
    */
-  asyncCallDenoFunction(
+  async asyncCallDenoFunction(
     handleFn: string,
     data: TNative = "''"
   ): Promise<string> {
-    return this.asyncCallDeno(handleFn, data, loopRustString);
+    const buffer = await this.asyncCallDeno(handleFn, data)
+    return decoder.decode(buffer)
   }
 
   /**
@@ -31,50 +32,46 @@ export class Network {
     handleFn: string,
     data: TNative = "''",
   ): Promise<Uint8Array> {
-    return this.asyncCallDeno(handleFn, data, loopRustBuffer);
+    return this.asyncCallDeno(handleFn, data)
   }
 
-  asyncCallDeno(
+  async asyncCallDeno(
     handleFn: string,
-    data: TNative = "''",
-    fun: loopRustBuffer | loopRustString
-    // deno-lint-ignore no-explicit-any
-  ): Promise<any> {
-    return new Promise(async (resolve, _reject) => {
-      if (data instanceof Object) {
-        data = JSON.stringify(data); // stringify 两次转义一下双引号
+    data: TNative = "''"
+  ): Promise<Uint8Array> {
+    if (data instanceof Object) {
+      data = JSON.stringify(data); // stringify 两次转义一下双引号
+    }
+    const { headView, msg } = deno.callFunction(
+      handleFn,
+      JSON.stringify(data)
+    ); // 发送请求
+    // 如果直接有msg返回，那么就代表非denoRuntime环境
+    if (msg) {
+      return msg
+    }
+    do {
+      const data = await loopRustBuffer().next();  // backSystemDataToRust
+      if (data.done) {
+        continue;
       }
-      const { headView, msg } = deno.callFunction(
-        handleFn,
-        JSON.stringify(data)
-      ); // 发送请求
-      // 如果直接有msg返回，那么就代表非denoRuntime环境
-      if (msg) {
-        return resolve(msg);
+      console.log("asyncCallDenoFunction headView  ====> ", data.value);
+      console.log("请求返回的:", data.headView[0], " 创建的 ", headView[0]);
+      // 如果请求是返回了是同一个表示头则返回成功
+      if (headView[0] === data.headView[0]) {
+        return data.value
       }
-      do {
-        const data = await fun("op_rust_to_js_system_buffer").next();
-        if (data.done) {
-          continue;
-        }
-        console.log("asyncCallDenoFunction headView  ====> ", data.value);
-        console.log("data.headView:", data.headView, " xxxx ", headView);
-        // 如果请求是返回了是同一个表示头则返回成功
-        try {
-          const isCur = data!.headView.filter((byte, index) => {
-            return byte === Array.from(headView)[index];
-          });
-          if (isCur.length === 2) {
-            resolve(data.value);
-            break;
-          }
-        } catch (error) {
-          console.log("asyncCallDenoFunction error", error)
-        }
-      } while (true);
-
-    });
+      // 如果需要的跟请求返回的不同 先看缓存里有没有
+      if (RUST_DATA_CATCH.has(headView[0])) {
+        const value = RUST_DATA_CATCH.get(headView[0])!;
+        RUST_DATA_CATCH.delete(headView[0])
+        return value
+      }
+      // 如果不存在，则先存起来
+      RUST_DATA_CATCH.set(data.headView[0], data.value)
+    } while (true);
   }
+
 
   /**
    * 同步调用方法没返回值
@@ -91,33 +88,16 @@ export class Network {
 
 
 type loopRustBuffer = (opFunction: string) => {
-  next(): Promise<{
-    value: Uint8Array;
-    versionView: number[];
-    headView: number[];
-    done: boolean;
-  }>;
+  next(): Promise<TNextBit>;
   return(): void;
   throw(): void;
 };
 
-type loopRustString = (opFunction: string) => {
-  next(): Promise<
-    | {
-      value: Uint8Array;
-      versionView: number[];
-      headView: number[];
-      done: boolean;
-    }
-    | {
-      value: string;
-      versionView: number[];
-      headView: number[];
-      done: boolean;
-    }
-  >;
-  return(): void;
-  throw(): void;
-};
+type TNextBit = {
+  value: Uint8Array;
+  versionView: number[];
+  headView: number[];
+  done: boolean;
+}
 
 export const network = new Network();

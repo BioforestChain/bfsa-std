@@ -17,15 +17,7 @@ class Deno {
    * 加一，用来发消息定位
    */
   bitLeftShifts() {
-    headView[0] += 1; // 大端存储，先存内存高位
-    // 如果末尾字节满了，左移一位，末尾清空
-    if ((headView[1] & 0xff) === 0xff) {
-      headView[1] = 0x00;
-    }
-    // console.log(
-    //   "headView =======>",
-    //   Array.from(headView).map((n) => n.toString(2))
-    // );
+    headView[0] += 1;
   }
 
   /**
@@ -34,9 +26,8 @@ class Deno {
    * @param data
    */
   callFunction(handleFn: string, data = "''") {
-    this.bitLeftShifts();
     const uint8Array = this.structureBinary(handleFn, data);
-    const msg = "";
+    const msg = new Uint8Array();
     if (isAndroid) {
       js_to_rust_buffer(uint8Array); // android - denoOp
     } else {
@@ -64,6 +55,7 @@ class Deno {
    * 第三块分区：数据主体 动态创建
    */
   structureBinary(fn: string, data: string | Uint8Array = "") {
+    this.bitLeftShifts()
     const message = `{"function":"${fn}","data":${data}}`;
 
     // 字符 转 Uint8Array

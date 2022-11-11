@@ -1,5 +1,7 @@
 import { IImportMap } from "../../../metadata/metadataType.ts";
 
+import { RequestEvent } from './netHandle.ts';
+
 
 // /getBlockInfo 
 // [{ "url": "/getBlockInfo", "response": "https://62b94efd41bf319d22797acd.mockapi.io/bfchain/v1/getBlockInfo" }, { "url": "/getBlockHigh", "response": "https://62b94efd41bf319d22797acd.mockapi.io/bfchain/v1/getBlockInfo" }, { "url": "/app/bfchain.dev/index.html", "response": "/app/bfchain.dev/index.html" }, { "url": "/api/*", "response": "./api/*" }, { "url": "/api/upload", "response": "/api/update" }]
@@ -9,8 +11,9 @@ import { IImportMap } from "../../../metadata/metadataType.ts";
  * @param path 
  * @param importMap 
  */
-export async function parseNetData(request: Request, pathname: string, importMap: IImportMap[]) {
+export async function parseNetData(event: RequestEvent, pathname: string, importMap: IImportMap[]) {
   let url = "";
+  const request = event.request
   importMap.map((obj) => {
     if (obj.url.includes(pathname)) {
       url = obj.response;
@@ -39,5 +42,8 @@ export async function parseNetData(request: Request, pathname: string, importMap
       body: request.body,
     })
   }
-  return new Uint8Array(await data.arrayBuffer())
+  event.response.write(new Uint8Array(await data.arrayBuffer()))
+  event.response.end()
 }
+
+

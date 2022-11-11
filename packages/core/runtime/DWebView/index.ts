@@ -1,8 +1,6 @@
-import { callDVebView } from "../../deno/android.fn.ts";
 import { MetaData } from "@bfsx/metadata";
 import { network } from "../../deno/network.ts";
 import { loopRustChunk } from "../../deno/rust.op.ts";
-import deno from "../../deno/deno.ts";
 import { decoder, encoder, sleep } from "../../../util/index.ts";
 import { IImportMap } from "../../../metadata/metadataType.ts";
 import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
@@ -13,10 +11,6 @@ import { RequestEvent, RequestResponse, setPollHandle, setUiHandle } from "./net
 import { parseNetData } from "./dataGateway.ts";
 
 export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
-  private isWaitingData = 0;
-  /**反压高水位，暴露给开发者控制 */
-  hightWaterMark = 20;
-
   entrys: string[];
   importMap: IImportMap[]
   constructor(metaData: MetaData) {
@@ -26,40 +20,33 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     this.initAppMetaData(metaData);
     this.dwebviewToDeno(); // 挂载轮询操作， 这里会自动处理来自前端的请求，并且处理操作返回到前端
 
-    this.on("request", async (event) => {
-      const { url } = event;
-      // 是不是资源文件 （index.html,xxx.js）
-      const isAssetsFile = url.pathname.lastIndexOf(".") !== -1
-      // 填充response headers
-      event.request.headers.forEach((val, key) => {
-        event.response.setHeaders(key, val)
-      })
-      console.log(`request${event.request.method}:${event.channelId}`, url)
+    this.on("request", (event) => {
+      try {
+        const { url } = event;
+        // 是不是资源文件 （index.html,xxx.js）
+        const isAssetsFile = url.pathname.lastIndexOf(".") !== -1
+        // 填充response headers
+        event.request.headers.forEach((val, key) => {
+          event.response.setHeaders(key, val)
+        })
+        console.log(`request${event.request.method}:${event.channelId}`, url)
 
-      if (url.pathname.endsWith("/setUi")) {
-        const result = await setUiHandle(event)
-        console.log("resolveNetworkHeaderRequest:", result)
-        event.response.write(result)
-        event.response.end()
-        return
-      }
-      if (url.pathname.startsWith("/poll")) {
-        const data = await setPollHandle(event)
-        console.log("setPollHandle:", data)
-        if (!data) {
+        if (url.pathname.endsWith("/setUi")) {
+          return setUiHandle(event)
+        }
+        if (url.pathname.startsWith("/poll")) {
+          event.response.write("ok") // 操作成功
+          event.response.end()
+          setPollHandle(event)
           return
         }
-        this.callDwebViewFactory(data.fun, data.result)
-        event.response.write("ok") // 操作成功
-        event.response.end()
-        return
-      }
-      // 如果是需要转发的数据请求 pathname: "/getBlockInfo"
-      if (!isAssetsFile) {
-        const data = await parseNetData(event.request, url.pathname, this.importMap)
-        event.response.write(data)
-        event.response.end()
-        return
+        // 如果是需要转发的数据请求 pathname: "/getBlockInfo"
+        if (!isAssetsFile) {
+          parseNetData(event, url.pathname, this.importMap)
+          return
+        }
+      } catch (error) {
+        console.error("request", error)
       }
     })
   }
@@ -71,13 +58,11 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   async dwebviewToDeno() {
     do {
       const data = await loopRustChunk().next();
-      await sleep(10)
       if (data.done) {
         continue
       }
-      this.isWaitingData++; // 增加一个事件等待数
       console.log("dwebviewToDeno====>", data.value);
-      await this.chunkGateway(data.value)
+      this.chunkGateway(data.value)
       /// 这里是重点，使用 do-while ，替代 finally，可以避免堆栈溢出。
     } while (true);
   }
@@ -171,17 +156,23 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       postBodyDone.resolve()
       return
     }
-    // await sleep(1000)
-    const body_id = headers_body_id;
-    // 如果是body 需要填充Request body
-    const body = this._request_body_cache.forceGet(body_id); // 获取body
-    console.log("推入body:", channelId, headers_body_id, isEnd, contentBytes)
-    // body 流结束
-    if (isEnd) {
-      body.bodyStreamController.close()
-      return
+    try {
+      // await sleep(1000)
+      const body_id = headers_body_id;
+      // 如果是body 需要填充Request body
+      const body = this._request_body_cache.forceGet(body_id); // 获取body
+      console.log("推入body:", channelId, headers_body_id, isEnd, contentBytes)
+      // body 流结束
+      if (isEnd) {
+        body.bodyStreamController.close()
+        return
+      }
+      body.bodyStreamController.enqueue(contentBytes)
+    } catch (error) {
+      console.error("bodyStreamController:", error);
+
     }
-    body.bodyStreamController.enqueue(contentBytes)
+
   }
   /**
    * 分发body数据
@@ -198,38 +189,10 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   */
   // deno-lint-ignore ban-types
   callSWPostMessage(result: object) {
-    this.isWaitingData--; // 完成闭环，减少一个等待数
     network.syncCallDenoFunction(callNative.evalJsRuntime,
       `navigator.serviceWorker.controller.postMessage('${JSON.stringify(result)}')`);
   }
 
-  /**
-   * 数据传递到DwebView
-   * @param data
-   * @returns
-   */
-  callDwebViewFactory(func: string, data: string) {
-    const handler = func as keyof typeof callDVebView;
-    if (handler && callDVebView[handler]) {
-      this.handlerEvalJs(callDVebView[handler], data);
-    }
-    if (this.isWaitingData === 0) return;
-    this.isWaitingData--; // 完成闭环，减少一个等待数
-  }
-
-  /**
-   * 传递消息给DwebView-js,路径为：deno-js-(op)->rust-(ffi)->kotlin-(evaljs)->dwebView-js
-   * @param wb
-   * @param data
-   * @returns
-   */
-  handlerEvalJs(wb: string, data: string) {
-    console.log("handlerEvalJs:", this.isWaitingData, wb, data);
-    deno.callEvalJsStringFunction(
-      callNative.evalJsRuntime,
-      `"javascript:document.querySelector('${wb}').dispatchStringMessage('${data}')"`
-    );
-  }
   /**
   * 初始化app元数据
   * @param metaData  元数据

@@ -3,6 +3,8 @@ import { callKotlin } from "../../deno/android.fn.ts";
 import { network } from "../../deno/network.ts";
 import { contact, decoder } from '../../../util/binary.ts';
 import { callNative } from "../../native/native.fn.ts";
+import { callDVebView } from "../../deno/android.fn.ts";
+import deno from "../../deno/deno.ts";
 
 export class RequestEvent {
   constructor(readonly request: Request, readonly response: RequestResponse, readonly channelId: string) {
@@ -54,20 +56,26 @@ export async function setUiHandle(event: RequestEvent) {
   const { url } = event;
   const searchParams = url.searchParams.get("data")
   console.log(`bodyString${event.request.method}:`, searchParams)
-  // 如果没有get请求参数，又没有携带body
+  // 处理GET
   if (searchParams) {
-    return await network.asyncCallDenoFunction(
+    const data = await network.asyncCallDenoFunction(
       callKotlin.setDWebViewUI,
       searchParams
     );
+    console.log("resolveSetUiHandleData:", data)
+    event.response.write(data)
+    event.response.end()
+    return
   }
+  // 如果没有get请求参数，又没有携带body
   if (!event.request.body) {
     return "Parameter passing cannot be empty！"
   }
-  console.log("bodyString3")
+  // 处理POST
   const result = await readReadableStream(event.request.body)
-  console.log("bodyString6", result)
-  return decoder.decode(result)
+  console.log("resolveSetUiHandle:", decoder.decode(result))
+  event.response.write(decoder.decode(result))
+  event.response.end()
 }
 
 /**
@@ -105,7 +113,7 @@ export async function setPollHandle(event: RequestEvent) {
     handler.function,
     handler.data
   );
-  return { fun: handler.function, result }
+  callDwebViewFactory(handler.function, result)
 }
 
 
@@ -114,10 +122,8 @@ export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Ui
   return new Promise(async (resolve) => {
     let result = new Uint8Array()
     const buff = body.getReader()
-    console.log("bodyString4")
     while (true) {
       const { value, done } = await buff.read()
-      console.log("bodyString5", value, done)
       if (done) {
         resolve(result)
         break
@@ -126,4 +132,30 @@ export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Ui
       result = contact(result, value)
     }
   })
+}
+
+/**
+ * 数据传递到DwebView
+ * @param data
+ * @returns
+ */
+function callDwebViewFactory(func: string, data: string) {
+  const handler = func as keyof typeof callDVebView;
+  if (handler && callDVebView[handler]) {
+    handlerEvalJs(callDVebView[handler], data);
+  }
+}
+
+/**
+ * 传递消息给DwebView-js,路径为：deno-js-(op)->rust-(ffi)->kotlin-(evaljs)->dwebView-js
+ * @param wb
+ * @param data
+ * @returns
+ */
+function handlerEvalJs(wb: string, data: string) {
+  console.log("handlerEvalJs:", wb, data);
+  deno.callEvalJsStringFunction(
+    callNative.evalJsRuntime,
+    `"javascript:document.querySelector('${wb}').dispatchStringMessage('${data}')"`
+  );
 }
