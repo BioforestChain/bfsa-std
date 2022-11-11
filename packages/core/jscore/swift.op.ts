@@ -6,5 +6,5 @@ import { callNative } from "../native/native.fn.ts";
  * @param data
  */
 export function sendJsCoreNotification(data: string) {
-  jscore.callJavaScriptWith(callNative.sendNotification, data);
+  jscore.callJavaScriptWithFunctionNameParam(callNative.sendNotification, data);
 }

@@ -19,7 +19,7 @@ export async function applyPermissions(permissions: EPermissions) {
     return per;
   } else {
     // TODO(kingsword09): 权限和android有点对不上
-    // const per = jscore.callJavaScriptWith(
+    // const per = jscore.callJavaScriptWithFunctionNameParam(
     //   callNative.ApplyPermissions,
     //   JSON.stringify(permissions)
     // );

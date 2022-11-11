@@ -11,7 +11,7 @@ export const openQrScanner = () => {
     if (isAndroid) {
       network.syncCallDenoFunction(callNative.openQrScanner);
     } else {
-      jscore.callJavaScriptWith(callNative.openQrScanner);
+      jscore.callJavaScriptWithFunctionNameParam(callNative.openQrScanner);
     }
   });
 };
@@ -25,7 +25,7 @@ export const openBarScanner = () => {
     if (isAndroid) {
       network.syncCallDenoFunction(callNative.openBarcodeScanner);
     } else {
-      jscore.callJavaScriptWith(callNative.openBarcodeScanner);
+      jscore.callJavaScriptWithFunctionNameParam(callNative.openBarcodeScanner);
     }
   });
 };
