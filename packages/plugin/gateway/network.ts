@@ -102,9 +102,9 @@ export async function getConnectChannel(url: string) {
 
 export async function postConnectChannel(url: string, body: string) {
   // 等待serviceWorker准备好
-  do {
+  while (!_serviceWorkerIsRead) {
     await sleep(10)
-  } while (!_serviceWorkerIsRead);
+  }
   console.log("postConnectChannel:", url, body)
   const response = await fetch(url, {
     method: "POST", // dwebview 无法获取post的body,曲线救国，发送到serverWorker去处理成数据片。

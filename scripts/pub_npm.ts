@@ -45,6 +45,10 @@ export const doPubFromJson = async (
 };
 
 if (import.meta.main) {
+  let target = "sw";
+  if (Deno.args[0]) {
+    target = Deno.args[0];
+  }
   // deno-lint-ignore no-explicit-any
-  await doPubFromJson((import.meta as any).resolve("./npm.all.json"));
+  await doPubFromJson((import.meta as any).resolve(`./npm.${target}.json`));
 }

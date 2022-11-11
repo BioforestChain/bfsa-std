@@ -1,4 +1,4 @@
-import { callDVebView, callKotlin } from "../../deno/android.fn.ts";
+import { callDVebView } from "../../deno/android.fn.ts";
 import { MetaData } from "@bfsx/metadata";
 import { network } from "../../deno/network.ts";
 import { loopRustChunk } from "../../deno/rust.op.ts";
@@ -9,7 +9,7 @@ import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-m
 import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
 import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/event-map_emitter/index.ts';
 import { callNative } from "../../native/native.fn.ts";
-import { RequestEvent, RequestResponse } from "./netHandle.ts";
+import { RequestEvent, RequestResponse, setPollHandle, setUiHandle } from "./netHandle.ts";
 import { parseNetData } from "./dataGateway.ts";
 
 export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
@@ -30,33 +30,27 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       const { url } = event;
       // 是不是资源文件 （index.html,xxx.js）
       const isAssetsFile = url.pathname.lastIndexOf(".") !== -1
-      let result = "no request body！";
       // 填充response headers
       event.request.headers.forEach((val, key) => {
         event.response.setHeaders(key, val)
       })
-      console.log("requestGETurl :", event.request.method, url)
+      console.log(`request${event.request.method}:${event.channelId}`, url)
 
       if (url.pathname.endsWith("/setUi")) {
-        let bodyString = url.searchParams.get("data")
-        console.log(`bodyString${event.request.method}:`, bodyString)
-        // 如果没有get请求参数，又没有携带body
-        if (!bodyString) {
-          try {
-            bodyString = await event.request.text();
-          } catch (error) {
-            console.error("xx", bodyString, error);
-          }
-          event.response.write(result)
-          event.response.end
-          return
-        }
-        result = await network.asyncCallDenoFunction(
-          callKotlin.setDWebViewUI,
-          bodyString
-        );
+        const result = await setUiHandle(event)
         console.log("resolveNetworkHeaderRequest:", result)
         event.response.write(result)
+        event.response.end()
+        return
+      }
+      if (url.pathname.startsWith("/poll")) {
+        const data = await setPollHandle(event)
+        console.log("setPollHandle:", data)
+        if (!data) {
+          return
+        }
+        this.callDwebViewFactory(data.fun, data.result)
+        event.response.write("ok") // 操作成功
         event.response.end()
         return
       }
@@ -64,7 +58,6 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       if (!isAssetsFile) {
         const data = await parseNetData(event.request, url.pathname, this.importMap)
         event.response.write(data)
-        console.log("映射返回:", data)
         event.response.end()
         return
       }
@@ -113,8 +106,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   private _request_body_cache = EasyMap.from({
     // deno-lint-ignore no-unused-vars
     creater(boydId: number) {
-      let bodyStreamController: ReadableStreamController<ArrayBuffer>
-      const bodyStream = new ReadableStream<ArrayBuffer>({ start(controller) { bodyStreamController = controller } })
+      let bodyStreamController: ReadableStreamController<Uint8Array>
+      const bodyStream = new ReadableStream<Uint8Array>({ start(controller) { bodyStreamController = controller } })
       return {
         bodyStream,
         bodyStreamController: bodyStreamController!
@@ -141,8 +134,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       console.log("constentString:", decoder.decode(contentBytes))
       const { url, headers, method } = JSON.parse(decoder.decode(contentBytes));
       let req: Request;
+      const body = this._request_body_cache.forceGet(headersId + 1); // 获取body
       if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-        const body = this._request_body_cache.forceGet(headersId + 1); // 获取body
         req = new Request(url, { method, headers, body: body.bodyStream });
       } else {
         req = new Request(url, { method, headers });
@@ -178,9 +171,11 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       postBodyDone.resolve()
       return
     }
+    // await sleep(1000)
+    const body_id = headers_body_id;
     // 如果是body 需要填充Request body
-    const body = this._request_body_cache.forceGet(headers_body_id); // 获取body
-    console.log("推入body:", headers_body_id, isEnd, contentBytes)
+    const body = this._request_body_cache.forceGet(body_id); // 获取body
+    console.log("推入body:", channelId, headers_body_id, isEnd, contentBytes)
     // body 流结束
     if (isEnd) {
       body.bodyStreamController.close()
@@ -188,82 +183,6 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     }
     body.bodyStreamController.enqueue(contentBytes)
   }
-
-
-  // /**
-  //  * 解析网络请求
-  //  * @param chunk 
-  //  */
-  // async parseChunkBinary(chunk: Uint8Array) {
-
-  //   // 主体内容
-  //   const hexBody = chunk.slice(1, chunk.length - 1)
-  //   // headerId偶数为请求头
-  //   const stringBody = new TextDecoder().decode(new Uint8Array(hexBody));
-  //   // 解析出真正的请求
-  //   const stringArray = stringBody.split("|", 2)
-  //   console.log("stringArray:", stringArray)
-  //   const stringData = stringArray[0]
-  //   const headers = stringArray[1]
-  //   // 拿到真正的请求消息
-  //   const stringPath = new URL(stringData).pathname
-  //   console.log("stringPath:", stringPath)
-  //   // 资源文件不处理
-  //   if (stringPath.lastIndexOf(".") !== -1) {
-  //     return
-  //   }
-  //   // 如果不存在请求体
-  //   if (stringPath.lastIndexOf("=") == -1) {
-  //     parseNetData(stringPath, this.importMap)
-  //     return
-  //   }
-  //   // 表示为get请求,携带了param参数
-  //   if (headers_body_id % 2 == 0) {
-  //     await this.resolveNetworkHeaderRequest(stringPath, headers, headers_body_id)
-  //     return
-  //   }
-  //   // 分发body数据
-  //   this.resolveNetworkBodyRequest(stringPath, Boolean(isEnd))
-  // }
-
-  // /**
-  //  * 分发头部请求网络请求
-  //  * @param path 
-  //  * @param headers 
-  //  */
-  // async resolveNetworkHeaderRequest(path: string, headers: string, status = 200, statusText = "success") {
-  //   const bufferData = path.substring(path.lastIndexOf("=") + 1)
-
-  //   if (path.startsWith("/setUi")) {
-  //     const result = await network.asyncCallDenoFunction(
-  //       callKotlin.setDWebViewUI,
-  //       bufferData
-  //     );
-  //     console.log("resolveNetworkHeaderRequest:", result)
-  //     this.callSWPostMessage({ result: JSON.stringify(result), headersId: string, channelId: this.channelId, headers, status, statusText })
-  //     return
-  //   }
-
-  //   if (path.startsWith("/poll")) {
-  //     const buffer = bufferData.split(",").map((value) => {
-  //       return Number(value)
-  //     });
-  //     const stringData = new TextDecoder().decode(new Uint8Array(buffer))
-  //     /// 如果是操作对象，拿出对象的操作函数和数据,传递给Kotlin
-  //     const handler = JSON.parse(stringData);
-  //     // // 保证存在操作函数中
-  //     if (!Object.values(callNative).includes(handler.function)) {
-  //       return
-  //     }
-  //     const result = await network.asyncCallDenoFunction(
-  //       handler.function,
-  //       handler.data
-  //     );
-  //     this.callDwebViewFactory(handler.function, result)
-  //     return
-  //   }
-  // }
-
   /**
    * 分发body数据
    * @param path  数据
