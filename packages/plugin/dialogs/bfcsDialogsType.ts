@@ -1,5 +1,3 @@
-import { Data } from "../types/dataType.ts";
-
 export namespace Dialogs {
   export interface IBaseConfig {
     title: string;
@@ -40,5 +38,16 @@ export namespace Dialogs {
       confirmFunc: string,
       cancelFunc?: string
     ): Promise<void>;
+  }
+
+  // 用于类型安全
+  export interface DwebDialogsAlert extends IAlertConfig {
+    visible: string | boolean;
+  }
+  export interface DwebDialogsPrompt extends IPromptConfig {
+    visible: string | boolean;
+  }
+  export interface DwebDialogsConfirm extends IConfirmConfig {
+    visible: string | boolean;
   }
 }
