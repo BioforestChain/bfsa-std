@@ -43,7 +43,6 @@ export namespace Dialogs {
   // 用于类型安全
   interface DwebDialogsBase {
     title: string;
-    confirmText: string;
     disOnBackPress?: string | boolean;
     disOnClickOutside?: string | boolean;
   }
@@ -54,12 +53,10 @@ export namespace Dialogs {
   export interface DwebDialogsPrompt extends DwebDialogsBase {
     visible: string | boolean;
     label: string;
-    cancelText?: string;
     defaultValue?: string;
   }
   export interface DwebDialogsConfirm extends DwebDialogsBase {
     visible: string | boolean;
     message: string;
-    cancelText?: string;
   }
 }
