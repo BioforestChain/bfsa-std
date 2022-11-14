@@ -41,13 +41,25 @@ export namespace Dialogs {
   }
 
   // 用于类型安全
-  export interface DwebDialogsAlert extends IAlertConfig {
-    visible: string | boolean;
+  interface DwebDialogsBase {
+    title: string;
+    confirmText: string;
+    disOnBackPress?: string | boolean;
+    disOnClickOutside?: string | boolean;
   }
-  export interface DwebDialogsPrompt extends IPromptConfig {
+  export interface DwebDialogsAlert extends DwebDialogsBase {
     visible: string | boolean;
+    content: string;
   }
-  export interface DwebDialogsConfirm extends IConfirmConfig {
+  export interface DwebDialogsPrompt extends DwebDialogsBase {
     visible: string | boolean;
+    label: string;
+    cancelText?: string;
+    defaultValue?: string;
+  }
+  export interface DwebDialogsConfirm extends DwebDialogsBase {
+    visible: string | boolean;
+    message: string;
+    cancelText?: string;
   }
 }
