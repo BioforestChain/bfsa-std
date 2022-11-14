@@ -4,20 +4,28 @@
 
 import { eval_js, js_to_rust_buffer } from "./rust.op.ts";
 import { isAndroid } from "../runtime/device.ts";
+import { contact } from '../../util/binary.ts';
 
-const versionView = new Uint8Array(new ArrayBuffer(1));
-const headView = new Uint8Array(new ArrayBuffer(2)); // 初始化头部标记
-versionView[0] = 0x01; // 版本号都是1，表示消息
+
 class Deno {
+  versionView = new Uint8Array(new ArrayBuffer(1));
+  headView = new Uint8Array(new ArrayBuffer(2)); // 初始化头部标记
   constructor() {
-    this.bitLeftShifts();
+    this.versionView[0] = 0x01; // 版本号都是1，表示消息
+    this.headView[0] = 1
   }
 
-  /**
-   * 加一，用来发消息定位
-   */
-  bitLeftShifts() {
-    headView[0] += 1;
+  headViewAdd() {
+    this.headView[0]++
+    if (this.headView[0] === 127) {
+      this.headView[0] = 0
+      this.headView[1]++
+    }
+    if (this.headView[1] === 127) {
+      this.headView[0] = 1
+      this.headView[1] = 0
+    }
+    console.log("🥶好好好：", this.headView[0], this.headView[1])
   }
 
   /**
@@ -26,14 +34,16 @@ class Deno {
    * @param data
    */
   callFunction(handleFn: string, data = "''") {
-    const uint8Array = this.structureBinary(handleFn, data);
+    const { uint8Array, headView } = this.structureBinary(handleFn, data);
     const msg = new Uint8Array();
+    // 发送消息
     if (isAndroid) {
       js_to_rust_buffer(uint8Array); // android - denoOp
     } else {
       // msg = await netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
-    return { versionView, headView, msg };
+    this.headViewAdd()
+    return { versionView: this.versionView, headView, msg };
   }
   /**
    * 调用evaljs 执行js
@@ -41,7 +51,7 @@ class Deno {
    * @param data
    */
   callEvalJsStringFunction(handleFn: string, data = "''") {
-    const uint8Array = this.structureBinary(handleFn, data);
+    const { uint8Array } = this.structureBinary(handleFn, data);
     if (isAndroid) {
       eval_js(uint8Array); // android - denoOp
     } else {
@@ -55,14 +65,18 @@ class Deno {
    * 第三块分区：数据主体 动态创建
    */
   structureBinary(fn: string, data: string | Uint8Array = "") {
-    this.bitLeftShifts()
     const message = `{"function":"${fn}","data":${data}}`;
 
     // 字符 转 Uint8Array
     const encoder = new TextEncoder();
     const uint8Array = encoder.encode(message);
 
-    return this.concatenate(versionView, headView, uint8Array);
+    return {
+      uint8Array: contact(
+        this.versionView,
+        this.headView, uint8Array),
+      headView: new Uint8Array(this.headView)
+    };
   }
 
   /**

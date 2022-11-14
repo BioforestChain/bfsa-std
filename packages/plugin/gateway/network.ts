@@ -88,11 +88,13 @@ export async function getConnectChannel(url: string) {
     method: "GET", // dwebview 无法获取post的body
     headers: {
       "Access-Control-Allow-Origin": "*", // 客户端开放，不然会报cors
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain",
     },
     mode: "cors",
   });
-  return await response.text();
+  const data = await response.text();
+  console.log("xgetConnectChannelx", data);
+  return data
 }
 
 /**
@@ -111,7 +113,7 @@ export async function postConnectChannel(url: string, body: string) {
     method: "POST", // dwebview 无法获取post的body,曲线救国，发送到serverWorker去处理成数据片。
     headers: {
       "Access-Control-Allow-Origin": "*", // 客户端开放，不然会报cors
-      "Content-Type": "application/json",
+      "Content-Type": "text/plain",
     },
     mode: "cors",
     body: body,

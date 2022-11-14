@@ -103,6 +103,7 @@ export async function setPollHandle(event: RequestEvent) {
   }
 
   const stringData = new TextDecoder().decode(buffer)
+  console.log("setPollHandlestringData:", stringData)
   /// 如果是操作对象，拿出对象的操作函数和数据,传递给Kotlin
   const handler = JSON.parse(stringData);
   // // 保证存在操作函数中

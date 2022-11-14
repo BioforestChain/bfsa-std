@@ -1,5 +1,6 @@
 // your OS.
 import "@bfsx/typings";
+
 /**js 到rust的消息 */
 export function js_to_rust_buffer(data: Uint8Array) {
   Deno.core.opSync("op_js_to_rust_buffer", data);
@@ -40,42 +41,31 @@ export function loopRustChunk() {
     }
   };
 }
-
 /**循环从rust里拿数据 */
-export function loopRustBuffer() {
-  return {
-    async next() {
-      let buffer: number[] = [];
-      let versionView: number[] = [];
-      let headView: number[] = [];
-      try {
-        buffer = await Deno.core.opAsync("op_rust_to_js_system_buffer"); // backSystemDataToRust
-        if (buffer[0] === 1) {
-          versionView = buffer.splice(0, 1); //拿到版本号
-          headView = buffer.splice(0, 2); // 拿到头部标记
-        }
-        const buff = new Uint8Array(buffer);
-        console.log("native 发送 buff 消息给deno_js:", buff);
-        return {
-          value: buff,
-          versionView,
-          headView,
-          done: false,
-        };
-      } catch (_e) {
-        return {
-          value: new Uint8Array(),
-          versionView,
-          headView,
-          done: true,
-        };
-      }
-    },
-    return() {
-      /// 这里可以手动控制异步迭代器被 “中止” 释放
-    },
-    throw() {
-      /// 这里可以手动控制异步迭代器被 “中止” 释放
-    },
-  };
+export async function getRustBuffer() {
+  let buffer: number[] = [];
+  let versionView: number[] = [];
+  let headView: number[] = [];
+  try {
+    buffer = await Deno.core.opAsync("op_rust_to_js_system_buffer"); // backSystemDataToRust
+    // 如果是普通消息,versionID == 1
+    if (buffer[0] === 1) {
+      versionView = buffer.splice(0, 1); //拿到版本号
+      headView = buffer.splice(0, 2); // 拿到头部标记
+    }
+    const buff = new Uint8Array(buffer);
+    return {
+      value: buff,
+      versionView,
+      headView,
+      done: false,
+    };
+  } catch (_e) {
+    return {
+      value: new Uint8Array(),
+      versionView,
+      headView,
+      done: true,
+    };
+  }
 }
