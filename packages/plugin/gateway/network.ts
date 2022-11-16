@@ -11,7 +11,7 @@ export function registerServiceWorker() {
     // 能力检测
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
-        .register("serviceWorker.js", { scope: "/" })
+        .register("serviceWorker.js", { scope: "/", type: "module" })
         .then(() => {
           _serviceWorkerIsRead = true;
           console.log("Service Worker register success 🤩");
@@ -108,15 +108,13 @@ export async function postConnectChannel(url: string, body: string) {
   do {
     await sleep(10);
   } while (!_serviceWorkerIsRead);
-  console.log("postConnectChannel:", url, body);
   const response = await fetch(url, {
     method: "POST", // dwebview 无法获取post的body,曲线救国，发送到serverWorker去处理成数据片。
     headers: {
       "Access-Control-Allow-Origin": "*", // 客户端开放，不然会报cors
-      "Content-Type": "text/plain",
     },
     mode: "cors",
-    body: body,
+    body: JSON.stringify(body),
   });
   const data = await response.text();
   return data;

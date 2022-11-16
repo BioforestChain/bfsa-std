@@ -66,7 +66,7 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
       return
     }
     /// 开始向外发送数据，切片发送
-    console.log(`HttpRequestBuilder1 ${request.method},url: ${request.url},body:${request.body}`)
+    console.log(`HttpRequestBuilder ${request.method},url: ${request.url}`)
 
     event.respondWith((async () => {
       const client = await self.clients.get(event.clientId)
@@ -102,7 +102,7 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
 
     async *[Symbol.asyncIterator]() {
       const { request, headersId, bodyId } = this
-      console.log("headerId:", headersId, "bodyId:", bodyId,)
+      // console.log("headerId:", headersId, "bodyId:", bodyId)
       const headers: Record<string, string> = {}
       request.headers.forEach((value, key) => {
         if (key === "user-agent") { // user-agent 太长了先不要
@@ -116,16 +116,19 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
         encoder.encode(JSON.stringify({ url: request.url, headers, method: request.method.toUpperCase() })),
         uint8_to_binary(0)
       );
-      console.log("有body数据传递1：", request.body);
+      const buffer = await request.blob()
+      // console.log("有body数据传递1", request.method, buffer);
+      const body = buffer.stream()
       // 如果body为空
-      if (request.body) {
-        const reader = request.body.getReader()
+      if (body) {
+        // deno-lint-ignore no-explicit-any
+        const reader = (body as any).getReader();
         do {
           const { done, value } = await reader.read()
           if (done) {
             break
           }
-          console.log("有body数据传递2：", value)
+          // console.log("有body数据传递2：", value)
           yield binaryToHex(contact(uint16_to_binary(bodyId), value, uint8_to_binary(0)));
         } while (true)
       }

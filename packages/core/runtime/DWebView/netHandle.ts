@@ -55,9 +55,9 @@ export class RequestResponse {
 export async function setUiHandle(event: RequestEvent) {
   const { url } = event;
   const searchParams = url.searchParams.get("data")
-  console.log(`bodyString${event.request.method}:`, searchParams)
   // 处理GET
   if (searchParams) {
+    console.log(`bodyString${event.request.method}:`, decoder.decode(new Uint8Array(searchParams.split(",").map(v => +v))))
     const data = await network.asyncCallDenoFunction(
       callKotlin.setDWebViewUI,
       searchParams
@@ -73,8 +73,12 @@ export async function setUiHandle(event: RequestEvent) {
   }
   // 处理POST
   const result = await readReadableStream(event.request.body)
-  console.log("resolveSetUiHandle:", decoder.decode(result))
-  event.response.write(decoder.decode(result))
+
+  const data = await network.asyncCallDenoFunction(
+    callKotlin.setDWebViewUI,
+    result.join()
+  );
+  event.response.write(data)
   event.response.end()
 }
 

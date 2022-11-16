@@ -4,7 +4,7 @@
 
 import { eval_js, js_to_rust_buffer } from "./rust.op.ts";
 import { isAndroid } from "../runtime/device.ts";
-import { contact } from '../../util/binary.ts';
+import { contact, encoder } from '../../util/binary.ts';
 
 
 class Deno {
@@ -25,7 +25,6 @@ class Deno {
       this.headView[0] = 1
       this.headView[1] = 0
     }
-    console.log("🥶好好好：", this.headView[0], this.headView[1])
   }
 
   /**
@@ -68,7 +67,6 @@ class Deno {
     const message = `{"function":"${fn}","data":${data}}`;
 
     // 字符 转 Uint8Array
-    const encoder = new TextEncoder();
     const uint8Array = encoder.encode(message);
 
     return {

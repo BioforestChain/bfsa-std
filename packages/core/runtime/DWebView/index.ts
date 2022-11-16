@@ -1,7 +1,7 @@
 import { MetaData } from "@bfsx/metadata";
 import { network } from "../../deno/network.ts";
 import { loopRustChunk } from "../../deno/rust.op.ts";
-import { decoder, encoder, sleep } from "../../../util/index.ts";
+import { decoder, encoder } from "../../../util/index.ts";
 import { IImportMap } from "../../../metadata/metadataType.ts";
 import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
 import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
@@ -32,7 +32,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         console.log(`request${event.request.method}:${event.channelId}`, url)
 
         if (url.pathname.endsWith("/setUi")) {
-          return setUiHandle(event)
+          setUiHandle(event)
+          return
         }
         if (url.pathname.startsWith("/poll")) {
           event.response.write("ok") // 操作成功
