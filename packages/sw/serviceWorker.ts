@@ -3,8 +3,13 @@
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-promise-out/PromiseOut.ts";
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
+import { Channels, ECommand, matchCommand } from "./Channel.ts";
+import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, binaryToHex } from "../util/binary.ts";
 
 ((self: ServiceWorkerGlobalScope) => {
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
 
   const CLIENT_FETCH_CHANNEL_ID_WM = EasyWeakMap.from({
     creater(_client: Client) {
@@ -56,8 +61,63 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
     }
   })
 
+
+
+  let back_pressure: PromiseOut<void> | undefined;
+  type TQFetch = {
+    url: string,
+    task: PromiseOut<Response>
+  }
+  const url_queue: TQFetch[] = [];
+  let running = false;
+  const queueFetch = async (url: string) => {
+    const task = new PromiseOut<Response>();
+    url_queue.push({ url, task });
+    await _runFetch();
+    return task.promise
+  }
+  const _runFetch = async () => {
+    if (running) { return }
+    running = true;
+    while (true) {
+      const item = url_queue.shift();
+      if (item === undefined) {
+        break
+      }
+      if (back_pressure) {
+        await back_pressure.promise
+      }
+      await fetch(item.url).then(async res => {
+        const { success } = await res.json()
+        if (success === true) {
+          back_pressure = new PromiseOut()
+        }
+      }
+      ).catch(err => {
+        throw new Error(err);
+      })
+    }
+    running = false
+  }
+  const channels: Channels[] = []
+
   // remember event.respondWith must sync call🐰
-  self.addEventListener("fetch", (event) => {
+  self.addEventListener("fetch", async (event) => {
+    const client = await self.clients.get(event.clientId)
+
+    if (client === undefined) {
+      return fetch(event.request)
+    }
+
+    const channelId = await CLIENT_FETCH_CHANNEL_ID_WM.forceGet(client)
+    const task = FETCH_EVENT_TASK_MAP.forceGet({ event, channelId });
+
+    for (const channel of channels) {
+      const matchResult = channel.match(event.request);
+      if (matchResult) {
+        event.respondWith(matchResult)
+      }
+    }
 
     const request = event.request;
     const path = new URL(request.url).pathname
@@ -69,12 +129,6 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
     console.log(`HttpRequestBuilder ${request.method},url: ${request.url}`)
 
     event.respondWith((async () => {
-      const client = await self.clients.get(event.clientId)
-      if (client === undefined) {
-        return fetch(event.request)
-      }
-      const channelId = await CLIENT_FETCH_CHANNEL_ID_WM.forceGet(client)
-      const task = FETCH_EVENT_TASK_MAP.forceGet({ event, channelId });
 
       // Build chunks
       const chunks = new HttpRequestBuilder(
@@ -85,13 +139,63 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
 
       // 迭代发送
       for await (const chunk of chunks) {
-        fetch(`/channel/${channelId}/chunk=${chunk}`)
-          .then(res => res.text(), _ => ({ success: false }));
+        await queueFetch(`/channel/${channelId}/chunk=${chunk}`).then(res => res.text())
       }
       return await task.po.promise
     })())
   });
 
+  // return data 🐯
+  self.addEventListener('message', event => {
+    if (typeof event.data !== 'string') return
+    // 匹配后端打开背压的命令
+    if (matchCommand(event.data, ECommand.openBackPressure)) {
+      back_pressure?.resolve()
+      return
+    }
+    // 匹配后端创建一个channel 线程的命令
+    if (matchCommand(event.data, ECommand.openChannel)) {
+      const data = JSON.parse(event.data)
+      channels.push(data) // { type: "pattern", url:"" }
+      return
+    }
+
+    const data = JSON.parse(event.data);
+    const returnId: number = data.returnId;
+    const channelId: string = data.channelId;
+    const chunk = hexToBinary(data.chunk);
+    const end = chunk.subarray(-1)[0] === 1;
+    const bodyId = returnId | 1;
+    const headersId = bodyId - 1;
+
+
+    console.log(`serviceWorker chunk=> ${chunk},end:${end}`);
+    const fetchTask = FETCH_EVENT_TASK_MAP.get(`${channelId}-${headersId}`);
+    // 如果存在
+    if (fetchTask === undefined) {
+      throw new Error("no found fetch task:" + returnId)
+    }
+    const responseContent = chunk.slice(0, -1);
+    if (returnId === headersId) { // parse headers
+      console.log("responseContent:", decoder.decode(responseContent))
+      const { statusCode, headers } = JSON.parse(decoder.decode(responseContent))
+      fetchTask.responseHeaders = headers;
+      fetchTask.responseStatusCode = statusCode;
+      fetchTask.po.resolve(new Response(fetchTask.responseBody.stream, {
+        status: statusCode,
+        headers,
+      }))
+    } else if (returnId === bodyId) { // parse body
+      console.log("文件流推入", channelId, headersId, bodyId, responseContent.byteLength);
+      fetchTask.responseBody.controller.enqueue(responseContent)
+    } else {
+      throw new Error("should not happen!! NAN? " + returnId)
+    }
+    if (end) {
+      console.log("文件流关闭", channelId, headersId, bodyId);
+      fetchTask.responseBody.controller.close();
+    }
+  })
 
   class HttpRequestBuilder {
     constructor(
@@ -136,113 +240,6 @@ import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/exten
     }
   }
 
-  // return data 🐯
-  self.addEventListener('message', event => {
-    if (typeof event.data !== 'string') return
-    const data = JSON.parse(event.data);
-    const returnId: number = data.returnId;
-    const channelId: string = data.channelId;
-    const chunk = hexToBinary(data.chunk);
-    const end = chunk.subarray(-1)[0] === 1;
-    const bodyId = returnId | 1;
-    const headersId = bodyId - 1;
-
-    console.log(`serviceWorker chunk=> ${chunk},end:${end}`);
-    const fetchTask = FETCH_EVENT_TASK_MAP.get(`${channelId}-${headersId}`);
-    // 如果存在
-    if (fetchTask === undefined) {
-      throw new Error("no found fetch task:" + returnId)
-    }
-    const responseContent = chunk.slice(0, -1);
-    if (returnId === headersId) { // parse headers
-      console.log("responseContent:", decoder.decode(responseContent))
-      const { statusCode, headers } = JSON.parse(decoder.decode(responseContent))
-      fetchTask.responseHeaders = headers;
-      fetchTask.responseStatusCode = statusCode;
-      fetchTask.po.resolve(new Response(fetchTask.responseBody.stream, {
-        status: statusCode,
-        headers,
-      }))
-    } else if (returnId === bodyId) { // parse body
-      console.log("文件流推入", channelId, headersId, bodyId, responseContent.byteLength);
-      fetchTask.responseBody.controller.enqueue(responseContent)
-    } else {
-      throw new Error("should not happen!! NAN? " + returnId)
-    }
-    if (end) {
-      console.log("文件流关闭", channelId, headersId, bodyId);
-      fetchTask.responseBody.controller.close();
-    }
-  })
-
-  /**
-   *  创建ReadableStream
-   * @param arrayBuffer 
-   * @param chunkSize 64 kib
-   * @returns 
-   */
-  // deno-lint-ignore no-unused-vars
-  function createReadableStream(arrayBuffer: ArrayBuffer, chunkSize = 64 * 1024) {
-    if (arrayBuffer.byteLength === 0) return null
-    return new ReadableStream({
-      start(controller) {
-        const bytes = new Uint8Array(arrayBuffer)
-        for (let readIndex = 0; readIndex < bytes.byteLength;) {
-          controller.enqueue(bytes.subarray(readIndex, readIndex += chunkSize))
-        }
-        controller.close()
-      }
-    });
-  }
-
-
-
-  const contact = (...arrs: Uint8Array[]) => {
-    const length = arrs.reduce((l, a) => l += a.length, 0);
-    const r = new Uint8Array(length);
-    let walk = 0
-    for (const arr of arrs) {
-      r.set(arr, walk)
-      walk += arr.length
-    }
-    return r
-  }
-  const contactToHex = (...arrs: Uint8Array[]) => {
-    const hexs = []
-    for (const arr of arrs) {
-      hexs.push(binaryToHex(arr))
-    }
-    return hexs.join(",")
-  }
-
-  const uint16_to_binary = (num: number) => {
-    const r = new Uint16Array([num]);
-    return new Uint8Array(r.buffer)
-  }
-  const uint8_to_binary = (num: number) => {
-    return new Uint8Array([num]);
-  }
-
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-
-  const binaryToHex = (binary: Uint8Array) => {
-    // let hex = '';
-    // for (const byte of binary) {
-    //   hex+= byte.toString()
-    // }
-    return binary.join()
-  }
-  const hexToBinary = (hex: string) => {
-    return new Uint8Array(hex.split(",").map(v => +v))
-  }
-  // function hexEncode(data: string) {
-  //   return encoder.encode(data);
-  // }
-
-  // function hexDecode(buffer: ArrayBuffer) {
-  //   return new TextDecoder().decode(new Uint8Array(buffer));
-  // }
 
   // 向native层申请channelId
   async function registerChannel() {

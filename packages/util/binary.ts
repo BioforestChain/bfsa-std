@@ -58,4 +58,23 @@ export const binaryToHex = (binary: Uint8Array) => {
  */
 export const hexToBinary = (hex: string) => {
   return new Uint8Array(hex.split(",").map(v => +v))
-} 
+}
+
+/**
+ *  创建ReadableStream
+ * @param arrayBuffer
+ * @param chunkSize 64 kib
+ * @returns
+ */
+export function createReadableStream(arrayBuffer: ArrayBuffer, chunkSize = 64 * 1024) {
+  if (arrayBuffer.byteLength === 0) return null
+  return new ReadableStream({
+    start(controller) {
+      const bytes = new Uint8Array(arrayBuffer)
+      for (let readIndex = 0; readIndex < bytes.byteLength;) {
+        controller.enqueue(bytes.subarray(readIndex, readIndex += chunkSize))
+      }
+      controller.close()
+    }
+  });
+}
