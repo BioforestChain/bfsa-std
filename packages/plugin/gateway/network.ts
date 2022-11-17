@@ -16,11 +16,17 @@ export function registerServiceWorker() {
           _serviceWorkerIsRead = true;
           console.log("Service Worker register success 🤩");
         })
-        .catch(() => {
-          console.log("Service Worker register error 🤯");
+        .catch((e) => {
+          console.log("Service Worker register error 🤯", e.message);
         });
+
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log("Service Worker reload 🥳🤩🍐🌽🌶🥒🍟🍚");
+        window.location.reload();
+      })
     }
   });
+
 }
 
 /**
@@ -68,8 +74,8 @@ export function postCallNativeUi(
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
-  // const buffer = new TextEncoder().encode(message);
-  return postConnectChannel("/setUi", message);
+  const buffer = new TextEncoder().encode(message);
+  return postConnectChannel("/setUi", buffer);
 }
 
 /**
@@ -103,7 +109,7 @@ export async function getConnectChannel(url: string) {
  * @returns 直接返回ok
  */
 
-export async function postConnectChannel(url: string, body: string) {
+export async function postConnectChannel(url: string, body: Uint8Array) {
   // 等待serviceWorker准备好
   do {
     await sleep(10);
@@ -114,7 +120,7 @@ export async function postConnectChannel(url: string, body: string) {
       "Access-Control-Allow-Origin": "*", // 客户端开放，不然会报cors
     },
     mode: "cors",
-    body: JSON.stringify(body),
+    body: new Blob([body.buffer]),
   });
   const data = await response.text();
   return data;

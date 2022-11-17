@@ -9,6 +9,7 @@ import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@
 import { callNative } from "../../native/native.fn.ts";
 import { RequestEvent, RequestResponse, setPollHandle, setUiHandle } from "./netHandle.ts";
 import { parseNetData } from "./dataGateway.ts";
+import { ECommand, EChannelMode, IChannelConfig } from "@bfsx/typings";
 
 export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   entrys: string[];
@@ -182,6 +183,24 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    */
   resolveNetworkBodyRequest(path: string, isEnd: boolean) {
     console.log("resolveNetworkBodyRequest:", path, isEnd)
+  }
+  /**
+   * 打开请求通道
+   * @param url  api/user/*, api/:method,api/chunkInfo
+   * @param mode  pattern | static
+   */
+  async openRequest(url: string, mode: EChannelMode) {
+    await this.openChannel({ url, mode })
+  }
+
+  /**
+   * 打开一个channel通道
+   * @param data 
+   * @returns 
+   */
+  async openChannel(data: IChannelConfig) {
+    return await network.asyncCallDenoFunction(callNative.evalJsRuntime,
+      `navigator.serviceWorker.controller.postMessage('${JSON.stringify({ cmd: ECommand.openChannel, data })}')`)
   }
 
   /**

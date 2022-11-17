@@ -3,8 +3,9 @@
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-promise-out/PromiseOut.ts";
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
-import { Channels, ECommand, matchCommand } from "./Channel.ts";
+import { Channels, matchCommand } from "./Channel.ts";
 import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, binaryToHex } from "../util/binary.ts";
+import { ECommand } from "@bfsx/typings";
 
 ((self: ServiceWorkerGlobalScope) => {
 
@@ -17,15 +18,16 @@ import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, 
     }
   });
 
-
   self.addEventListener("install", () => {
     // 跳过等待
-    self.skipWaiting()
+    return self.skipWaiting();
   });
 
   self.addEventListener("activate", () => {
+    // 卸载所有 Service Worker
+    self.registration.unregister()
     // 立刻控制整个页面
-    self.clients.claim()
+    return self.clients.claim();
   });
 
   const event_id_acc = new Uint16Array(1);
@@ -85,13 +87,15 @@ import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, 
         break
       }
       if (back_pressure) {
-        await back_pressure.promise
+        console.log("back_pressure", back_pressure)
+        // await back_pressure.promise
       }
       await fetch(item.url).then(async res => {
         const { success } = await res.json()
         if (success === true) {
           back_pressure = new PromiseOut()
         }
+        item.task.resolve(res)
       }
       ).catch(err => {
         throw new Error(err);
@@ -99,36 +103,36 @@ import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, 
     }
     running = false
   }
-  const channels: Channels[] = []
+  const channels: Channels[] = [] // 后端创建的channel通道
 
   // remember event.respondWith must sync call🐰
-  self.addEventListener("fetch", async (event) => {
-    const client = await self.clients.get(event.clientId)
+  self.addEventListener("fetch", (event) => {
 
-    if (client === undefined) {
-      return fetch(event.request)
-    }
-
-    const channelId = await CLIENT_FETCH_CHANNEL_ID_WM.forceGet(client)
-    const task = FETCH_EVENT_TASK_MAP.forceGet({ event, channelId });
-
-    for (const channel of channels) {
-      const matchResult = channel.match(event.request);
-      if (matchResult) {
-        event.respondWith(matchResult)
-      }
-    }
-
-    const request = event.request;
+    const request = event.request
     const path = new URL(request.url).pathname
     // 资源文件不处理
     if (path.lastIndexOf(".") !== -1) {
       return
     }
+
+    for (const channel of channels) {
+      const matchResult = channel.match(request); // 放行系统的，拦截配置的
+      console.log("matchResult:", matchResult)
+      if (matchResult) {
+        event.respondWith(channel.handler(request)) // 看看是否匹配了channel通道
+      }
+    }
     /// 开始向外发送数据，切片发送
     console.log(`HttpRequestBuilder ${request.method},url: ${request.url}`)
 
     event.respondWith((async () => {
+      const client = await self.clients.get(event.clientId)
+      if (client === undefined) {
+        return fetch(event.request)
+      }
+
+      const channelId = await CLIENT_FETCH_CHANNEL_ID_WM.forceGet(client)
+      const task = FETCH_EVENT_TASK_MAP.forceGet({ event, channelId });
 
       // Build chunks
       const chunks = new HttpRequestBuilder(
@@ -136,10 +140,9 @@ import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, 
         task.reqBodyId,
         request
       );
-
       // 迭代发送
       for await (const chunk of chunks) {
-        await queueFetch(`/channel/${channelId}/chunk=${chunk}`).then(res => res.text())
+        queueFetch(`/channel/${channelId}/chunk=${chunk}`)
       }
       return await task.po.promise
     })())
@@ -148,16 +151,18 @@ import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, 
   // return data 🐯
   self.addEventListener('message', event => {
     if (typeof event.data !== 'string') return
+
     // 匹配后端打开背压的命令
     if (matchCommand(event.data, ECommand.openBackPressure)) {
       back_pressure?.resolve()
-      return
+      return true
     }
     // 匹配后端创建一个channel 线程的命令
     if (matchCommand(event.data, ECommand.openChannel)) {
       const data = JSON.parse(event.data)
+      console.log("swopenChannel", data)
       channels.push(data) // { type: "pattern", url:"" }
-      return
+      return true
     }
 
     const data = JSON.parse(event.data);
@@ -168,14 +173,15 @@ import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, 
     const bodyId = returnId | 1;
     const headersId = bodyId - 1;
 
-
     console.log(`serviceWorker chunk=> ${chunk},end:${end}`);
     const fetchTask = FETCH_EVENT_TASK_MAP.get(`${channelId}-${headersId}`);
+
     // 如果存在
     if (fetchTask === undefined) {
       throw new Error("no found fetch task:" + returnId)
     }
     const responseContent = chunk.slice(0, -1);
+
     if (returnId === headersId) { // parse headers
       console.log("responseContent:", decoder.decode(responseContent))
       const { statusCode, headers } = JSON.parse(decoder.decode(responseContent))
@@ -191,6 +197,7 @@ import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, 
     } else {
       throw new Error("should not happen!! NAN? " + returnId)
     }
+
     if (end) {
       console.log("文件流关闭", channelId, headersId, bodyId);
       fetchTask.responseBody.controller.close();
