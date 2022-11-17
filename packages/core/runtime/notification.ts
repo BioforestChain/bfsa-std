@@ -20,7 +20,7 @@ export async function sendNotification(data: INotification) {
   if (isAndroid) {
     return setNotification(buffer);
   }
-  return sendNetNotification(buffer);
+  return sendJsCoreNotification(message);
 }
 
 /**
