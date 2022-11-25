@@ -1,6 +1,6 @@
 import { MetaData } from "@bfsx/metadata";
 import { network } from "../../deno/network.ts";
-import { loopRustChunk } from "../../deno/rust.op.ts";
+import { getRustChunk } from "../../deno/rust.op.ts";
 import { decoder, encoder } from "../../../util/index.ts";
 import { IImportMap } from "../../../metadata/metadataType.ts";
 import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
@@ -59,7 +59,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
  */
   async dwebviewToDeno() {
     do {
-      const data = await loopRustChunk().next();
+      const data = await getRustChunk();
       if (data.done) {
         continue
       }

@@ -2,12 +2,22 @@ import { EChannelMode, ECommand, IChannelConfig } from "@bfsx/typings";
 
 
 export function matchBackPressureOpen(data: string) {
-  if (!/(cmd)/.test(data)) return false
+  console.log(`matchBackPressureOpen😺-->${data}`);
+  const command = JSON.parse(data)
+  if (command.cmd === ECommand.openBackPressure) {
+    return true
+  }
+  return false
 }
 
 
 export function mactchOpenChannel(data: string) {
-  if (!/(cmd)/.test(data)) return false
+  console.log(`mactchOpenChannel😺-->${data}`);
+  const command = JSON.parse(data)
+  if (command.cmd === ECommand.openChannel) {
+    return command
+  }
+  return false
 }
 
 /**
@@ -16,13 +26,9 @@ export function mactchOpenChannel(data: string) {
  * @param cmd 
  * @returns 
  */
-export function matchCommand(data: string, cmd: ECommand) {
+export function matchCommand(data: string) {
   if (!/(cmd)/.test(data)) return false
-  const command = JSON.parse(data)
-  if (command.cmd === cmd) {
-    return true
-  }
-  return false
+  return true
 }
 
 

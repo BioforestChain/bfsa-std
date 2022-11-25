@@ -18,36 +18,40 @@ export function setNotification(data: Uint8Array) {
   Deno.core.opSync("op_rust_to_js_set_app_notification", data);
 }
 
-
 /**
  * 循环从rust里拿数据
  * 这里拿的是service worker 构建的 chunk的数据
  */
-export function loopRustChunk() {
+export async function getRustChunk() {
+  // console.log("getRustChunk=> 😶‍🌫️🥶🫥 我调用了op_rust_to_js_buffer");
+  const buffer = await Deno.core.opAsync("op_rust_to_js_buffer"); // backDataToRust
+  // 没得数据回来
+  if (buffer[0] === 0) {
+    return {
+      value: [0],
+      done: true,
+    };
+  }
   return {
-    async next() {
-      try {
-        const buffer = await Deno.core.opAsync("op_rust_to_js_buffer"); // backDataToRust
-        return {
-          value: buffer,
-          done: false,
-        };
-      } catch (_e) {
-        return {
-          value: null,
-          done: true,
-        };
-      }
-    }
+    value: buffer,
+    done: false,
   };
 }
+
 /**循环从rust里拿数据 */
 export async function getRustBuffer() {
   let buffer: number[] = [];
   let versionView: number[] = [];
   let headView: number[] = [];
-  try {
     buffer = await Deno.core.opAsync("op_rust_to_js_system_buffer"); // backSystemDataToRust
+    if (buffer[0] === 0 && buffer.length === 1) {
+      return {
+        value: new Uint8Array(),
+        versionView,
+        headView,
+        done: true,
+      };
+    }
     // 如果是普通消息,versionID == 1
     if (buffer[0] === 1) {
       versionView = buffer.splice(0, 1); //拿到版本号
@@ -60,12 +64,5 @@ export async function getRustBuffer() {
       headView,
       done: false,
     };
-  } catch (_e) {
-    return {
-      value: new Uint8Array(),
-      versionView,
-      headView,
-      done: true,
-    };
-  }
+    
 }

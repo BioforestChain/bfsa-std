@@ -3,19 +3,17 @@
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-promise-out/PromiseOut.ts";
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
-import { Channels, matchCommand } from "./Channel.ts";
-import { hexToBinary, contactToHex, uint16_to_binary, uint8_to_binary, contact, binaryToHex } from "../util/binary.ts";
-import { ECommand } from "@bfsx/typings";
+import { Channels, mactchOpenChannel, matchBackPressureOpen, matchCommand } from "./Channel.ts";
+import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint8_to_binary } from "../util/binary.ts";
 
 ((self: ServiceWorkerGlobalScope) => {
-
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
   const CLIENT_FETCH_CHANNEL_ID_WM = EasyWeakMap.from({
     creater(_client: Client) {
-      return registerChannel()
-    }
+      return registerChannel();
+    },
   });
 
   self.addEventListener("install", () => {
@@ -25,7 +23,7 @@ import { ECommand } from "@bfsx/typings";
 
   self.addEventListener("activate", () => {
     // 卸载所有 Service Worker
-    self.registration.unregister()
+    self.registration.unregister();
     // 立刻控制整个页面
     return self.clients.claim();
   });
@@ -35,22 +33,21 @@ import { ECommand } from "@bfsx/typings";
     // deno-lint-ignore no-unused-vars
     creater(event: FetchEvent) {
       return event_id_acc[0] += 2;
-    }
-  })
-
+    },
+  });
 
   const FETCH_EVENT_TASK_MAP = EasyMap.from({
-    transformKey(key: { event: FetchEvent, channelId: string }) {
-      return key.channelId + "-" + EVENT_ID_WM.forceGet(key.event)
+    transformKey(key: { event: FetchEvent; channelId: string }) {
+      return key.channelId + "-" + EVENT_ID_WM.forceGet(key.event);
     },
     creater(key) {
       let bodyStreamController: ReadableStreamController<ArrayBuffer>;
       const bodyStream = new ReadableStream<ArrayBuffer>({
         start(controller) {
-          bodyStreamController = controller
-        }
+          bodyStreamController = controller;
+        },
       });
-      const reqId = EVENT_ID_WM.forceGet(key.event)
+      const reqId = EVENT_ID_WM.forceGet(key.event);
       return {
         reqHeadersId: reqId,
         reqBodyId: reqId + 1,
@@ -58,111 +55,109 @@ import { ECommand } from "@bfsx/typings";
         po: new PromiseOut<Response>(),
         responseHeaders: {},
         responseStatusCode: 200,
-        responseBody: { stream: bodyStream, controller: bodyStreamController! }
-      }
-    }
-  })
-
-
+        responseBody: { stream: bodyStream, controller: bodyStreamController! },
+      };
+    },
+  });
 
   let back_pressure: PromiseOut<void> | undefined;
   type TQFetch = {
-    url: string,
-    task: PromiseOut<Response>
-  }
+    url: string;
+    task: PromiseOut<Response>;
+  };
   const url_queue: TQFetch[] = [];
   let running = false;
   const queueFetch = async (url: string) => {
     const task = new PromiseOut<Response>();
     url_queue.push({ url, task });
     await _runFetch();
-    return task.promise
-  }
+    return task.promise;
+  };
   const _runFetch = async () => {
-    if (running) { return }
+    if (running) return;
     running = true;
     while (true) {
       const item = url_queue.shift();
       if (item === undefined) {
-        break
+        break;
       }
       if (back_pressure) {
-        console.log("back_pressure", back_pressure)
+        console.log("back_pressure", back_pressure);
         // await back_pressure.promise
       }
-      await fetch(item.url).then(async res => {
-        const { success } = await res.json()
+      await fetch(item.url).then(async (res) => {
+        const { success } = await res.json();
         if (success === true) {
-          back_pressure = new PromiseOut()
+          back_pressure = new PromiseOut();
         }
-        item.task.resolve(res)
-      }
-      ).catch(err => {
+        item.task.resolve(res);
+      }).catch((err) => {
         throw new Error(err);
-      })
+      });
     }
-    running = false
-  }
-  const channels: Channels[] = [] // 后端创建的channel通道
+    running = false;
+  };
+  const channels: Channels[] = []; // 后端创建的channel通道
 
   // remember event.respondWith must sync call🐰
   self.addEventListener("fetch", (event) => {
-
-    const request = event.request
-    const path = new URL(request.url).pathname
+    const request = event.request;
+    const path = new URL(request.url).pathname;
     // 资源文件不处理
     if (path.lastIndexOf(".") !== -1) {
-      return
+      return;
     }
 
     for (const channel of channels) {
       const matchResult = channel.match(request); // 放行系统的，拦截配置的
-      console.log("matchResult:", matchResult)
+      console.log("matchResult:", matchResult);
       if (matchResult) {
-        event.respondWith(channel.handler(request)) // 看看是否匹配了channel通道
+        event.respondWith(channel.handler(request)); // 看看是否匹配了channel通道
       }
     }
     /// 开始向外发送数据，切片发送
-    console.log(`HttpRequestBuilder ${request.method},url: ${request.url}`)
+    console.log(`HttpRequestBuilder ${request.method},url: ${request.url}`);
 
     event.respondWith((async () => {
-      const client = await self.clients.get(event.clientId)
+      const client = await self.clients.get(event.clientId);
       if (client === undefined) {
-        return fetch(event.request)
+        return fetch(event.request);
       }
 
-      const channelId = await CLIENT_FETCH_CHANNEL_ID_WM.forceGet(client)
+      const channelId = await CLIENT_FETCH_CHANNEL_ID_WM.forceGet(client);
       const task = FETCH_EVENT_TASK_MAP.forceGet({ event, channelId });
 
       // Build chunks
       const chunks = new HttpRequestBuilder(
         task.reqHeadersId,
         task.reqBodyId,
-        request
+        request,
       );
       // 迭代发送
       for await (const chunk of chunks) {
-        queueFetch(`/channel/${channelId}/chunk=${chunk}`)
+        queueFetch(`/channel/${channelId}/chunk=${chunk}`);
       }
-      return await task.po.promise
-    })())
+      return await task.po.promise;
+    })());
   });
 
   // return data 🐯
-  self.addEventListener('message', event => {
-    if (typeof event.data !== 'string') return
-
-    // 匹配后端打开背压的命令
-    if (matchCommand(event.data, ECommand.openBackPressure)) {
-      back_pressure?.resolve()
-      return true
-    }
-    // 匹配后端创建一个channel 线程的命令
-    if (matchCommand(event.data, ECommand.openChannel)) {
-      const data = JSON.parse(event.data)
-      console.log("swopenChannel", data)
-      channels.push(data) // { type: "pattern", url:"" }
-      return true
+  self.addEventListener("message", (event) => {
+    if (typeof event.data !== "string") return;
+    // 如果是cmd命令
+    if (matchCommand(event.data)) {
+      // 匹配后端打开背压的命令
+      if (matchBackPressureOpen(event.data)) {
+        back_pressure?.resolve();
+        return true;
+      }
+      // 匹配后端创建一个channel 线程的命令
+      const data = mactchOpenChannel(event.data);
+      if (data) {
+        channels.push(data); // { type: "pattern", url:"" }
+        return true;
+      }
+     return data;
     }
 
     const data = JSON.parse(event.data);
@@ -178,79 +173,79 @@ import { ECommand } from "@bfsx/typings";
 
     // 如果存在
     if (fetchTask === undefined) {
-      throw new Error("no found fetch task:" + returnId)
+      throw new Error("no found fetch task:" + returnId);
     }
     const responseContent = chunk.slice(0, -1);
 
     if (returnId === headersId) { // parse headers
-      console.log("responseContent:", decoder.decode(responseContent))
-      const { statusCode, headers } = JSON.parse(decoder.decode(responseContent))
+      console.log("responseContent:", decoder.decode(responseContent));
+      const { statusCode, headers } = JSON.parse(decoder.decode(responseContent));
       fetchTask.responseHeaders = headers;
       fetchTask.responseStatusCode = statusCode;
-      fetchTask.po.resolve(new Response(fetchTask.responseBody.stream, {
-        status: statusCode,
-        headers,
-      }))
+      fetchTask.po.resolve(
+        new Response(fetchTask.responseBody.stream, {
+          status: statusCode,
+          headers,
+        }),
+      );
     } else if (returnId === bodyId) { // parse body
       console.log("文件流推入", channelId, headersId, bodyId, responseContent.byteLength);
-      fetchTask.responseBody.controller.enqueue(responseContent)
+      fetchTask.responseBody.controller.enqueue(responseContent);
     } else {
-      throw new Error("should not happen!! NAN? " + returnId)
+      throw new Error("should not happen!! NAN? " + returnId);
     }
 
     if (end) {
       console.log("文件流关闭", channelId, headersId, bodyId);
       fetchTask.responseBody.controller.close();
     }
-  })
+  });
 
   class HttpRequestBuilder {
     constructor(
       readonly headersId: number,
       readonly bodyId: number,
       readonly request: Request,
-    ) { }
+    ) {}
 
     async *[Symbol.asyncIterator]() {
-      const { request, headersId, bodyId } = this
+      const { request, headersId, bodyId } = this;
       // console.log("headerId:", headersId, "bodyId:", bodyId)
-      const headers: Record<string, string> = {}
+      const headers: Record<string, string> = {};
       request.headers.forEach((value, key) => {
         if (key === "user-agent") { // user-agent 太长了先不要
-          return
+          return;
         }
-        Object.assign(headers, { [key]: value })
-      })
+        Object.assign(headers, { [key]: value });
+      });
       // 传递headers
       yield contactToHex(
         uint16_to_binary(headersId),
         encoder.encode(JSON.stringify({ url: request.url, headers, method: request.method.toUpperCase() })),
-        uint8_to_binary(0)
+        uint8_to_binary(0),
       );
-      const buffer = await request.blob()
+      const buffer = await request.blob();
       // console.log("有body数据传递1", request.method, buffer);
-      const body = buffer.stream()
+      const body = buffer.stream();
       // 如果body为空
       if (body) {
         // deno-lint-ignore no-explicit-any
         const reader = (body as any).getReader();
         do {
-          const { done, value } = await reader.read()
+          const { done, value } = await reader.read();
           if (done) {
-            break
+            break;
           }
           // console.log("有body数据传递2：", value)
           yield binaryToHex(contact(uint16_to_binary(bodyId), value, uint8_to_binary(0)));
-        } while (true)
+        } while (true);
       }
       yield binaryToHex(contact(uint16_to_binary(bodyId), uint8_to_binary(1)));
     }
   }
 
-
   // 向native层申请channelId
   async function registerChannel() {
-    return await fetch(`/channel/registry`).then(res => res.text())
+    return await fetch(`/channel/registry`).then((res) => res.text());
   }
-
 })(self as never);
