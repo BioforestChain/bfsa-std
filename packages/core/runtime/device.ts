@@ -1,8 +1,8 @@
 import { callNative } from "../native/native.fn.ts";
 import { network } from "../deno/network.ts";
+import { checkType } from "../../util/index.ts";
 
 
-export const isAndroid = await isDenoRuntime();
 
 /**获取设备信息 */
 export async function getDeviceInfo(): Promise<IDeviceInfo> {
@@ -18,9 +18,9 @@ export async function getDeviceInfo(): Promise<IDeviceInfo> {
 
 /**判断是不是denoRuntime环境 */
 export function isDenoRuntime() {
-  // console.log("是android 环境吗？", info.isDeno);
-  return true;
+  return checkType("Deno", "object");
 }
+
 
 
 interface IDeviceInfo {

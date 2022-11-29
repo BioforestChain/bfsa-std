@@ -2,6 +2,6 @@
 export interface PlaocJavascriptBridge {
   callJavaScriptWithFunctionNameParam: (
     functionName: string,
-    param?: string
-  ) => string;
+    param: string | Uint8Array
+  ) => Uint8Array;
 }

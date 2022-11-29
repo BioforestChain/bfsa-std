@@ -3,8 +3,9 @@
 /////////////////////////////
 
 import { eval_js, js_to_rust_buffer } from "./rust.op.ts";
-import { isAndroid } from "../runtime/device.ts";
+import { isDenoRuntime } from "../runtime/device.ts";
 import { contact, encoder } from '../../util/binary.ts';
+import { netCallNativeService } from "../jscore/swift.op.ts";
 
 
 class Deno {
@@ -32,14 +33,14 @@ class Deno {
    * @param handleFn
    * @param data
    */
-  callFunction(handleFn: string, data = "''") {
+  async callFunction(handleFn: string, data = "''") {
     const { uint8Array, headView } = this.structureBinary(handleFn, data);
-    const msg = new Uint8Array();
+    let msg = new Uint8Array();
     // 发送消息
-    if (isAndroid) {
+    if (isDenoRuntime()) {
       js_to_rust_buffer(uint8Array); // android - denoOp
     } else {
-      // msg = await netCallNativeService(handleFn, data); //  ios - javascriptCore
+      msg = await netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
     this.headViewAdd()
     return { versionView: this.versionView, headView, msg };
@@ -51,10 +52,10 @@ class Deno {
    */
   callEvalJsStringFunction(handleFn: string, data = "''") {
     const { uint8Array } = this.structureBinary(handleFn, data);
-    if (isAndroid) {
+    if (isDenoRuntime()) {
       eval_js(uint8Array); // android - denoOp
     } else {
-      // netCallNativeService(handleFn, data); //  ios - javascriptCore
+      netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
   }
 

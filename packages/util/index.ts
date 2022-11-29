@@ -10,3 +10,23 @@ export * from "./binary.ts"
  */
 export const sleep = (delay: number) =>
   new Promise((resolve) => setTimeout(resolve, delay));
+
+
+export const checkType = (
+  name: string,
+  type:
+    | "string"
+    | "number"
+    | "bigint"
+    | "boolean"
+    | "symbol"
+    | "undefined"
+    | "object"
+    | "function"
+) => {
+  try {
+    return new Function(`return typeof ${name} === "${type}"`)();
+  } catch (_) {
+    return false;
+  }
+};
