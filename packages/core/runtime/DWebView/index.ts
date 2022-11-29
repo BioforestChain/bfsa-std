@@ -9,7 +9,12 @@ import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@
 import { callNative } from "../../native/native.fn.ts";
 import { RequestEvent, RequestResponse, setPollHandle, setUiHandle } from "./netHandle.ts";
 import { parseNetData } from "./dataGateway.ts";
-import { ECommand, EChannelMode, IChannelConfig } from "@bfsx/typings";
+import { EChannelMode } from "@bfsx/typings";
+
+
+// 存储需要触发前端的事件，需要等待serviceworekr准备好
+// deno-lint-ignore no-explicit-any
+export const EventPollQueue: [{ url: string, mode: EChannelMode }] = [] as any;
 
 export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   entrys: string[];
@@ -130,6 +135,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
 
       let responseBodyCtrl!: ReadableStreamController<Uint8Array>
       const responseBody = new ReadableStream<Uint8Array>({ start: (ctrl) => responseBodyCtrl = ctrl });
+
       // create request head
       const event = new RequestEvent(req, new RequestResponse(responseBodyCtrl, async (statusCode, headers) => {
         await postBodyDone.resolve();
@@ -139,10 +145,13 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
           chunk: encoder.encode(JSON.stringify({ statusCode, headers })).join(",") + ",1"
         });
       }), channelId);
+
       this.emit("request", event);
+
       // 等待真正的请求回来
       const postBodyDone = new PromiseOut<void>()
       const responseBodyReader = responseBody.getReader()
+
       do {
         const { value: chunk, done } = await responseBodyReader.read();
         if (done) {
@@ -155,8 +164,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         });
 
       } while (true)
+
       postBodyDone.resolve()
-      return
     }
     try {
       // await sleep(1000)
@@ -189,18 +198,9 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    * @param url  api/user/*, api/:method,api/chunkInfo
    * @param mode  pattern | static
    */
-  async openRequest(url: string, mode: EChannelMode) {
-    await this.openChannel({ url, mode })
-  }
-
-  /**
-   * 打开一个channel通道
-   * @param data 
-   * @returns 
-   */
-  async openChannel(data: IChannelConfig) {
-    return await network.asyncCallDenoFunction(callNative.evalJsRuntime,
-      `navigator.serviceWorker.controller.postMessage('${JSON.stringify({ cmd: ECommand.openChannel, data })}')`)
+  openRequest(url: string, mode: EChannelMode) {
+    EventPollQueue.push({ url, mode })
+    // await this.openChannel({ url, mode })
   }
 
   /**

@@ -10,4 +10,6 @@ export enum callNative {
   getDeviceInfo = "GetDeviceInfo", // 获取设备信息
   sendNotification = "SendNotification", // 发送消息
   ApplyPermissions = "ApplyPermissions", // 申请权限
+
+  ServiceWorkerReady = "ServiceWorkerReady" // serviceworker 已经准备好
 }

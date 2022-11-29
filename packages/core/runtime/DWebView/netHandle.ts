@@ -5,6 +5,9 @@ import { contact, decoder } from '../../../util/binary.ts';
 import { callNative } from "../../native/native.fn.ts";
 import { callDVebView } from "../../deno/android.fn.ts";
 import deno from "../../deno/deno.ts";
+import { ECommand, IChannelConfig } from "@bfsx/typings";
+import { EventPollQueue } from "./index.ts";
+
 
 export class RequestEvent {
   constructor(readonly request: Request, readonly response: RequestResponse, readonly channelId: string) {
@@ -110,6 +113,11 @@ export async function setPollHandle(event: RequestEvent) {
   console.log("setPollHandlestringData:", stringData)
   /// 如果是操作对象，拿出对象的操作函数和数据,传递给Kotlin
   const handler = JSON.parse(stringData);
+
+  // 看看是不是serviceWorekr准备好了
+  if (getServiceWorkerReady(handler.function)) {
+    return true
+  }
   // // 保证存在操作函数中
   if (!Object.values(callNative).includes(handler.function)) {
     return
@@ -163,4 +171,33 @@ function handlerEvalJs(wb: string, data: string) {
     callNative.evalJsRuntime,
     `"javascript:document.querySelector('${wb}').dispatchStringMessage('${data}')"`
   );
+}
+
+/**
+ * 看看是不是serviceworker准备好了
+ * @param fun 
+ * @returns 
+ */
+function getServiceWorkerReady(fun: string) {
+  console.log(`getServiceWorkerReady: ${fun} , ${fun === callNative.ServiceWorkerReady}`)
+  if (fun !== callNative.ServiceWorkerReady) {
+    false
+  }
+  // 执行事件
+  for (const data of EventPollQueue) {
+    openChannel(data)
+  }
+  callDwebViewFactory(fun, "true")
+  return true
+}
+
+
+/**
+ * 打开一个channel通道
+ * @param data 
+ * @returns 
+ */
+async function openChannel(data: IChannelConfig) {
+  return await network.syncCallDenoFunction(callNative.evalJsRuntime,
+    `navigator.serviceWorker.controller.postMessage('${JSON.stringify({ cmd: ECommand.openChannel, data })}')`)
 }

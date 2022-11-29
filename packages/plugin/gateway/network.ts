@@ -2,6 +2,7 @@
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
 import { sleep } from "../../util/index.ts";
+import { NativeHandle } from "../common/nativeHandle.ts";
 let _serviceWorkerIsRead = false;
 /**
  * 注册serverWorker方法
@@ -14,6 +15,8 @@ export function registerServiceWorker() {
         .register("serviceWorker.js", { scope: "/", type: "module" })
         .then(() => {
           _serviceWorkerIsRead = true;
+          // 通知serviceWorker已经准备好了
+          serviceWorkerReady()
           console.log("Service Worker register success 🤩");
         })
         .catch((e) => {
@@ -26,7 +29,23 @@ export function registerServiceWorker() {
       })
     }
   });
+}
 
+/**通知deno-js后端serviceworker 已经准备好了 */
+export async function serviceWorkerReady() {
+  const message = `{"function":"${NativeHandle.ServiceWorkerReady}","data":""}`;
+  const buffer = new TextEncoder().encode(message);
+  const response = await fetch(`/poll?data=${buffer}`, {
+    method: "GET",
+    headers: {
+      "Access-Control-Allow-Origin": "*", // 客户端开放，不然会报cors
+      "Content-Type": "text/plain",
+    },
+    mode: "cors",
+  });
+  const data = await response.text();
+  console.log("xgetConnectChannelx", data);
+  return data
 }
 
 /**
