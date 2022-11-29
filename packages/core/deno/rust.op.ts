@@ -39,11 +39,11 @@ export async function getRustChunk() {
 }
 
 /**循环从rust里拿数据 */
-export async function getRustBuffer() {
-  let buffer: number[] = [];
+export async function getRustBuffer(ex_head_view:Uint8Array) {
   let versionView: number[] = [];
   let headView: number[] = [];
-    buffer = await Deno.core.opAsync("op_rust_to_js_system_buffer"); // backSystemDataToRust
+  const data = `${ex_head_view[0]}-${ex_head_view[1]}`;
+  const buffer = await  Deno.core.opSync("op_rust_to_js_system_buffer",data); // backSystemDataToRust
     if (buffer[0] === 0 && buffer.length === 1) {
       return {
         value: new Uint8Array(),
@@ -52,6 +52,7 @@ export async function getRustBuffer() {
         done: true,
       };
     }
+  console.log("getRustBuffer 🥸", buffer )
     // 如果是普通消息,versionID == 1
     if (buffer[0] === 1) {
       versionView = buffer.splice(0, 1); //拿到版本号

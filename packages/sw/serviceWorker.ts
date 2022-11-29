@@ -3,7 +3,7 @@
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-promise-out/PromiseOut.ts";
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
-import { Channels, mactchOpenChannel, matchBackPressureOpen, matchCommand } from "./Channel.ts";
+import { Channels, matchOpenChannel, matchBackPressureOpen, matchCommand } from "./Channel.ts";
 import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint8_to_binary } from "../util/binary.ts";
 
 ((self: ServiceWorkerGlobalScope) => {
@@ -148,12 +148,14 @@ import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint
     if (matchCommand(event.data)) {
       // 匹配后端打开背压的命令
       if (matchBackPressureOpen(event.data)) {
+        console.log(`matchBackPressureOpen 😺}`);
         back_pressure?.resolve();
         return true;
       }
       // 匹配后端创建一个channel 线程的命令
-      const data = mactchOpenChannel(event.data);
+      const data = matchOpenChannel(event.data);
       if (data) {
+        console.log(`matchOpenChannel 🤠-->${JSON.stringify(data)}`);
         channels.push(data); // { type: "pattern", url:"" }
         return true;
       }
