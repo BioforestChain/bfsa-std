@@ -55,7 +55,7 @@ export class Network {
         data = JSON.stringify(data); // stringify 两次转义一下双引号
       }
       // 发送请求
-      const { headView, msg } = deno.callFunction(
+      const { headView, msg } = await deno.callFunction(
         handleFn,
         JSON.stringify(data),
       );

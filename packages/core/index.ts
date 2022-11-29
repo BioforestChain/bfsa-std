@@ -7,7 +7,7 @@ export {
   openQrScanner,
   DWebView,
   sendNotification,
-  isAndroid,
+  isDenoRuntime,
   getDeviceInfo,
   EDeviceModule,
   EPermissions,

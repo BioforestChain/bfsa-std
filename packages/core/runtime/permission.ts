@@ -1,7 +1,7 @@
 import { network } from "../deno/network.ts";
 import { callNative } from "../native/native.fn.ts";
 // import jscore from "../jscore/jscore.ts";
-import { isAndroid } from "./device.ts";
+import { isDenoRuntime } from "./device.ts";
 
 /**
  * 申请权限
@@ -9,7 +9,7 @@ import { isAndroid } from "./device.ts";
  * @returns boolean
  */
 export async function applyPermissions(permissions: EPermissions) {
-  if (isAndroid) {
+  if (isDenoRuntime()) {
     const per = await network.asyncCallDenoFunction(
       callNative.ApplyPermissions,
       {
