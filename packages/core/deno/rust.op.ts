@@ -2,12 +2,12 @@
 import "@bfsx/typings";
 
 /**js 到rust的消息 */
-export function js_to_rust_buffer(data: Uint16Array) {
+export function js_to_rust_buffer(data: number[]) {
   console.log("op_js_to_rust_buffer:🍜", data)
-  Deno.core.opSync("op_js_to_rust_buffer", data);
+  Deno.core.opSync("op_js_to_rust_buffer", new Uint8Array(data));
 }
 /**js 到rust的消息： 调用android方法执行evenjs，即传递消息给前端 */
-export function eval_js(data: Uint16Array) {
+export function eval_js(data: number[]) {
   Deno.core.opSync("op_eval_js", data);
 }
 
@@ -15,8 +15,8 @@ export function eval_js(data: Uint16Array) {
  * 发送系统通知
  * @param data
  */
-export function setNotification(data: Uint8Array) {
-  Deno.core.opSync("op_rust_to_js_set_app_notification", data);
+export function setNotification(data: number[]) {
+  Deno.core.opSync("op_rust_to_js_set_app_notification", new Uint8Array(data));
 }
 
 /**
@@ -40,7 +40,7 @@ export async function getRustChunk() {
 }
 
 /**循环从rust里拿数据 */
-export async function getRustBuffer(ex_head_view: Uint8Array) {
+export async function getRustBuffer(ex_head_view: number[]) {
   let versionView: number[] = [];
   let headView: number[] = [];
   const data = `${ex_head_view[0]}-${ex_head_view[1]}`;

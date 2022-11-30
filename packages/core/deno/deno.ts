@@ -4,16 +4,12 @@
 
 import { eval_js, js_to_rust_buffer } from "./rust.op.ts";
 import { currentPlatform } from "../runtime/platform.ts";
-import { contactUint16, stringToByte } from "../../util/binary.ts";
+import { contactNumber, stringToByte } from "../../util/binary.ts";
 import { netCallNativeService } from "../jscore/swift.op.ts";
 
 class Deno {
-  versionView = new Uint16Array(1);
-  headView = new Uint16Array(2); // 初始化头部标记
-  constructor() {
-    this.versionView[0] = 0x01; // 版本号都是1，表示消息
-    this.headView[0] = 1;
-  }
+  versionView = [1];
+  headView = [1, 0]; // 初始化头部标记
 
   headViewAdd() {
     this.headView[0]++;
@@ -32,12 +28,12 @@ class Deno {
    * @param handleFn
    * @param data
    */
-  async callFunction(handleFn: string, data = "''") {
-    const { uint16Array, headView } = this.structureBinary(handleFn, data);
+  callFunction(handleFn: string, data = "''") {
+    const { body, headView } = this.structureBinary(handleFn, data);
     let msg = new Uint8Array();
     // 发送消息
     if (currentPlatform() === "Android") {
-      js_to_rust_buffer(uint16Array); // android - denoOp
+      js_to_rust_buffer(body); // android - denoOp
     } else {
       msg = netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
@@ -50,9 +46,9 @@ class Deno {
    * @param data
    */
   callEvalJsStringFunction(handleFn: string, data = "''") {
-    const { uint16Array } = this.structureBinary(handleFn, data);
+    const { body } = this.structureBinary(handleFn, data);
     if (currentPlatform() === "Android") {
-      eval_js(uint16Array); // android - denoOp
+      eval_js(body); // android - denoOp
     } else {
       netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
@@ -66,12 +62,12 @@ class Deno {
   structureBinary(fn: string, data: string | Uint8Array = "") {
     const message = `{"function":"${fn}","data":${data}}`;
 
-    // 字符 转 Uint16Array
-    const uint16Array = stringToByte(message);
+    // 字符 转 number
+    const body = stringToByte(message);
 
     return {
-      uint16Array: contactUint16(this.versionView, this.headView, uint16Array),
-      headView: new Uint8Array(this.headView),
+      body: contactNumber(this.versionView, this.headView, body),
+      headView: this.headView,
     };
   }
 

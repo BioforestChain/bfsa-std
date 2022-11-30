@@ -98,8 +98,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   private _request_body_cache = EasyMap.from({
     // deno-lint-ignore no-unused-vars
     creater(boydId: number) {
-      let bodyStreamController: ReadableStreamController<Uint16Array>
-      const bodyStream = new ReadableStream<Uint16Array>({ start(controller) { bodyStreamController = controller } })
+      let bodyStreamController: ReadableStreamController<number[]>
+      const bodyStream = new ReadableStream<number[]>({ start(controller) { bodyStreamController = controller } })
       return {
         bodyStream,
         bodyStreamController: bodyStreamController!
@@ -133,8 +133,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         req = new Request(url, { method, headers });
       }
 
-      let responseBodyCtrl!: ReadableStreamController<Uint16Array>
-      const responseBody = new ReadableStream<Uint16Array>({ start: (ctrl) => responseBodyCtrl = ctrl });
+      let responseBodyCtrl!: ReadableStreamController<Uint8Array>
+      const responseBody = new ReadableStream<Uint8Array>({ start: (ctrl) => responseBodyCtrl = ctrl });
 
       // create request head
       const event = new RequestEvent(req, new RequestResponse(responseBodyCtrl, async (statusCode, headers) => {
@@ -178,7 +178,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         body.bodyStreamController.close()
         return
       }
-      body.bodyStreamController.enqueue(new Uint16Array(contentBytes))
+      body.bodyStreamController.enqueue(contentBytes)
     } catch (error) {
       console.error("bodyStreamController:", error);
 

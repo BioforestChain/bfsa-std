@@ -3,6 +3,7 @@ import { setNotification } from "../deno/rust.op.ts";
 import { sendJsCoreNotification } from "../jscore/swift.op.ts";
 import { network } from "../deno/network.ts";
 import { currentPlatform } from "./platform.ts";
+import { stringToByte } from "../../util/binary.ts";
 
 /**
  * 发送通知
@@ -16,7 +17,7 @@ export async function sendNotification(data: INotification) {
     data = Object.assign(data, { app_id: app_id });
   }
   const message = JSON.stringify(data);
-  const buffer = new TextEncoder().encode(message);
+  const buffer = stringToByte(message);
 
   switch (currentPlatform()) {
     case "Android":

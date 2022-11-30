@@ -1,6 +1,6 @@
 import { callKotlin } from "../../deno/android.fn.ts";
 import { network } from "../../deno/network.ts";
-import { contactUint16, hexToBinary, stringToByte, bufferToString, contactUint8 } from '../../../util/binary.ts';
+import { hexToBinary, stringToByte, bufferToString, contactUint8 } from '../../../util/binary.ts';
 import { callNative } from "../../native/native.fn.ts";
 import { callDVebView } from "../../deno/android.fn.ts";
 import deno from "../../deno/deno.ts";
@@ -18,7 +18,7 @@ export class RequestEvent {
   }
 }
 export class RequestResponse {
-  constructor(private _bodyCtrl: ReadableStreamController<Uint16Array>, private _onClose: (statusCode: number, headers: Record<string, string>) => void) {
+  constructor(private _bodyCtrl: ReadableStreamController<Uint8Array | string | ArrayBuffer | Blob>, private _onClose: (statusCode: number, headers: Record<string, string>) => void) {
   }
   public statusCode = 200
   public headers: Record<string, string> = {}
@@ -29,13 +29,13 @@ export class RequestResponse {
     return this.headers[key]
   }
   private _closed = false
-  write(data: string | Uint16Array) {
+  write(data: Uint8Array | string | ArrayBuffer | Blob) {
     if (this._closed) {
       throw new Error('closed')
     }
-    if (typeof data === 'string') {
-      data = stringToByte(data)
-    }
+    // if (typeof data === 'string') {
+    //   data = stringToByte(data)
+    // }
     this._bodyCtrl.enqueue(data)
   }
 

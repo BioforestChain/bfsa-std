@@ -1,6 +1,6 @@
 
 export const stringToByte = (s: string) => {
-  const res = new Uint16Array(s.length);
+  const res: number[] = new Array(s.length);
   for (let i = 0; i < s.length; i += 1) {
     res[i] = s.charCodeAt(i)
   }
@@ -15,6 +15,20 @@ export const stringToByte = (s: string) => {
 export const bufferToString = (buffer: ArrayBuffer | number[]) => {
   return String.fromCharCode.apply(null, (new Uint16Array(buffer)) as unknown as number[])
 }
+
+/**
+ * 合并Uint16array
+ * @param arrs 
+ * @returns 
+ */
+export const contactNumber = (...arrs: number[][]) => {
+  const r: number[] = []
+  for (const arr of arrs) {
+    r.push(...arr)
+  }
+  return r
+}
+
 /**
  * 合并Uint16array
  * @param arrs 

@@ -7,7 +7,7 @@ import deno from "./deno.ts";
 import { getRustBuffer } from "./rust.op.ts";
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 const RUST_DATA_CATCH = EasyMap.from({
-  transformKey(key: Uint8Array) {
+  transformKey(key: number[]) {
     return `${key[0]}-${key[1]}`;
   },
   creater() {
@@ -94,14 +94,14 @@ export class Network {
         RUST_DATA_CATCH.tryDelete(headView);
         // 如果是拿缓存里的，并且本次有返回，需要存起来
         if (result.value) {
-          RUST_DATA_CATCH.trySet(new Uint8Array(result.headView), result.value);
+          RUST_DATA_CATCH.trySet(result.headView, result.value);
         }
         // console.log("asyncCallDenoFunction：1😄缓存里拿的：", headView[0])
         return value;
       }
       // console.log("asyncCallDenoFunction：1😃未命中,存储请求：", result.headView[0], RUST_DATA_CATCH.tryHas(headView))
       // 如果不存在，则先存起来
-      RUST_DATA_CATCH.trySet(new Uint8Array(result.headView), result.value);
+      RUST_DATA_CATCH.trySet(result.headView, result.value);
     } while (true);
   }
   /**
