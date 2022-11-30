@@ -12,6 +12,6 @@ export {
   EDeviceModule,
   EPermissions,
   applyPermissions,
+  currentPlatform,
 } from "./runtime/index.ts";
 export { network } from "./deno/network.ts";
-export { currentPlatform } from "./platform.ts";

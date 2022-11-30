@@ -1,17 +1,17 @@
 import { callNative } from "../native/native.fn.ts";
 import { network } from "../deno/network.ts";
 import jscore from "../jscore/jscore.ts";
-import { isDenoRuntime } from "./device.ts";
+import { currentPlatform } from "./platform.ts";
 /**
  * 打开二维码扫码
  * @returns Promise<data>
  */
 export const openQrScanner = () => {
   return new Promise(() => {
-    if (isDenoRuntime()) {
+    if (currentPlatform() === "Android") {
       network.syncCallDenoFunction(callNative.openQrScanner);
     } else {
-      jscore.callJavaScriptWithFunctionNameParam(callNative.openQrScanner);
+      jscore.callJavaScriptWithFunctionNameParam(callNative.openQrScanner, "");
     }
   });
 };
@@ -22,10 +22,13 @@ export const openQrScanner = () => {
  */
 export const openBarScanner = () => {
   return new Promise(() => {
-    if (isDenoRuntime()) {
+    if (currentPlatform() === "Android") {
       network.syncCallDenoFunction(callNative.openBarcodeScanner);
     } else {
-      jscore.callJavaScriptWithFunctionNameParam(callNative.openBarcodeScanner);
+      jscore.callJavaScriptWithFunctionNameParam(
+        callNative.openBarcodeScanner,
+        ""
+      );
     }
   });
 };

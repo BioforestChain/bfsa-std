@@ -3,8 +3,6 @@ import { network } from "../deno/network.ts";
 import { bufferToString, checkType } from "../../util/index.ts";
 import { netCallNativeService } from "../jscore/swift.op.ts";
 
-
-
 /**获取设备信息 */
 export async function getDeviceInfo(): Promise<IDeviceInfo> {
   let info = "";
@@ -12,8 +10,8 @@ export async function getDeviceInfo(): Promise<IDeviceInfo> {
   if (isDenoRuntime()) {
     info = await network.asyncCallDenoFunction(callNative.getDeviceInfo);
   } else {
-    const data = await netCallNativeService(callNative.getDeviceInfo);
-    info = bufferToString(data.buffer)
+    const data = netCallNativeService(callNative.getDeviceInfo);
+    info = bufferToString(data.buffer);
   }
   console.log("device:", info);
   return JSON.parse(info);
@@ -23,8 +21,6 @@ export async function getDeviceInfo(): Promise<IDeviceInfo> {
 export function isDenoRuntime() {
   return checkType("Deno", "object");
 }
-
-
 
 interface IDeviceInfo {
   name: string; // 设备名称 ios / android

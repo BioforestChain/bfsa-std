@@ -3,28 +3,27 @@
 /////////////////////////////
 
 import { eval_js, js_to_rust_buffer } from "./rust.op.ts";
-import { isDenoRuntime } from "../runtime/device.ts";
-import { contactUint16, stringToByte } from '../../util/binary.ts';
+import { currentPlatform } from "../runtime/platform.ts";
+import { contactUint16, stringToByte } from "../../util/binary.ts";
 import { netCallNativeService } from "../jscore/swift.op.ts";
-
 
 class Deno {
   versionView = new Uint16Array(1);
   headView = new Uint16Array(2); // 初始化头部标记
   constructor() {
     this.versionView[0] = 0x01; // 版本号都是1，表示消息
-    this.headView[0] = 1
+    this.headView[0] = 1;
   }
 
   headViewAdd() {
-    this.headView[0]++
+    this.headView[0]++;
     if (this.headView[0] === 127) {
-      this.headView[0] = 0
-      this.headView[1]++
+      this.headView[0] = 0;
+      this.headView[1]++;
     }
     if (this.headView[1] === 127) {
-      this.headView[0] = 1
-      this.headView[1] = 0
+      this.headView[0] = 1;
+      this.headView[1] = 0;
     }
   }
 
@@ -37,12 +36,12 @@ class Deno {
     const { uint16Array, headView } = this.structureBinary(handleFn, data);
     let msg = new Uint8Array();
     // 发送消息
-    if (isDenoRuntime()) {
+    if (currentPlatform() === "Android") {
       js_to_rust_buffer(uint16Array); // android - denoOp
     } else {
-      msg = await netCallNativeService(handleFn, data); //  ios - javascriptCore
+      msg = netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
-    this.headViewAdd()
+    this.headViewAdd();
     return { versionView: this.versionView, headView, msg };
   }
   /**
@@ -52,7 +51,7 @@ class Deno {
    */
   callEvalJsStringFunction(handleFn: string, data = "''") {
     const { uint16Array } = this.structureBinary(handleFn, data);
-    if (isDenoRuntime()) {
+    if (currentPlatform() === "Android") {
       eval_js(uint16Array); // android - denoOp
     } else {
       netCallNativeService(handleFn, data); //  ios - javascriptCore
@@ -71,10 +70,8 @@ class Deno {
     const uint16Array = stringToByte(message);
 
     return {
-      uint16Array: contactUint16(
-        this.versionView,
-        this.headView, uint16Array),
-      headView: new Uint8Array(this.headView)
+      uint16Array: contactUint16(this.versionView, this.headView, uint16Array),
+      headView: new Uint8Array(this.headView),
     };
   }
 
