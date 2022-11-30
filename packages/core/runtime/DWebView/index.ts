@@ -1,7 +1,7 @@
 import { MetaData } from "@bfsx/metadata";
 import { network } from "../../deno/network.ts";
 import { getRustChunk } from "../../deno/rust.op.ts";
-import { decoder, encoder } from "../../../util/index.ts";
+import { stringToUint16, Uint16ToString } from "../../../util/index.ts";
 import { IImportMap } from "../../../metadata/metadataType.ts";
 import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
 import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
@@ -78,8 +78,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    * 解析网络请求
    * @param strBits 
    */
-  async chunkGateway(strBits: Uint8Array) {
-    const strPath = decoder.decode(new Uint8Array(strBits));
+  async chunkGateway(strBits: number[]) {
+    const strPath = Uint16ToString(strBits);
     // console.log("strPath :", strPath)
     if (strPath.startsWith("/channel")) {  // /channel/349512662458373/chunk=0002,104,116,116,112,115,58,1
       // 拿到channelId
@@ -88,7 +88,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       );
       const stringHex = strPath.substring(strPath.lastIndexOf("=") + 1);
       const buffers = stringHex.split(",").map(v => Number(v))
-      const chunk = (new Uint8Array(buffers))
+      const chunk = (new Uint16Array(buffers))
 
       await this.chunkHanlder(channelId, chunk)
     }
@@ -98,8 +98,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   private _request_body_cache = EasyMap.from({
     // deno-lint-ignore no-unused-vars
     creater(boydId: number) {
-      let bodyStreamController: ReadableStreamController<Uint8Array>
-      const bodyStream = new ReadableStream<Uint8Array>({ start(controller) { bodyStreamController = controller } })
+      let bodyStreamController: ReadableStreamController<Uint16Array>
+      const bodyStream = new ReadableStream<Uint16Array>({ start(controller) { bodyStreamController = controller } })
       return {
         bodyStream,
         bodyStreamController: bodyStreamController!
@@ -112,7 +112,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    * @param channelId 
    * @param chunk 
    */
-  async chunkHanlder(channelId: string, chunk: Uint8Array) {
+  async chunkHanlder(channelId: string, chunk: Uint16Array) {
     // 拿到头部
     const headers_body_id = new Uint16Array(chunk.subarray(0, 2))[0]
     // 是否结束
@@ -124,7 +124,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     if (headers_body_id % 2 === 0) {
       const headersId = headers_body_id;
       // console.log("constentString:", decoder.decode(contentBytes))
-      const { url, headers, method } = JSON.parse(decoder.decode(contentBytes));
+      const { url, headers, method } = JSON.parse(Uint16ToString(contentBytes));
       let req: Request;
       const body = this._request_body_cache.forceGet(headersId + 1); // 获取body
       if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
@@ -133,8 +133,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         req = new Request(url, { method, headers });
       }
 
-      let responseBodyCtrl!: ReadableStreamController<Uint8Array>
-      const responseBody = new ReadableStream<Uint8Array>({ start: (ctrl) => responseBodyCtrl = ctrl });
+      let responseBodyCtrl!: ReadableStreamController<Uint16Array>
+      const responseBody = new ReadableStream<Uint16Array>({ start: (ctrl) => responseBodyCtrl = ctrl });
 
       // create request head
       const event = new RequestEvent(req, new RequestResponse(responseBodyCtrl, async (statusCode, headers) => {
@@ -142,7 +142,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         this.callSWPostMessage({
           returnId: headersId,
           channelId: channelId,
-          chunk: encoder.encode(JSON.stringify({ statusCode, headers })).join(",") + ",1"
+          chunk: stringToUint16(JSON.stringify({ statusCode, headers })).join(",") + ",1"
         });
       }), channelId);
 

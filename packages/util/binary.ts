@@ -1,15 +1,22 @@
 
-export const encoder = new TextEncoder();
-export const decoder = new TextDecoder();
-
+export const stringToUint16 = (s: string) => {
+  const res = new Uint16Array(s.length);
+  for (let i = 0; i < s.length; i += 1) {
+    res[i] = s.charCodeAt(i)
+  }
+  return res
+}
+export const Uint16ToString = (buffer16: number[] | Uint16Array) => {
+  return String.fromCharCode.apply(null, buffer16 as number[])
+}
 /**
  * 合并Uint8array
  * @param arrs 
  * @returns 
  */
-export const contact = (...arrs: Uint8Array[]) => {
+export const contact = (...arrs: Uint16Array[]) => {
   const length = arrs.reduce((l, a) => l += a.length, 0);
-  const r = new Uint8Array(length);
+  const r = new Uint16Array(length);
   let walk = 0
   for (const arr of arrs) {
     r.set(arr, walk)
@@ -22,7 +29,7 @@ export const contact = (...arrs: Uint8Array[]) => {
  * @param arrs 
  * @returns 
  */
-export const contactToHex = (...arrs: Uint8Array[]) => {
+export const contactToHex = (...arrs: Uint16Array[]) => {
   const hexs = []
   for (const arr of arrs) {
     hexs.push(binaryToHex(arr))
@@ -35,46 +42,26 @@ export const contactToHex = (...arrs: Uint8Array[]) => {
  * @returns 
  */
 export const uint16_to_binary = (num: number) => {
-  const r = new Uint16Array([num]);
-  return new Uint8Array(r.buffer)
+  return new Uint16Array([num]);
 }
 export const uint8_to_binary = (num: number) => {
-  return new Uint8Array([num]);
+  return new Uint16Array([num]);
 }
 
 
 /**
- * Uint8Array to hex string
+ * Uint16Array to hex string
  * @param binary 
- * @returns 
+ * @returns string
  */
-export const binaryToHex = (binary: Uint8Array) => {
+export const binaryToHex = (binary: Uint16Array) => {
   return binary.join()
 }
 /**
- * hex string to Uint8Array
- * @param hex 
- * @returns 
+ * hex string to Uint16Array
+ * @param hex string
+ * @returns Uint8Array
  */
 export const hexToBinary = (hex: string) => {
-  return new Uint8Array(hex.split(",").map(v => +v))
-}
-
-/**
- *  创建ReadableStream
- * @param arrayBuffer
- * @param chunkSize 64 kib
- * @returns
- */
-export function createReadableStream(arrayBuffer: ArrayBuffer, chunkSize = 64 * 1024) {
-  if (arrayBuffer.byteLength === 0) return null
-  return new ReadableStream({
-    start(controller) {
-      const bytes = new Uint8Array(arrayBuffer)
-      for (let readIndex = 0; readIndex < bytes.byteLength;) {
-        controller.enqueue(bytes.subarray(readIndex, readIndex += chunkSize))
-      }
-      controller.close()
-    }
-  });
+  return new Uint16Array(hex.split(",").map(v => +v))
 }

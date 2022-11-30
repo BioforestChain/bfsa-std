@@ -4,11 +4,10 @@ import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extend
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
 import { Channels, matchOpenChannel, matchBackPressureOpen, matchCommand } from "./Channel.ts";
-import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint8_to_binary } from "../util/binary.ts";
+import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint8_to_binary, stringToUint16, Uint16ToString }
+  from "../util/binary.ts";
 
 ((self: ServiceWorkerGlobalScope) => {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
 
   const CLIENT_FETCH_CHANNEL_ID_WM = EasyWeakMap.from({
     creater(_client: Client) {
@@ -159,14 +158,14 @@ import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint
         channels.push(data); // { type: "pattern", url:"" }
         return true;
       }
-     return data;
+      return data;
     }
 
     const data = JSON.parse(event.data);
     const returnId: number = data.returnId;
     const channelId: string = data.channelId;
     const chunk = hexToBinary(data.chunk);
-    const end = chunk.subarray(-1)[0] === 1;
+    const end = chunk.slice(-1)[0] === 1;
     const bodyId = returnId | 1;
     const headersId = bodyId - 1;
 
@@ -180,8 +179,8 @@ import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint
     const responseContent = chunk.slice(0, -1);
 
     if (returnId === headersId) { // parse headers
-      console.log("responseContent:", decoder.decode(responseContent));
-      const { statusCode, headers } = JSON.parse(decoder.decode(responseContent));
+      console.log("responseContent:", Uint16ToString(responseContent));
+      const { statusCode, headers } = JSON.parse(Uint16ToString(responseContent));
       fetchTask.responseHeaders = headers;
       fetchTask.responseStatusCode = statusCode;
       fetchTask.po.resolve(
@@ -208,7 +207,7 @@ import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint
       readonly headersId: number,
       readonly bodyId: number,
       readonly request: Request,
-    ) {}
+    ) { }
 
     async *[Symbol.asyncIterator]() {
       const { request, headersId, bodyId } = this;
@@ -223,7 +222,7 @@ import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint
       // 传递headers
       yield contactToHex(
         uint16_to_binary(headersId),
-        encoder.encode(JSON.stringify({ url: request.url, headers, method: request.method.toUpperCase() })),
+        stringToUint16(JSON.stringify({ url: request.url, headers, method: request.method.toUpperCase() })),
         uint8_to_binary(0),
       );
       const buffer = await request.blob();

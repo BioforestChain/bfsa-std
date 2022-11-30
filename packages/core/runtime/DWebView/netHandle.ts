@@ -1,7 +1,6 @@
-import { encoder } from "../../../util/binary.ts";
 import { callKotlin } from "../../deno/android.fn.ts";
 import { network } from "../../deno/network.ts";
-import { contact, decoder } from '../../../util/binary.ts';
+import { contact, hexToBinary, stringToUint16, Uint16ToString } from '../../../util/binary.ts';
 import { callNative } from "../../native/native.fn.ts";
 import { callDVebView } from "../../deno/android.fn.ts";
 import deno from "../../deno/deno.ts";
@@ -19,7 +18,7 @@ export class RequestEvent {
   }
 }
 export class RequestResponse {
-  constructor(private _bodyCtrl: ReadableStreamController<Uint8Array>, private _onClose: (statusCode: number, headers: Record<string, string>) => void) {
+  constructor(private _bodyCtrl: ReadableStreamController<Uint16Array>, private _onClose: (statusCode: number, headers: Record<string, string>) => void) {
   }
   public statusCode = 200
   public headers: Record<string, string> = {}
@@ -30,12 +29,12 @@ export class RequestResponse {
     return this.headers[key]
   }
   private _closed = false
-  write(data: string | Uint8Array) {
+  write(data: string | Uint16Array) {
     if (this._closed) {
       throw new Error('closed')
     }
     if (typeof data === 'string') {
-      data = encoder.encode(data)
+      data = stringToUint16(data)
     }
     this._bodyCtrl.enqueue(data)
   }
@@ -60,7 +59,7 @@ export async function setUiHandle(event: RequestEvent) {
   const searchParams = url.searchParams.get("data")
   // 处理GET
   if (searchParams) {
-    console.log(`bodyString${event.request.method}:`, decoder.decode(new Uint8Array(searchParams.split(",").map(v => +v))))
+    console.log(`bodyString${event.request.method}:`, Uint16ToString(searchParams.split(",").map(v => +v)))
     const data = await network.asyncCallDenoFunction(
       callKotlin.setDWebViewUI,
       searchParams
@@ -93,12 +92,10 @@ export async function setUiHandle(event: RequestEvent) {
 export async function setPollHandle(event: RequestEvent) {
   const { url } = event;
   const bufferData = url.searchParams.get("data")
-  let buffer = new Uint8Array()
+  let buffer = new Uint16Array()
   // 如果是get
   if (bufferData) {
-    buffer = new Uint8Array(bufferData.split(",").map((value) => {
-      return Number(value)
-    }))
+    buffer = hexToBinary(bufferData);
   } else {
     if (!event.request.body) {
       throw new Error("Parameter passing cannot be empty！");
@@ -129,11 +126,15 @@ export async function setPollHandle(event: RequestEvent) {
   callDwebViewFactory(handler.function, result)
 }
 
-
-export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Uint8Array> {
+/**
+ * 
+ * @param body ReadableStream<Uint16Array>
+ * @returns uint8Array
+ */
+export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Uint16Array> {
   // deno-lint-ignore no-async-promise-executor
   return new Promise(async (resolve) => {
-    let result = new Uint8Array()
+    let result = new Uint16Array()
     const buff = body.getReader()
     while (true) {
       const { value, done } = await buff.read()
@@ -142,7 +143,7 @@ export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Ui
         break
       }
       console.log("bodyStringValue:", value);
-      result = contact(result, value)
+      result = contact(result, new Uint16Array(value.buffer))
     }
   })
 }
