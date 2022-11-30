@@ -10,5 +10,8 @@ export function sendJsCoreNotification(data: string) {
 }
 
 export function netCallNativeService(fn: string, data: string | Uint8Array = "") {
-  return jscore.callJavaScriptWithFunctionNameParam(fn, data);
+  const uint8 = jscore.callJavaScriptWithFunctionNameParam(fn, data);
+  if (!uint8) return new Uint8Array(0);
+  console.log("netCallNativeService:==>", uint8)
+  return uint8
 }

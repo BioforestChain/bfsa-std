@@ -1,18 +1,21 @@
 import { callNative } from "../native/native.fn.ts";
 import { network } from "../deno/network.ts";
-import { checkType } from "../../util/index.ts";
+import { bufferToString, checkType } from "../../util/index.ts";
+import { netCallNativeService } from "../jscore/swift.op.ts";
 
 
 
 /**获取设备信息 */
 export async function getDeviceInfo(): Promise<IDeviceInfo> {
   let info = "";
-  try {
+
+  if (isDenoRuntime()) {
     info = await network.asyncCallDenoFunction(callNative.getDeviceInfo);
-  } catch (e) {
-    console.log("device:", e);
-    // info = await netCallNativeService(callNative.getDeviceInfo);
+  } else {
+    const data = await netCallNativeService(callNative.getDeviceInfo);
+    info = bufferToString(data.buffer)
   }
+  console.log("device:", info);
   return JSON.parse(info);
 }
 

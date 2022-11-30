@@ -4,13 +4,13 @@
 
 import { eval_js, js_to_rust_buffer } from "./rust.op.ts";
 import { isDenoRuntime } from "../runtime/device.ts";
-import { contact, encoder } from '../../util/binary.ts';
+import { contactUint16, stringToByte } from '../../util/binary.ts';
 import { netCallNativeService } from "../jscore/swift.op.ts";
 
 
 class Deno {
-  versionView = new Uint8Array(new ArrayBuffer(1));
-  headView = new Uint8Array(new ArrayBuffer(2)); // 初始化头部标记
+  versionView = new Uint16Array(1);
+  headView = new Uint16Array(2); // 初始化头部标记
   constructor() {
     this.versionView[0] = 0x01; // 版本号都是1，表示消息
     this.headView[0] = 1
@@ -34,11 +34,11 @@ class Deno {
    * @param data
    */
   async callFunction(handleFn: string, data = "''") {
-    const { uint8Array, headView } = this.structureBinary(handleFn, data);
+    const { uint16Array, headView } = this.structureBinary(handleFn, data);
     let msg = new Uint8Array();
     // 发送消息
     if (isDenoRuntime()) {
-      js_to_rust_buffer(uint8Array); // android - denoOp
+      js_to_rust_buffer(uint16Array); // android - denoOp
     } else {
       msg = await netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
@@ -51,9 +51,9 @@ class Deno {
    * @param data
    */
   callEvalJsStringFunction(handleFn: string, data = "''") {
-    const { uint8Array } = this.structureBinary(handleFn, data);
+    const { uint16Array } = this.structureBinary(handleFn, data);
     if (isDenoRuntime()) {
-      eval_js(uint8Array); // android - denoOp
+      eval_js(uint16Array); // android - denoOp
     } else {
       netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
@@ -67,13 +67,13 @@ class Deno {
   structureBinary(fn: string, data: string | Uint8Array = "") {
     const message = `{"function":"${fn}","data":${data}}`;
 
-    // 字符 转 Uint8Array
-    const uint8Array = encoder.encode(message);
+    // 字符 转 Uint16Array
+    const uint16Array = stringToByte(message);
 
     return {
-      uint8Array: contact(
+      uint16Array: contactUint16(
         this.versionView,
-        this.headView, uint8Array),
+        this.headView, uint16Array),
       headView: new Uint8Array(this.headView)
     };
   }

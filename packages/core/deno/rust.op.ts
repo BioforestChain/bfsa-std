@@ -2,11 +2,12 @@
 import "@bfsx/typings";
 
 /**js 到rust的消息 */
-export function js_to_rust_buffer(data: Uint8Array) {
+export function js_to_rust_buffer(data: Uint16Array) {
+  console.log("op_js_to_rust_buffer:🍜", data)
   Deno.core.opSync("op_js_to_rust_buffer", data);
 }
 /**js 到rust的消息： 调用android方法执行evenjs，即传递消息给前端 */
-export function eval_js(data: Uint8Array) {
+export function eval_js(data: Uint16Array) {
   Deno.core.opSync("op_eval_js", data);
 }
 

@@ -42,7 +42,7 @@ export async function parseNetData(event: RequestEvent, pathname: string, import
       body: request.body,
     })
   }
-  event.response.write(new Uint8Array(await data.arrayBuffer()))
+  event.response.write(new Uint16Array(await data.arrayBuffer()))
   event.response.end()
 }
 

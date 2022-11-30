@@ -1,6 +1,6 @@
 import { callKotlin } from "../../deno/android.fn.ts";
 import { network } from "../../deno/network.ts";
-import { contact, hexToBinary, stringToUint16, Uint16ToString } from '../../../util/binary.ts';
+import { contactUint16, hexToBinary, stringToByte, bufferToString, contactUint8 } from '../../../util/binary.ts';
 import { callNative } from "../../native/native.fn.ts";
 import { callDVebView } from "../../deno/android.fn.ts";
 import deno from "../../deno/deno.ts";
@@ -34,7 +34,7 @@ export class RequestResponse {
       throw new Error('closed')
     }
     if (typeof data === 'string') {
-      data = stringToUint16(data)
+      data = stringToByte(data)
     }
     this._bodyCtrl.enqueue(data)
   }
@@ -59,7 +59,7 @@ export async function setUiHandle(event: RequestEvent) {
   const searchParams = url.searchParams.get("data")
   // 处理GET
   if (searchParams) {
-    console.log(`bodyString${event.request.method}:`, Uint16ToString(searchParams.split(",").map(v => +v)))
+    console.log(`bodyString${event.request.method}:`, bufferToString(searchParams.split(",").map(v => +v)))
     const data = await network.asyncCallDenoFunction(
       callKotlin.setDWebViewUI,
       searchParams
@@ -95,12 +95,12 @@ export async function setPollHandle(event: RequestEvent) {
   let buffer = new Uint16Array()
   // 如果是get
   if (bufferData) {
-    buffer = hexToBinary(bufferData);
+    buffer = new Uint16Array(hexToBinary(bufferData));
   } else {
     if (!event.request.body) {
       throw new Error("Parameter passing cannot be empty！");
     }
-    buffer = await readReadableStream(event.request.body)
+    buffer = new Uint16Array(await (await readReadableStream(event.request.body)).buffer)
   }
   if (buffer.byteLength === 0) {
     throw new Error("Parameter passing cannot be empty！");
@@ -128,13 +128,13 @@ export async function setPollHandle(event: RequestEvent) {
 
 /**
  * 
- * @param body ReadableStream<Uint16Array>
- * @returns uint8Array
+ * @param body ReadableStream<Uint8Array>
+ * @returns Uint8Array
  */
-export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Uint16Array> {
+export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Uint8Array> {
   // deno-lint-ignore no-async-promise-executor
   return new Promise(async (resolve) => {
-    let result = new Uint16Array()
+    let result = new Uint8Array()
     const buff = body.getReader()
     while (true) {
       const { value, done } = await buff.read()
@@ -143,7 +143,7 @@ export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Ui
         break
       }
       console.log("bodyStringValue:", value);
-      result = contact(result, new Uint16Array(value.buffer))
+      result = contactUint8(result, value)
     }
   })
 }

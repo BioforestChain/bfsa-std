@@ -1,20 +1,26 @@
 
-export const stringToUint16 = (s: string) => {
+export const stringToByte = (s: string) => {
   const res = new Uint16Array(s.length);
   for (let i = 0; i < s.length; i += 1) {
     res[i] = s.charCodeAt(i)
   }
   return res
 }
-export const Uint16ToString = (buffer16: number[] | Uint16Array) => {
-  return String.fromCharCode.apply(null, buffer16 as number[])
+
+/**
+ * arrayBuffer to String
+ * @param buffer 
+ * @returns 
+ */
+export const bufferToString = (buffer: ArrayBuffer | number[]) => {
+  return String.fromCharCode.apply(null, (new Uint16Array(buffer)) as unknown as number[])
 }
 /**
- * 合并Uint8array
+ * 合并Uint16array
  * @param arrs 
  * @returns 
  */
-export const contact = (...arrs: Uint16Array[]) => {
+export const contactUint16 = (...arrs: Uint16Array[]) => {
   const length = arrs.reduce((l, a) => l += a.length, 0);
   const r = new Uint16Array(length);
   let walk = 0
@@ -24,6 +30,23 @@ export const contact = (...arrs: Uint16Array[]) => {
   }
   return r
 }
+
+/**
+ * 合并Uint16array
+ * @param arrs 
+ * @returns 
+ */
+export const contactUint8 = (...arrs: Uint8Array[]) => {
+  const length = arrs.reduce((l, a) => l += a.length, 0);
+  const r = new Uint8Array(length);
+  let walk = 0
+  for (const arr of arrs) {
+    r.set(arr, walk)
+    walk += arr.length
+  }
+  return r
+}
+
 /**
  * 合并hex
  * @param arrs 
@@ -36,6 +59,7 @@ export const contactToHex = (...arrs: Uint16Array[]) => {
   }
   return hexs.join(",")
 }
+
 /**
  * Uint16 transfrom binary
  * @param num 
@@ -45,7 +69,7 @@ export const uint16_to_binary = (num: number) => {
   return new Uint16Array([num]);
 }
 export const uint8_to_binary = (num: number) => {
-  return new Uint16Array([num]);
+  return new Uint8Array([num]);
 }
 
 
@@ -58,10 +82,10 @@ export const binaryToHex = (binary: Uint16Array) => {
   return binary.join()
 }
 /**
- * hex string to Uint16Array
+ * hex string to Uint8Array
  * @param hex string
  * @returns Uint8Array
  */
 export const hexToBinary = (hex: string) => {
-  return new Uint16Array(hex.split(",").map(v => +v))
+  return hex.split(",").map(v => +v)
 }

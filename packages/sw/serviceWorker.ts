@@ -4,7 +4,7 @@ import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extend
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
 import { Channels, matchOpenChannel, matchBackPressureOpen, matchCommand } from "./Channel.ts";
-import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint8_to_binary, stringToUint16, Uint16ToString }
+import { binaryToHex, contactUint16, contactToHex, hexToBinary, uint16_to_binary, stringToByte, bufferToString }
   from "../util/binary.ts";
 
 ((self: ServiceWorkerGlobalScope) => {
@@ -179,8 +179,8 @@ import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint
     const responseContent = chunk.slice(0, -1);
 
     if (returnId === headersId) { // parse headers
-      console.log("responseContent:", Uint16ToString(responseContent));
-      const { statusCode, headers } = JSON.parse(Uint16ToString(responseContent));
+      console.log("responseContent:", bufferToString(responseContent));
+      const { statusCode, headers } = JSON.parse(bufferToString(responseContent));
       fetchTask.responseHeaders = headers;
       fetchTask.responseStatusCode = statusCode;
       fetchTask.po.resolve(
@@ -190,8 +190,8 @@ import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint
         }),
       );
     } else if (returnId === bodyId) { // parse body
-      console.log("文件流推入", channelId, headersId, bodyId, responseContent.byteLength);
-      fetchTask.responseBody.controller.enqueue(responseContent);
+      console.log("文件流推入", channelId, headersId, bodyId, responseContent.length);
+      fetchTask.responseBody.controller.enqueue(new Uint8Array(responseContent));
     } else {
       throw new Error("should not happen!! NAN? " + returnId);
     }
@@ -222,8 +222,8 @@ import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint
       // 传递headers
       yield contactToHex(
         uint16_to_binary(headersId),
-        stringToUint16(JSON.stringify({ url: request.url, headers, method: request.method.toUpperCase() })),
-        uint8_to_binary(0),
+        stringToByte(JSON.stringify({ url: request.url, headers, method: request.method.toUpperCase() })),
+        uint16_to_binary(0),
       );
       const buffer = await request.blob();
       // console.log("有body数据传递1", request.method, buffer);
@@ -238,10 +238,10 @@ import { binaryToHex, contact, contactToHex, hexToBinary, uint16_to_binary, uint
             break;
           }
           // console.log("有body数据传递2：", value)
-          yield binaryToHex(contact(uint16_to_binary(bodyId), value, uint8_to_binary(0)));
+          yield binaryToHex(contactUint16(uint16_to_binary(bodyId), value, uint16_to_binary(0)));
         } while (true);
       }
-      yield binaryToHex(contact(uint16_to_binary(bodyId), uint8_to_binary(1)));
+      yield binaryToHex(contactUint16(uint16_to_binary(bodyId), uint16_to_binary(1)));
     }
   }
 
