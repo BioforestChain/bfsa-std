@@ -7,10 +7,11 @@ export {
   openQrScanner,
   DWebView,
   sendNotification,
-  isDenoRuntime,
+  // isDenoRuntime,
   getDeviceInfo,
   EDeviceModule,
   EPermissions,
   applyPermissions,
 } from "./runtime/index.ts";
 export { network } from "./deno/network.ts";
+export { currentPlatform } from "./platform.ts";
