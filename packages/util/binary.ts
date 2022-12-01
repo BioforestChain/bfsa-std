@@ -2,8 +2,12 @@
 export const stringToByte = (s: string) => {
   const res: number[] = new Array(s.length);
   for (let i = 0; i < s.length; i += 1) {
-    res[i] = s.charCodeAt(i)
+    const u = s.codePointAt(i);
+    if (u) {
+      res[i] = u
+    }
   }
+  console.log("stringToByte:", res)
   return res
 }
 

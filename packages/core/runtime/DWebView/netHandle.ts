@@ -1,6 +1,6 @@
 import { callKotlin } from "../../deno/android.fn.ts";
 import { network } from "../../deno/network.ts";
-import { hexToBinary, stringToByte, bufferToString, contactUint8 } from '../../../util/binary.ts';
+import { hexToBinary, bufferToString, contactUint8 } from '../../../util/binary.ts';
 import { callNative } from "../../native/native.fn.ts";
 import { callDVebView } from "../../deno/android.fn.ts";
 import deno from "../../deno/deno.ts";
