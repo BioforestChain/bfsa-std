@@ -4,24 +4,60 @@
 
 import { eval_js, js_to_rust_buffer } from "./rust.op.ts";
 import { currentPlatform } from "../runtime/platform.ts";
-import { contactNumber, stringToByte } from "../../util/binary.ts";
+import { stringToByte } from "../../util/binary.ts";
 import { netCallNativeService } from "../jscore/swift.op.ts";
+import { contactUint16 } from "../../util/binary.ts";
+
+type IO_TYPE = string | number | boolean | null | ArrayBufferView;
+interface $Command<I extends readonly IO_TYPE[] = IO_TYPE[], O extends readonly IO_TYPE[] = IO_TYPE[]> {
+  input: I;
+  ouput: O;
+}
+
+type $A2BCommands = {
+  test1: $Command<[age: number, name: string], [success: boolean]>;
+  test2: $Command<[age: number, name: string], [success: boolean]>;
+};
+
+// class SimpleIOArray{
+//   (json_data,kotin_map){
+
+//   }
+
+//   getStringByIndex(index:number):String{
+//   }
+//   getStringByIndexOptions(index:number):String?{
+//   }
+
+//   getIntByIndex(index:number){
+//   }
+//   getBooleanByIndex(index:number){
+//   }
+//   getBytesByIndex(index:number){
+//   }
+// }
+
+// type $B2ACommands = {
+//   test1:$Command<[age:number, name:string], [success:boolean]>
+//   test2:$Command<[age:number, name:string], [success:boolean]>
+// } ;
+namespace $Commands {
+  type _Commands = Record<string, $Command>;
+  export type Cmd<CS extends _Commands = $A2BCommands> = keyof CS;
+  export type Input<C extends Cmd<CS>, CS extends _Commands = $A2BCommands> = CS[C]["input"];
+  export type Output<C extends Cmd<CS>, CS extends _Commands = $A2BCommands> = CS[C]["ouput"];
+}
+
+let z_acc_id = 0;
 
 class Deno {
-  versionView = [1];
-  headView = [1, 0]; // 初始化头部标记
+  versionView = new Uint16Array([1]);
+  headView = new Uint16Array([1]); // 初始化头部标记
 
   headViewAdd() {
     this.headView[0]++;
-    if (this.headView[0] === 127) {
-      this.headView[0] = 0;
-      this.headView[1]++;
-    }
-    if (this.headView[1] === 127) {
-      this.headView[0] = 1;
-      this.headView[1] = 0;
-    }
   }
+
 
   /**
    * 调用deno的函数
@@ -59,14 +95,14 @@ class Deno {
    * 第二块分区：头部标记 2^16 16位 两个字节  根据版本号这里各有不同，假如是消息，就是0，1；如果是广播则是组
    * 第三块分区：数据主体 动态创建
    */
-  structureBinary(fn: string, data: string | Uint8Array = "") {
+  structureBinary(fn: string, data = "") {
     const message = `{"function":"${fn}","data":${data}}`;
 
     // 字符 转 number
     const body = stringToByte(message);
 
     return {
-      body: contactNumber(this.versionView, this.headView, body),
+      body: contactUint16(this.versionView, this.headView, body),
       headView: this.headView,
     };
   }

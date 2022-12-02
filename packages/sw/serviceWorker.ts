@@ -4,7 +4,7 @@ import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extend
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
 import { Channels, matchOpenChannel, matchBackPressureOpen, matchCommand } from "./Channel.ts";
-import { binaryToHex, contactUint16, contactToHex, hexToBinary, uint16_to_binary, stringToByte, bufferToString }
+import { stringToNum,contactNumber, hexToBinary, bufferToString }
   from "../util/binary.ts";
 
 ((self: ServiceWorkerGlobalScope) => {
@@ -139,7 +139,6 @@ import { binaryToHex, contactUint16, contactToHex, hexToBinary, uint16_to_binary
       return await task.po.promise;
     })());
   });
-
   // return data 🐯
   self.addEventListener("message", (event) => {
     if (typeof event.data !== "string") return;
@@ -220,10 +219,10 @@ import { binaryToHex, contactUint16, contactToHex, hexToBinary, uint16_to_binary
         Object.assign(headers, { [key]: value });
       });
       // 传递headers
-      yield contactToHex(
-        uint16_to_binary(headersId),
-        stringToByte(JSON.stringify({ url: request.url, headers, method: request.method.toUpperCase() })),
-        uint16_to_binary(0),
+      yield contactNumber(
+        [headersId],
+        stringToNum(JSON.stringify({ url: request.url, headers, method: request.method.toUpperCase() })),
+        [0],
       );
       const buffer = await request.blob();
       // console.log("有body数据传递1", request.method, buffer);
@@ -237,11 +236,11 @@ import { binaryToHex, contactUint16, contactToHex, hexToBinary, uint16_to_binary
           if (done) {
             break;
           }
-          // console.log("有body数据传递2：", value)
-          yield binaryToHex(contactUint16(uint16_to_binary(bodyId), value, uint16_to_binary(0)));
+          console.log("有body数据传递2：", value)
+          yield contactNumber([bodyId], value, [0]);
         } while (true);
       }
-      yield binaryToHex(contactUint16(uint16_to_binary(bodyId), uint16_to_binary(1)));
+      yield contactNumber([bodyId], [1]);
     }
   }
 

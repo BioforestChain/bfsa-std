@@ -1,10 +1,21 @@
 
 export const stringToByte = (s: string) => {
-  const res: number[] = new Array(s.length);
+  const res = new Uint16Array(s.length);
   for (let i = 0; i < s.length; i += 1) {
     const u = s.codePointAt(i);
     if (u) {
-      res[i] = u
+      res[i]= u
+    }
+  }
+  return res
+}
+
+export const stringToNum = (s: string) => {
+  const res = [];
+  for (let i = 0; i < s.length; i += 1) {
+    const u = s.codePointAt(i);
+    if (u) {
+      res[ i]= u
     }
   }
   console.log("stringToByte:", res)
@@ -17,11 +28,11 @@ export const stringToByte = (s: string) => {
  * @returns 
  */
 export const bufferToString = (buffer: ArrayBuffer | number[]) => {
-  return String.fromCharCode.apply(null, (new Uint16Array(buffer)) as unknown as number[])
+  return String.fromCharCode.apply(null, buffer as number[])
 }
 
 /**
- * 合并Uint16array
+ * 合并number
  * @param arrs 
  * @returns 
  */

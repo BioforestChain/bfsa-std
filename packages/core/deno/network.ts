@@ -7,11 +7,11 @@ import deno from "./deno.ts";
 import { getRustBuffer } from "./rust.op.ts";
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 const RUST_DATA_CATCH = EasyMap.from({
-  transformKey(key: number[]) {
+  transformKey(key: Uint16Array) {
     return `${key[0]}-${key[1]}`;
   },
   creater() {
-    return new Uint8Array();
+    return new Uint16Array();
   },
 });
 export class Network {
@@ -43,14 +43,14 @@ export class Network {
   asyncCallDenoBuffer(
     handleFn: string,
     data: TNative = "''",
-  ): Promise<Uint8Array> {
+  ): Promise<ArrayBuffer> {
     return this.asyncCallDeno(handleFn, data);
   }
 
   async asyncCallDeno(
     handleFn: string,
     data: TNative = "''",
-  ): Promise<Uint8Array> {
+  ): Promise<ArrayBuffer> {
     if (data instanceof Object) {
       data = JSON.stringify(data); // stringify 两次转义一下双引号
     }
