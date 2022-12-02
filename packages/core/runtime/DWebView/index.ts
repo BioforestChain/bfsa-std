@@ -68,7 +68,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       if (data.done) {
         continue
       }
-      // console.log("dwebviewToDeno====>", data.value);
+      console.log("dwebviewToDeno====>", data.value);
       this.chunkGateway(data.value)
       /// 这里是重点，使用 do-while ，替代 finally，可以避免堆栈溢出。
     } while (true);
@@ -80,7 +80,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    */
   async chunkGateway(strBits: number[]) {
     const strPath = bufferToString(strBits);
-    // console.log("strPath :", strPath)
+    console.log("strPath :", strPath)
     if (strPath.startsWith("/channel")) {  // /channel/349512662458373/chunk=0002,104,116,116,112,115,58,1
       // 拿到channelId
       const channelId = strPath.substring(
@@ -114,16 +114,16 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    */
   async chunkHanlder(channelId: string, chunk: number[]) {
     // 拿到头部
-    const headers_body_id = chunk.slice(0, 2)[0]
+    const headers_body_id = chunk.slice(0, 1)[0]
     // 是否结束
     const isEnd = chunk.slice(-1)[0] === 1// 1为发送结束，0为还没结束
     console.log(`parseChunkBinary headerId:${headers_body_id},isEnd:${isEnd}`)
-
-    const contentBytes = chunk.slice(2, -1);
+    // 拿到请求题
+    const contentBytes = chunk.slice(1, -1);
     // 如果是headers请求
     if (headers_body_id % 2 === 0) {
       const headersId = headers_body_id;
-      // console.log("constentString:", decoder.decode(contentBytes))
+      console.log("constentString:", bufferToString(contentBytes))
       const { url, headers, method } = JSON.parse(bufferToString(contentBytes));
       let req: Request;
       const body = this._request_body_cache.forceGet(headersId + 1); // 获取body

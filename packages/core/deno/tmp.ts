@@ -74,3 +74,24 @@
 //           })
 //       }
 // }
+
+
+
+// kotlin
+// class SimpleIOArray{
+//   (json_data,kotin_map){
+
+//   }
+
+//   getStringByIndex(index:number):String{
+//   }
+//   getStringByIndexOptions(index:number):String?{
+//   }
+
+//   getIntByIndex(index:number){
+//   }
+//   getBooleanByIndex(index:number){
+//   }
+//   getBytesByIndex(index:number){
+//   }
+// }

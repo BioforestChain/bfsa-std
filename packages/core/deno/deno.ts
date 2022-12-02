@@ -19,24 +19,6 @@ type $A2BCommands = {
   test2: $Command<[age: number, name: string], [success: boolean]>;
 };
 
-// class SimpleIOArray{
-//   (json_data,kotin_map){
-
-//   }
-
-//   getStringByIndex(index:number):String{
-//   }
-//   getStringByIndexOptions(index:number):String?{
-//   }
-
-//   getIntByIndex(index:number){
-//   }
-//   getBooleanByIndex(index:number){
-//   }
-//   getBytesByIndex(index:number){
-//   }
-// }
-
 // type $B2ACommands = {
 //   test1:$Command<[age:number, name:string], [success:boolean]>
 //   test2:$Command<[age:number, name:string], [success:boolean]>
@@ -52,7 +34,7 @@ let z_acc_id = 0;
 
 class Deno {
   versionView = new Uint16Array([1]);
-  headView = new Uint16Array([1]); // 初始化头部标记
+  headView = new Uint16Array([0]); // 初始化头部标记
 
   headViewAdd() {
     this.headView[0]++;
@@ -65,6 +47,7 @@ class Deno {
    * @param data
    */
   callFunction(handleFn: string, data = "''") {
+    this.headViewAdd();
     const { body, headView } = this.structureBinary(handleFn, data);
     let msg = new Uint8Array();
     // 发送消息
@@ -73,8 +56,8 @@ class Deno {
     } else {
       msg = netCallNativeService(handleFn, data); //  ios - javascriptCore
     }
-    this.headViewAdd();
-    return { versionView: this.versionView, headView, msg };
+    const res = { versionView: this.versionView, headView:new Uint8Array(headView.buffer), msg }
+    return res;
   }
   /**
    * 调用evaljs 执行js

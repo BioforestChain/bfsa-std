@@ -7,11 +7,11 @@ import deno from "./deno.ts";
 import { getRustBuffer } from "./rust.op.ts";
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 const RUST_DATA_CATCH = EasyMap.from({
-  transformKey(key: Uint16Array) {
+  transformKey(key: Uint8Array) {
     return `${key[0]}-${key[1]}`;
   },
   creater() {
-    return new Uint16Array();
+    return new Uint8Array();
   },
 });
 export class Network {
@@ -26,8 +26,9 @@ export class Network {
     data: TNative = "''",
   ): Promise<string> {
     return await this.asyncCallDeno(handleFn, data).then((data) => {
-      console.log("xasyncCallDenoFunctionx", data);
-      return bufferToString(data);
+      const result =  bufferToString(data);
+      console.log("xasyncCallDenoFunctionx", result);
+      return result;
     }).catch((err) => {
       console.log("xasyncCallDenoFunctionx", err);
       return err;
@@ -59,6 +60,7 @@ export class Network {
       handleFn,
       JSON.stringify(data),
     );
+    console.log("callFunction#headview1",headView,handleFn)
     // console.log(`asyncCallDenoFunction：发送请求：${headView[0]}: ${decoder.decode(new Uint8Array((data as string).split(",").map((v: string | number) => +v)))}`);
     // 如果直接有msg返回，那么就代表非denoRuntime环境
     if (msg.byteLength !== 0) {
@@ -66,7 +68,6 @@ export class Network {
     }
     do {
       const result = await getRustBuffer(headView); // backSystemDataToRust
-
       if (result.done) {
         if (RUST_DATA_CATCH.tryHas(headView)) {
           // 拿到缓存里的
@@ -78,8 +79,7 @@ export class Network {
         continue;
       }
 
-      // console.log(`asyncCallDenoFunction：🚑：找到返回值${result.headView[0]},当前请求的：${headView[0]}
-      //     ${decoder.decode(new Uint8Array((data as string).split(",").map((v: string | number) => +v)))}`);
+      // console.log(`asyncCallDenoFunction：🚑：找到返回值${result.headView[0]},当前请求的：${headView[0]}`);
 
       // 如果请求是返回了是同一个表示头则返回成功
       if (headView[0] === result.headView[0]) {

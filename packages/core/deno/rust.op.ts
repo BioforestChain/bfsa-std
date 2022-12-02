@@ -38,15 +38,14 @@ export async function getRustChunk() {
   };
 }
 let _versionView: Uint16Array = new Uint16Array(1);
-let _headView: Uint16Array = new Uint16Array(1);
+let _headView: Uint8Array = new Uint8Array(2);
 /**循环从rust里拿数据 */
-export async function getRustBuffer(ex_head_view: Uint16Array) {
-
+export async function getRustBuffer(ex_head_view: Uint8Array) {
   const data = `${ex_head_view[0]}-${ex_head_view[1]}`;
   const buffer = await Deno.core.opSync("op_rust_to_js_system_buffer", data); // backSystemDataToRust
   if (buffer[0] === 0 && buffer.length === 1) {
     return {
-      value: new Uint8Array(),
+      value: buffer,
       versionView:_versionView,
       headView:_headView,
       done: true,
