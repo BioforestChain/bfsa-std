@@ -1,8 +1,6 @@
-import { callKotlin } from "../../deno/android.fn.ts";
 import { network } from "../../deno/network.ts";
 import { hexToBinary, bufferToString, contactUint8 } from '../../../util/binary.ts';
-import { callNative } from "../../native/native.fn.ts";
-import { callDVebView } from "../../deno/android.fn.ts";
+import { callNative,callDVebView } from "../../native/native.fn.ts";
 import deno from "../../deno/deno.ts";
 import { ECommand, IChannelConfig } from "@bfsx/typings";
 import { EventPollQueue } from "./index.ts";
@@ -61,7 +59,7 @@ export async function setUiHandle(event: RequestEvent) {
   if (searchParams) {
     console.log(`bodyString${event.request.method}:`, bufferToString(searchParams.split(",").map(v => +v)))
     const data = await network.asyncCallDenoFunction(
-      callKotlin.setDWebViewUI,
+      callNative.setDWebViewUI,
       searchParams
     );
     console.log("resolveSetUiHandleData:", data)
@@ -77,7 +75,7 @@ export async function setUiHandle(event: RequestEvent) {
   const result = await readReadableStream(event.request.body)
 
   const data = await network.asyncCallDenoFunction(
-    callKotlin.setDWebViewUI,
+    callNative.setDWebViewUI,
     result.join()
   );
   event.response.write(data)

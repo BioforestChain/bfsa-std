@@ -11,7 +11,7 @@ import { currentPlatform } from "./platform.ts";
 export async function applyPermissions(permissions: EPermissions) {
   if (currentPlatform() === "Android") {
     const per = await network.asyncCallDenoFunction(
-      callNative.ApplyPermissions,
+      callNative.applyPermissions,
       {
         permissions,
       }
