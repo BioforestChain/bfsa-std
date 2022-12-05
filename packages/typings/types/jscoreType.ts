@@ -1,7 +1,9 @@
+import { TNative } from "../index.ts";
+
 /** javascriptCore function */
 export interface PlaocJavascriptBridge {
   callJavaScriptWithFunctionNameParam: (
     functionName: string,
-    param: string | Uint8Array
+    param: TNative
   ) => Uint8Array;
 }

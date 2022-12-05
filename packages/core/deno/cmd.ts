@@ -1,13 +1,16 @@
 
-export type IO_TYPE = string | number | boolean | null | ArrayBufferView;
+export type IO_TYPE = string | number | boolean | null | ArrayBuffer | ArrayBufferView;
 export interface $Command<I extends readonly IO_TYPE[] = IO_TYPE[], O extends readonly IO_TYPE[] = IO_TYPE[]> {
   input: I;
   ouput: O;
 }
 
 export type $A2BCommands = {
-  asyncCallDeno: $Command<[data: string], [result: ArrayBufferView]>;
-  syncCallDeno: $Command<[], []>;
+  asyncStrngHasReturn: $Command<[data: string], [result: ArrayBuffer]>;
+  asyncNumberHasReturn: $Command<[data: number], [result: ArrayBuffer]>;
+  asyncBoolHasReturn: $Command<[data: boolean], [result: ArrayBuffer]>;
+  asyncBuffHasReturn: $Command<[data: ArrayBufferView], [result: ArrayBuffer]>;
+  syncCallNotReturn: $Command<[], [result: ArrayBuffer]>;
   // [callNative.openDWebView]: $Command<[entry: string], []>;
   // [callNative.openQrScanner]: $Command<[], [success: string]>;
   // [callNative.openBarcodeScanner]: $Command<[], [success: string]>;
@@ -35,9 +38,9 @@ export namespace $Commands {
 let _L = 0;
 export enum Transform_Type {
   /**包含返回值的消息 */
-  HAS_RETURN = 1 >> _L++,
- /**通用的消息 */
-  COMMON = 1 >> _L++,
+  HAS_RETURN = 1 << _L++, // 1 
+  /**通用的消息 */
+  COMMON = 1 << _L++, // 2
   // IS_ALL_BUFFER = 1 >> L++,
   // IS_ALL_JSON = 1 >> L++,
   // IS_ALL_STRING = 1 >> L++,

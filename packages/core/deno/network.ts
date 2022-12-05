@@ -3,19 +3,11 @@
 /////////////////////////////
 import { TNative } from "@bfsx/typings";
 import { bufferToString } from "../../util/binary.ts";
-import deno from "./deno.ts";
-import { getRustBuffer } from "./rust.op.ts";
-import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
-import { $A2BCommands } from "./cmd.ts";
-import  { callNative } from "../native/native.fn.ts";
-const RUST_DATA_CATCH = EasyMap.from({
-  transformKey(key: Uint8Array) {
-    return `${key[0]}-${key[1]}`;
-  },
-  creater() {
-    return new Uint8Array();
-  },
-});
+import { deno } from "./deno.ts";
+import { $A2BCommands, Transform_Type } from "./cmd.ts";
+import { currentPlatform } from "../runtime/platform.ts";
+import { netCallNativeService } from "../jscore/swift.op.ts";
+
 
 type $THandle = keyof $A2BCommands;
 
@@ -28,10 +20,10 @@ export class Network {
    */
   async asyncCallDenoFunction(
     handleFn: string,
-    data: TNative = "''",
+    data: TNative = "",
   ): Promise<string> {
     return await this.asyncCallDeno(handleFn, data).then((data) => {
-      const result =  bufferToString(data);
+      const result = bufferToString(data);
       console.log("xasyncCallDenoFunctionx", result);
       return result;
     }).catch((err) => {
@@ -46,81 +38,50 @@ export class Network {
    * @param data
    * @returns  Buffer
    */
-  asyncCallDenoBuffer(
+  async asyncCallDenoBuffer(
     handleFn: string,
-    data: TNative = "''",
+    data: TNative = "",
   ): Promise<ArrayBuffer> {
-    return this.asyncCallDeno(handleFn , data);
+    return await this.asyncCallDeno(handleFn, data);
   }
- 
-   asyncCallDeno(
-    handleFn:  string,
-    data: TNative = "''",
+
+  async asyncCallDeno(
+    handleFn: string,
+    data: TNative = "",
   ): Promise<ArrayBuffer> {
-    if (data instanceof Object) {
+    if (data instanceof Object && !ArrayBuffer.isView(data)) {
       data = JSON.stringify(data); // stringify 两次转义一下双引号
     }
-    deno.request(handleFn as $THandle, [JSON.stringify(data)])
-    return Promise.resolve(new ArrayBuffer(1));
+    console.log("asyncCallDeno#request: ", handleFn, data)
+
+    // 处理IOS，可以不转buffer就不转，少了一道工序
+    if (currentPlatform() === "iOS") {
+      const msg = await netCallNativeService(handleFn, data);
+      return msg;
+    }
+
+    // 发送消息的类型
+    const type: number = Transform_Type.COMMON;
     // 发送请求
-    // const { headView, msg } = await deno.callFunction(
-    //   handleFn,
-    //   JSON.stringify(data),
-    // );
-    // console.log("callFunction#headview1",headView,handleFn)
+    const buffer = await deno.request(handleFn as $THandle, [data], type)
+    console.log("asyncCallDeno#Response: ", buffer[0])
+    return buffer[0];
+    // return Promise.resolve(new ArrayBuffer(1));
     // // console.log(`asyncCallDenoFunction：发送请求：${headView[0]}: ${decoder.decode(new Uint8Array((data as string).split(",").map((v: string | number) => +v)))}`);
-    // // 如果直接有msg返回，那么就代表非denoRuntime环境
-    // if (msg.byteLength !== 0) {
-    //   return msg;
-    // }
-    // do {
-    //   const result = await getRustBuffer(headView); // backSystemDataToRust
-    //   if (result.done) {
-    //     if (RUST_DATA_CATCH.tryHas(headView)) {
-    //       // 拿到缓存里的
-    //       const value = RUST_DATA_CATCH.forceGet(headView)!;
-    //       RUST_DATA_CATCH.tryDelete(headView);
-    //       // console.log("asyncCallDenoFunction：11😄缓存里拿的：", headView[0])
-    //       return value;
-    //     }
-    //     continue;
-    //   }
-
-    //   // console.log(`asyncCallDenoFunction：🚑：找到返回值${result.headView[0]},当前请求的：${headView[0]}`);
-
-    //   // 如果请求是返回了是同一个表示头则返回成功
-    //   if (headView[0] === result.headView[0]) {
-    //     // console.log("asyncCallDenoFunction：1😃拿到请求：", headView[0])
-    //     return result.value;
-    //   }
-
-    //   // 如果需要的跟请求返回的不同 先看缓存里有没有
-    //   if (RUST_DATA_CATCH.tryHas(headView)) {
-    //     // 拿到缓存里的
-    //     const value = RUST_DATA_CATCH.forceGet(headView)!;
-    //     RUST_DATA_CATCH.tryDelete(headView);
-    //     // 如果是拿缓存里的，并且本次有返回，需要存起来
-    //     if (result.value) {
-    //       RUST_DATA_CATCH.trySet(result.headView, result.value);
-    //     }
-    //     // console.log("asyncCallDenoFunction：1😄缓存里拿的：", headView[0])
-    //     return value;
-    //   }
-    //   // console.log("asyncCallDenoFunction：1😃未命中,存储请求：", result.headView[0], RUST_DATA_CATCH.tryHas(headView))
-    //   // 如果不存在，则先存起来
-    //   RUST_DATA_CATCH.trySet(result.headView, result.value);
-    // } while (true);
   }
   /**
    * 同步调用方法没返回值
    * @param handleFn
    * @param data
    */
-  syncCallDenoFunction(handleFn: string, data: TNative = "''"): void {
+  syncCallDenoFunction(handleFn: string, data: TNative = ""): void {
     if (data instanceof Object) {
       data = JSON.stringify(data); // stringify 两次转义一下双引号
     }
-    deno.callEvalJsStringFunction(handleFn, JSON.stringify(data)); // 发送请求
+    console.log("syncCallDenoFunction#request: ", handleFn, data)
+    // 发送消息的类型
+    const type: number = Transform_Type.HAS_RETURN;
+    deno.request(handleFn as $THandle, [data], type); // 发送请求
   }
 }
 

@@ -1,7 +1,6 @@
 import { network } from "../../deno/network.ts";
 import { hexToBinary, bufferToString, contactUint8 } from '../../../util/binary.ts';
-import { callNative,callDVebView } from "../../native/native.fn.ts";
-import deno from "../../deno/deno.ts";
+import { callNative, callDVebView } from "../../native/native.fn.ts";
 import { ECommand, IChannelConfig } from "@bfsx/typings";
 import { EventPollQueue } from "./index.ts";
 
@@ -166,7 +165,7 @@ function callDwebViewFactory(func: string, data: string) {
  */
 function handlerEvalJs(wb: string, data: string) {
   console.log("handlerEvalJs:", wb, data);
-  deno.callEvalJsStringFunction(
+  network.syncCallDenoFunction(
     callNative.evalJsRuntime,
     `"javascript:document.querySelector('${wb}').dispatchStringMessage('${data}')"`
   );
