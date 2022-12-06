@@ -1,13 +1,14 @@
 // your OS.
 import "@bfsx/typings";
+import { contactUint16 } from "../../util/binary.ts";
 
 /**js 到rust的消息 */
 export function js_to_rust_buffer(zerocopybuffer: Uint16Array) {
-  Deno.core.opSync("op_js_to_rust_buffer", new Uint8Array(zerocopybuffer.buffer));
+  Deno.core.opSync("op_js_to_rust_buffer", zerocopybuffer);
 }
 /**js 到rust的消息： 传递零拷贝消息 */
 export function send_zero_copy_buffer(req_id: Uint16Array, zerocopybuffer: ArrayBufferView) {
-  Deno.core.opSync("op_send_zero_copy_buffer", req_id, new Uint8Array(zerocopybuffer.buffer));
+  Deno.core.opSync("op_send_zero_copy_buffer", contactUint16(req_id,new Uint16Array(zerocopybuffer.buffer)));
 }
 
 /**
@@ -15,7 +16,7 @@ export function send_zero_copy_buffer(req_id: Uint16Array, zerocopybuffer: Array
  * @param data
  */
 export function setNotification(data: Uint16Array) {
-  Deno.core.opSync("op_rust_to_js_set_app_notification", new Uint8Array(data.buffer));
+  Deno.core.opSync("op_rust_to_js_set_app_notification", data);
 }
 
 /**
