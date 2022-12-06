@@ -16,7 +16,7 @@ export class BfcsStatusBar extends DwebPlugin {
     this._init();
   }
   /**移除DOM添加的方法 */
-  disconnectedCallback() {}
+  disconnectedCallback() { }
 
   private async _init() {
     // this.setAttribute("background-color", colorHex);
@@ -78,27 +78,19 @@ export class BfcsStatusBar extends DwebPlugin {
     newVal: unknown
   ) {
     if (attrName === "overlay") {
-      if (this.hasAttribute(attrName)) {
-        this.net.setStatusBarOverlay(true);
-      }
+      this.net.setStatusBarOverlay(true);
     } else if (attrName === "hidden") {
-      if (this.hasAttribute(attrName)) {
-        this.net.setStatusBarHidden();
-      }
+      this.net.setStatusBarHidden();
     } else if (attrName === "bar-style") {
-      if (this.hasAttribute(attrName)) {
-        this.setStatusBarColor(
-          this.getAttribute("background-color") ?? "",
-          newVal ? (newVal as StatusBar.StatusBarStyle) : undefined
-        );
-      }
+      this.setStatusBarColor(
+        this.getAttribute("background-color") ?? "",
+        newVal ? (newVal as StatusBar.StatusBarStyle) : undefined
+      );
     } else if (attrName === "background-color") {
-      if (this.hasAttribute(attrName)) {
-        const barStyle = this.getAttribute("bar-style")
-          ? (this.getAttribute("bar-style") as StatusBar.StatusBarStyle)
-          : undefined;
-        this.setStatusBarColor(newVal as string, barStyle);
-      }
+      const barStyle = this.getAttribute("bar-style")
+        ? (this.getAttribute("bar-style") as StatusBar.StatusBarStyle)
+        : undefined;
+      this.setStatusBarColor(newVal as string, barStyle);
     }
   }
 }

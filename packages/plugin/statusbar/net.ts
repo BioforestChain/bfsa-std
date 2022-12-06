@@ -4,6 +4,7 @@ import { Color } from "../types/colorType.ts";
 import { StatusBar } from "./bfcsStatusBarType.ts";
 
 export class StatusBarNet implements StatusBar.IStatusBarNet {
+
   async setStatusBarColor(
     colorHex?: Color.RGBAHex,
     barStyle?: StatusBar.StatusBarStyle
@@ -22,6 +23,7 @@ export class StatusBarNet implements StatusBar.IStatusBarNet {
 
     if (!barStyle) {
       const isDarkIcons = await getCallNativeUi(NativeUI.GetStatusBarIsDark);
+      console.log("plugin:GetStatusBarIsDark:", isDarkIcons)
       darkIcons = isDarkIcons;
     } else {
       switch (barStyle) {
@@ -35,6 +37,7 @@ export class StatusBarNet implements StatusBar.IStatusBarNet {
           darkIcons = false;
       }
     }
+    console.log("plugin:SetStatusBarColor:", colorHex, darkIcons)
     getCallNativeUi(NativeUI.SetStatusBarColor, { colorHex, darkIcons });
     return;
   }
