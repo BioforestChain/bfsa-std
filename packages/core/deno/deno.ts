@@ -38,6 +38,7 @@ class Deno {
     // 处理 buffer view
     const copy_list = input.map((value, index) => {
       if (ArrayBuffer.isView(value)) {
+        console.log("deno#zerocopybuffer_list:", index, value)
         zerocopybuffer_list.push(value);
         transferable_metadata.push(index, z_acc_id++);
         return z_acc_id;

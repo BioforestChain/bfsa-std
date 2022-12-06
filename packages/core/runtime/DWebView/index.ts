@@ -68,7 +68,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       if (data.done) {
         continue
       }
-      console.log("dwebviewToDeno====>", data.value);
+      // console.log("dwebviewToDeno====>", data.value);
       this.chunkGateway(data.value)
       /// 这里是重点，使用 do-while ，替代 finally，可以避免堆栈溢出。
     } while (true);
