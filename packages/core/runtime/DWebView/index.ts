@@ -139,34 +139,43 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       // create request head
       const event = new RequestEvent(req, new RequestResponse(responseBodyCtrl, async (statusCode, headers) => {
         await postBodyDone.resolve();
+        // 发送header头到serviceworker
         this.callSWPostMessage({
           returnId: headersId,
           channelId: channelId,
-          chunk: stringToByte(JSON.stringify({ statusCode, headers })).join(",") + ",1"
+          chunk: stringToByte(JSON.stringify({ statusCode, headers })).join(",") + ",0" // 后面加0 表示发送未结束
         });
       }), channelId);
-
+      // 触发到kotlin的真正请求
       this.emit("request", event);
 
-      // 等待真正的请求回来
       const postBodyDone = new PromiseOut<void>()
-      const responseBodyReader = responseBody.getReader()
+      // 等待请求数据填充,保证responseBodyReader有数据
+      await postBodyDone.promise;
 
+      const responseBodyReader = responseBody.getReader()
+      // 填充真正的数据发送到serviceworker
       do {
         const { value: chunk, done } = await responseBodyReader.read();
         if (done) {
+          this.callSWPostMessage({
+            returnId: headersId + 1,
+            channelId: channelId,
+            chunk: "1" // 后面加1 表示发送结束
+          });
           break
         }
+        console.log("dwebView#responseBodyReader:", headersId + 1, chunk, done)
         this.callSWPostMessage({
           returnId: headersId + 1,
           channelId: channelId,
-          chunk: chunk!.join(",") + ",0"
+          chunk: chunk!.join(",") + ",0" // 后面加0 表示发送未结束
         });
 
       } while (true)
-
-      postBodyDone.resolve()
+      return;
     }
+    // 填充body
     try {
       // await sleep(1000)
       const body_id = headers_body_id;

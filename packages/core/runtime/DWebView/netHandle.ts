@@ -57,7 +57,7 @@ export async function setUiHandle(event: RequestEvent) {
   // 处理GET
   if (searchParams) {
     console.log(`bodyString${event.request.method}:`, bufferToString(searchParams.split(",").map(v => +v)))
-    const data = await network.asyncCallDenoFunction(
+    const data = await network.asyncCallDenoBuffer(
       callNative.setDWebViewUI,
       searchParams
     );
@@ -73,9 +73,9 @@ export async function setUiHandle(event: RequestEvent) {
   // 处理POST
   const result = await readReadableStream(event.request.body)
 
-  const data = await network.asyncCallDenoFunction(
+  const data = await network.asyncCallDenoBuffer(
     callNative.setDWebViewUI,
-    result.join()
+    result
   );
   event.response.write(data)
   event.response.end()

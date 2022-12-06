@@ -4,8 +4,7 @@ import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extend
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
 import { Channels, matchOpenChannel, matchBackPressureOpen, matchCommand } from "./Channel.ts";
-import { stringToNum,contactNumber, hexToBinary, bufferToString }
-  from "../util/binary.ts";
+import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util/binary.ts";
 
 ((self: ServiceWorkerGlobalScope) => {
 
@@ -81,7 +80,7 @@ import { stringToNum,contactNumber, hexToBinary, bufferToString }
         break;
       }
       if (back_pressure) {
-        console.log("back_pressure", back_pressure);
+        // console.log("back_pressure", back_pressure);
         // await back_pressure.promise
       }
       await fetch(item.url).then(async (res) => {
@@ -109,13 +108,13 @@ import { stringToNum,contactNumber, hexToBinary, bufferToString }
 
     for (const channel of channels) {
       const matchResult = channel.match(request); // 放行系统的，拦截配置的
-      console.log("matchResult:", matchResult);
+      console.log("serviceWorker#matchResult:", matchResult);
       if (matchResult) {
         event.respondWith(channel.handler(request)); // 看看是否匹配了channel通道
       }
     }
     /// 开始向外发送数据，切片发送
-    console.log(`HttpRequestBuilder ${request.method},url: ${request.url}`);
+    console.log(`serviceWorker#HttpRequestBuilder ${request.method},url: ${request.url}`);
 
     event.respondWith((async () => {
       const client = await self.clients.get(event.clientId);
@@ -146,14 +145,14 @@ import { stringToNum,contactNumber, hexToBinary, bufferToString }
     if (matchCommand(event.data)) {
       // 匹配后端打开背压的命令
       if (matchBackPressureOpen(event.data)) {
-        console.log(`matchBackPressureOpen 😺}`);
+        console.log(`serviceWorker#matchBackPressureOpen 😺}`);
         back_pressure?.resolve();
         return true;
       }
       // 匹配后端创建一个channel 线程的命令
       const data = matchOpenChannel(event.data);
       if (data) {
-        console.log(`matchOpenChannel 🤠-->${JSON.stringify(data)}`);
+        console.log(`serviceWorker#matchOpenChannel 🤠-->${JSON.stringify(data)}`);
         channels.push(data); // { type: "pattern", url:"" }
         return true;
       }
@@ -161,14 +160,14 @@ import { stringToNum,contactNumber, hexToBinary, bufferToString }
     }
 
     const data = JSON.parse(event.data);
-    const returnId: number = data.returnId;
+    const returnId: number = data.returnId; // 拿到body/hard Id
     const channelId: string = data.channelId;
-    const chunk = hexToBinary(data.chunk);
-    const end = chunk.slice(-1)[0] === 1;
+    const chunk = hexToBinary(data.chunk); // 拿到请求体
+    const end = chunk.slice(-1)[0] === 1; // 拿到是否结束的标记
     const bodyId = returnId | 1;
     const headersId = bodyId - 1;
 
-    console.log(`serviceWorker chunk=> ${chunk},end:${end}`);
+    console.log(`serviceWorker#returnId=> ${returnId},end:${end},bodyId:${bodyId},headersId:${channelId}-${headersId}`);
     const fetchTask = FETCH_EVENT_TASK_MAP.get(`${channelId}-${headersId}`);
 
     // 如果存在
@@ -178,7 +177,7 @@ import { stringToNum,contactNumber, hexToBinary, bufferToString }
     const responseContent = chunk.slice(0, -1);
 
     if (returnId === headersId) { // parse headers
-      console.log("responseContent:", bufferToString(responseContent));
+      console.log("serviceWorker#responseContent:", bufferToString(responseContent));
       const { statusCode, headers } = JSON.parse(bufferToString(responseContent));
       fetchTask.responseHeaders = headers;
       fetchTask.responseStatusCode = statusCode;
@@ -188,15 +187,16 @@ import { stringToNum,contactNumber, hexToBinary, bufferToString }
           headers,
         }),
       );
-    } else if (returnId === bodyId) { // parse body
-      console.log("文件流推入", channelId, headersId, bodyId, responseContent.length);
+    }
+    if (returnId === bodyId) { // parse body
+      console.log("serviceWorker#文件流推入", channelId, headersId, bodyId, responseContent.length);
       fetchTask.responseBody.controller.enqueue(new Uint8Array(responseContent));
     } else {
       throw new Error("should not happen!! NAN? " + returnId);
     }
 
     if (end) {
-      console.log("文件流关闭", channelId, headersId, bodyId);
+      console.log("serviceWorker#文件流关闭", channelId, headersId, bodyId);
       fetchTask.responseBody.controller.close();
     }
   });

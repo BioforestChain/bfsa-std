@@ -1,16 +1,16 @@
 
 export type IO_TYPE = string | number | boolean | null | ArrayBuffer | ArrayBufferView;
-export interface $Command<I extends readonly IO_TYPE[] = IO_TYPE[], O extends readonly IO_TYPE[] = IO_TYPE[]> {
+export interface $Command<I extends readonly IO_TYPE[] = IO_TYPE[], O extends IO_TYPE = IO_TYPE> {
   input: I;
   ouput: O;
 }
 
 export type $A2BCommands = {
-  asyncStrngHasReturn: $Command<[data: string], [result: ArrayBuffer]>;
-  asyncNumberHasReturn: $Command<[data: number], [result: ArrayBuffer]>;
-  asyncBoolHasReturn: $Command<[data: boolean], [result: ArrayBuffer]>;
-  asyncBuffHasReturn: $Command<[data: ArrayBufferView], [result: ArrayBuffer]>;
-  syncCallNotReturn: $Command<[], [result: ArrayBuffer]>;
+  asyncStrngHasReturn: $Command<[data: string], ArrayBuffer>;
+  asyncNumberHasReturn: $Command<[data: number], ArrayBuffer>;
+  asyncBoolHasReturn: $Command<[data: boolean], ArrayBuffer>;
+  asyncBuffHasReturn: $Command<[data: ArrayBufferView], ArrayBuffer>;
+  syncCallNotReturn: $Command<[], ArrayBuffer>;
   // [callNative.openDWebView]: $Command<[entry: string], []>;
   // [callNative.openQrScanner]: $Command<[], [success: string]>;
   // [callNative.openBarcodeScanner]: $Command<[], [success: string]>;

@@ -140,7 +140,7 @@ class Deno {
         // }
       }
 
-      console.log(`asyncCallDenoFunction：🚑,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
+      // console.log(`asyncCallDenoFunction：🚑,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
 
       if (REQ_CATCH.has(this.reqId)) {
         REQ_CATCH.get(this.reqId)?.po.resolve(result.value);

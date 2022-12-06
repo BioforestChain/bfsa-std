@@ -24,10 +24,9 @@ export class Network {
   ): Promise<string> {
     return await this.asyncCallDeno(handleFn, data).then((data) => {
       const result = bufferToString(data);
-      console.log("xasyncCallDenoFunctionx", result);
       return result;
     }).catch((err) => {
-      console.log("xasyncCallDenoFunctionx", err);
+      console.log("deno#asyncCallDenoFunction err", err);
       return err;
     });
   }
@@ -64,8 +63,8 @@ export class Network {
     const type: number = Transform_Type.COMMON;
     // 发送请求
     const buffer = await deno.request(handleFn as $THandle, [data], type)
-    console.log("asyncCallDeno#Response: ", buffer[0])
-    return buffer[0];
+    console.log("asyncCallDeno#Response: ", buffer)
+    return buffer;
     // return Promise.resolve(new ArrayBuffer(1));
     // // console.log(`asyncCallDenoFunction：发送请求：${headView[0]}: ${decoder.decode(new Uint8Array((data as string).split(",").map((v: string | number) => +v)))}`);
   }
