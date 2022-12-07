@@ -89,7 +89,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       const stringHex = strPath.substring(strPath.lastIndexOf("=") + 1);
       const buffers = stringHex.split(",").map(v => Number(v))
       // const chunk = (new Uint8Array(buffers))
-
+      console.log("deno#chunkGateway",channelId,buffers.length)
       await this.chunkHanlder(channelId, buffers)
     }
   }
@@ -123,8 +123,9 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     // 如果是headers请求
     if (headers_body_id % 2 === 0) {
       const headersId = headers_body_id;
-      console.log("constentString:", bufferToString(contentBytes))
+      console.log("deno#chunkHanlder:",bufferToString(contentBytes))
       const { url, headers, method } = JSON.parse(bufferToString(contentBytes));
+      console.log("deno#chunkHanlder url:",url)
       let req: Request;
       const body = this._request_body_cache.forceGet(headersId + 1); // 获取body
       if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
@@ -181,7 +182,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     const body_id = headers_body_id;
     // 如果是body 需要填充Request body
     const body = this._request_body_cache.forceGet(body_id); // 获取body
-    console.log("推入body:", channelId, headers_body_id, isEnd, contentBytes)
+    console.log("推入body:", channelId, headers_body_id, isEnd, contentBytes.length)
     // body 流结束
     if (isEnd) {
       body.bodyStreamController.close()

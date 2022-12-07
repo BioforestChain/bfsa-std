@@ -177,7 +177,7 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
     const responseContent = chunk.slice(0, -1);
 
     if (returnId === headersId) { // parse headers
-      console.log("serviceWorker#responseContent:", bufferToString(responseContent));
+      // console.log("serviceWorker#responseContent:", bufferToString(responseContent));
       const { statusCode, headers } = JSON.parse(bufferToString(responseContent));
       fetchTask.responseHeaders = headers;
       fetchTask.responseStatusCode = statusCode;
@@ -236,7 +236,7 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
           if (done) {
             break;
           }
-          console.log("有body数据传递2：", value, value.join())
+          console.log("有body数据传递2：",value, contactNumber([bodyId], [value.join()], [0]))
           yield contactNumber([bodyId], [value.join()], [0]);
         } while (true);
       }

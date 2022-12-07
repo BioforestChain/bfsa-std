@@ -139,8 +139,8 @@ export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Ui
         resolve(result)
         break
       }
-      console.log("bodyStringValue:", value);
-      result = contactUint8(result, value)
+      console.log("bodyStringValue:", value, ArrayBuffer.isView(value));
+      result = contactUint8(result, new Uint8Array(value))
     }
   })
 }
