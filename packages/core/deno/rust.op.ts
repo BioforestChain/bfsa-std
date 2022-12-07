@@ -8,7 +8,7 @@ export function js_to_rust_buffer(zerocopybuffer: Uint16Array) {
 }
 /**js 到rust的消息： 传递零拷贝消息 */
 export function send_zero_copy_buffer(req_id: Uint16Array, zerocopybuffer: ArrayBufferView) {
-  Deno.core.opSync("op_send_zero_copy_buffer", contactUint16(req_id,new Uint16Array(zerocopybuffer.buffer)));
+  Deno.core.opSync("op_send_zero_copy_buffer", contactUint16(req_id, new Uint16Array(zerocopybuffer.buffer)));
 }
 
 /**

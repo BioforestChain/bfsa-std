@@ -175,24 +175,19 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       } while (true)
       return;
     }
-    // 填充body
-    try {
-      // await sleep(1000)
-      const body_id = headers_body_id;
-      // 如果是body 需要填充Request body
-      const body = this._request_body_cache.forceGet(body_id); // 获取body
-      console.log("推入body:", channelId, headers_body_id, isEnd, contentBytes)
-      // body 流结束
-      if (isEnd) {
-        body.bodyStreamController.close()
-        return
-      }
-      body.bodyStreamController.enqueue(contentBytes)
-    } catch (error) {
-      console.error("bodyStreamController:", error);
 
+    // 处理post请求
+    // await sleep(1000)
+    const body_id = headers_body_id;
+    // 如果是body 需要填充Request body
+    const body = this._request_body_cache.forceGet(body_id); // 获取body
+    console.log("推入body:", channelId, headers_body_id, isEnd, contentBytes)
+    // body 流结束
+    if (isEnd) {
+      body.bodyStreamController.close()
+      return
     }
-
+    body.bodyStreamController.enqueue(contentBytes)
   }
   /**
    * 分发body数据

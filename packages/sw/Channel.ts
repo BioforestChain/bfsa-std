@@ -38,21 +38,19 @@ export class Channels {
   }
 
   constructor(
-    readonly handler: ((event: Request) => Promise<Response>)
+    readonly config: IChannelConfig
   ) { }
 
-  async push(config: IChannelConfig) {
+  async handler(request: Request) {
+    const config = this.config;
     // 匹配并缓存静态资源
     if (config.mode === EChannelMode.static && config.cacheName && config.files) {
       const cache = await caches.open(config.cacheName);
       await cache.addAll(config.files);
-      const handler = (request: Request) => {
-        return caches.match(request).then(res => {
-          if (res) return res
-          return fetch(request)
-        })
-      }
-      return new Channels(handler)
+      return caches.match(request).then(res => {
+        if (res) return res
+        return fetch(request)
+      })
     }
     /**
      * 规则匹配 =>  api/user/*  api/admin/* 
@@ -64,33 +62,24 @@ export class Channels {
 
       // api/user/*  api/admin/* 
       if (/\*$/.test(url)) {
-        const handler = (request: Request) => {
-          return fetch(request)
-        }
-        return new Channels(handler)
+        return fetch(request)
       }
 
       //api/:method
       const methodIndex = url.lastIndexOf(":")
       if (methodIndex !== -1) {
         const method = url.slice(methodIndex + 1).toUpperCase()
-        const handler = (request: Request) => {
-          if (request.method.toUpperCase() === method) {
-            return fetch(request)
-          }
-          return this.notResponse(request.url)
-        }
-        return new Channels(handler)
-      }
-      const handler = (request: Request) => {
-        const pathname = new URL(request.url).pathname
-        if (pathname === url) {
+        if (request.method.toUpperCase() === method) {
           return fetch(request)
         }
         return this.notResponse(request.url)
       }
-      return new Channels(handler)
+      const pathname = new URL(request.url).pathname
+      if (pathname === url) {
+        return fetch(request)
+      }
     }
+    return this.notResponse(request.url)
   }
 
   match(request: Request) {

@@ -11,7 +11,6 @@ import { $A2BCommands, $Commands } from "./cmd.ts";
 
 
 
-let z_acc_id = 0;
 type $TCmd = $Commands.Output<$Commands.Cmd, $A2BCommands>;
 const REQ_CATCH = EasyMap.from({
   creater(_req_id: Uint16Array) {
@@ -35,6 +34,7 @@ class Deno {
 
     const zerocopybuffer_list: ArrayBufferView[] = [];
     const transferable_metadata: number[] = [];
+    let z_acc_id = 0;
     // 处理 buffer view
     const copy_list = input.map((value, index) => {
       if (ArrayBuffer.isView(value)) {
@@ -48,13 +48,13 @@ class Deno {
 
 
     this.postMessageToKotlin(this.reqId, cmd, type, JSON.stringify(copy_list), zerocopybuffer_list, transferable_metadata);
-    /// op( sendzerocopybuffer , zerocopybuffer, id)
-    /// kotin_map.set(id,zerocopybytes)
+    /// op( sendzerocopybuffer , zerocopybuffer, id) ✅
+    /// kotin_map.set(id,zerocopybytes)✅
     ///
-    /// op(send , version:number, cmd:string, reqId:number, type:number, data:string, transferable_metadata:number[])
+    /// op(send , version:number, cmd:string, reqId:number, type:number, data:string, transferable_metadata:number[])✅
     ///
     /// JAVA_send()
-    ///     const cmd = [version,cmd,reqId,type, JSON.parse(data).map((value,index)=>transferable_metadata.getKey(index) ?.let{ kotin_map.getAndDelete() } ?? value ) ]
+    ///     const cmd = [version,cmd,reqId,type, JSON.parse(data).map((value,index)=>transferable_metadata.getKey(index) ?.let{ kotin_map.getAndDelete() } ?? value ) ] ✅
     /// registry('dweb-channel',({xxx}))
     /// registry('open-dwebview',({xxx})=>{  deno.call('send', )  })
     return await REQ_CATCH.forceGet(this.reqId).po.promise
@@ -67,10 +67,11 @@ class Deno {
     data_string: string,
     zerocopybuffer_list: ArrayBufferView[],
     transferable_metadata: number[]) {
-    console.log("🚓cmd--> %s zerocopybuffer_list.length:%s, data_string:%s", cmd, zerocopybuffer_list.length, data_string)
+    console.log("🚓cmd--> %s,req_id: %s, data_string:%s", cmd, req_id, data_string)
     // 发送bufferview
     if (zerocopybuffer_list.length !== 0) {
       zerocopybuffer_list.forEach((zerocopybuffer) => {
+        console.log("deno#zerocopybuffer,req_id: %s, zerocopybuffer: %s", req_id, zerocopybuffer)
         send_zero_copy_buffer(req_id, zerocopybuffer);
       })
     }

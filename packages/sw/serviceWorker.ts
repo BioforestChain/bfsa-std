@@ -150,13 +150,13 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
         return true;
       }
       // 匹配后端创建一个channel 线程的命令
-      const data = matchOpenChannel(event.data);
-      if (data) {
-        console.log(`serviceWorker#matchOpenChannel 🤠-->${JSON.stringify(data)}`);
-        channels.push(data); // { type: "pattern", url:"" }
+      const openChannelCmd = matchOpenChannel(event.data);
+      if (openChannelCmd) {
+        console.log(`serviceWorker#matchOpenChannel 🤠-->${JSON.stringify(openChannelCmd)}`);
+        channels.push(new Channels(openChannelCmd.data)); // { type: "pattern", url:"" }
         return true;
       }
-      return data;
+      return false;
     }
 
     const data = JSON.parse(event.data);
@@ -187,8 +187,7 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
           headers,
         }),
       );
-    }
-    if (returnId === bodyId) { // parse body
+    } else if (returnId === bodyId) { // parse body
       console.log("serviceWorker#文件流推入", channelId, headersId, bodyId, responseContent.length);
       fetchTask.responseBody.controller.enqueue(new Uint8Array(responseContent));
     } else {
@@ -199,6 +198,7 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
       console.log("serviceWorker#文件流关闭", channelId, headersId, bodyId);
       fetchTask.responseBody.controller.close();
     }
+
   });
 
   class HttpRequestBuilder {
@@ -236,8 +236,8 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
           if (done) {
             break;
           }
-          console.log("有body数据传递2：", value)
-          yield contactNumber([bodyId], value, [0]);
+          console.log("有body数据传递2：", value, value.join())
+          yield contactNumber([bodyId], [value.join()], [0]);
         } while (true);
       }
       yield contactNumber([bodyId], [1]);

@@ -103,7 +103,7 @@ export async function setPollHandle(event: RequestEvent) {
     throw new Error("Parameter passing cannot be empty！");
   }
 
-  const stringData = new TextDecoder().decode(buffer)
+  const stringData = bufferToString(buffer)
   console.log("setPollHandlestringData:", stringData)
   /// 如果是操作对象，拿出对象的操作函数和数据,传递给Kotlin
   const handler = JSON.parse(stringData);
@@ -112,7 +112,7 @@ export async function setPollHandle(event: RequestEvent) {
   if (getServiceWorkerReady(handler.function)) {
     return true
   }
-  // // 保证存在操作函数中
+  // 保证存在操作函数中
   if (!Object.values(callNative).includes(handler.function)) {
     return
   }
@@ -179,7 +179,7 @@ function handlerEvalJs(wb: string, data: string) {
 function getServiceWorkerReady(fun: string) {
   console.log(`getServiceWorkerReady: ${fun} , ${fun === callNative.ServiceWorkerReady}`)
   if (fun !== callNative.ServiceWorkerReady) {
-    false
+    return false
   }
   // 执行事件
   for (const data of EventPollQueue) {
