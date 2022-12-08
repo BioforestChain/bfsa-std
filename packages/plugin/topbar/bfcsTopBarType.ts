@@ -22,7 +22,7 @@ export namespace TopBar {
     hasTopBarTitle(): Promise<boolean>;
     getTopBarHeight(): Promise<number>;
     getTopBarActions(): Promise<TopBarItem[]>;
-    setTopBarActions(actionList: TopBarItem[]): Promise<void>;
+    setTopBarActions(actionList: TopBarItem[]): Promise<boolean>;
     getTopBarBackgroundColor(): Promise<Color.RGBAHex>;
     setTopBarBackgroundColor(color: Color.RGBAHex): Promise<boolean>;
     getTopBarForegroundColor(): Promise<Color.RGBAHex>;

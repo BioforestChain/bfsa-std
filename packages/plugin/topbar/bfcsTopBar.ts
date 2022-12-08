@@ -135,9 +135,8 @@ export class BfcsTopBar extends DwebPlugin {
     return this._actionList;
   }
 
-  async setTopBarActions(): Promise<void> {
-    await this.net.setTopBarActions(this._actionList);
-    return;
+  async setTopBarActions(): Promise<boolean> {
+    return await this.net.setTopBarActions(this._actionList);
   }
 
   async collectActions() {

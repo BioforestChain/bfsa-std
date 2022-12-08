@@ -72,9 +72,8 @@ export class TopBarNet implements TopBar.ITopBarNet {
     return JSON.parse(actionList);
   }
 
-  async setTopBarActions(actionList: TopBar.TopBarItem[]): Promise<void> {
-    await postCallNativeUi(NativeUI.SetTopBarActions, actionList);
-    return;
+  async setTopBarActions(actionList: TopBar.TopBarItem[]): Promise<boolean> {
+    return await postCallNativeUi(NativeUI.SetTopBarActions, actionList);
   }
 
   async getTopBarBackgroundColor(): Promise<Color.RGBAHex> {

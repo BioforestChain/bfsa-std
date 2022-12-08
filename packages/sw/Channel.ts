@@ -65,7 +65,7 @@ export class Channels {
         return fetch(request)
       }
 
-      //api/:method
+      /** api/:method */
       const methodIndex = url.lastIndexOf(":")
       if (methodIndex !== -1) {
         const method = url.slice(methodIndex + 1).toUpperCase()
