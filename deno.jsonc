@@ -2,6 +2,7 @@
   "tasks": {
     "build": "deno run -A ./scripts/build_npm.ts",
     "pub": "deno run -A ./scripts/pub_npm.ts"
+    // "sw": "deno run -A ./scripts/build_npm.ts &&  mv ./build/sw/esm/sw/serviceWorker.js ./build/sw/esm/"
   },
   "compilerOptions": {
     "allowJs": false,

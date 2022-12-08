@@ -89,18 +89,16 @@ export async function setUiHandle(event: RequestEvent) {
 export async function setPollHandle(event: RequestEvent) {
   const { url } = event;
   const bufferData = url.searchParams.get("data")
-  let buffer = new Uint16Array()
+  let buffer: ArrayBuffer | number[];
   // 如果是get
   if (bufferData) {
-    buffer = new Uint16Array(hexToBinary(bufferData));
+    buffer = hexToBinary(bufferData);
   } else {
+    // 处理post 
     if (!event.request.body) {
-      throw new Error("Parameter passing cannot be empty！");
+      throw new Error("Parameter passing cannot be empty！");// 如果没有任何请求体
     }
-    buffer = new Uint16Array(await (await readReadableStream(event.request.body)).buffer)
-  }
-  if (buffer.byteLength === 0) {
-    throw new Error("Parameter passing cannot be empty！");
+    buffer = (await readReadableStream(event.request.body)).buffer
   }
 
   const stringData = bufferToString(buffer)

@@ -22,28 +22,30 @@ export async function parseNetData(event: RequestEvent, pathname: string, import
   })
   // 如果没有在bfsa-metadata.ts里
   if (!url) {
+    event.response.write("Not Found importMap in bfsa-metadata.ts !!!")
+    event.response.end()
     return url
   }
 
-  let data = new Response()
+  let res: Response;
   if (request.method.toUpperCase() === "GET") {
     //不含body
-    data = await fetch(url, {
+    res = await fetch(url, {
       headers: request.headers,
       method: request.method,
       mode: request.mode
     })
   } else {
     // 包含body
-    data = await fetch(url, {
+    res = await fetch(url, {
       headers: request.headers,
       method: request.method,
       mode: request.mode,
       body: request.body,
     })
   }
-  const buffer = await data.arrayBuffer();
-  event.response.write(new Uint8Array(buffer))
+  const buffer = await res.arrayBuffer();
+  event.response.write(buffer)
   event.response.end()
 }
 

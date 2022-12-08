@@ -27,33 +27,30 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     this.dwebviewToDeno(); // 挂载轮询操作， 这里会自动处理来自前端的请求，并且处理操作返回到前端
 
     this.on("request", (event) => {
-      try {
-        const { url } = event;
-        // 是不是资源文件 （index.html,xxx.js）
-        const isAssetsFile = url.pathname.lastIndexOf(".") !== -1
-        // 填充response headers
-        event.request.headers.forEach((val, key) => {
-          event.response.setHeaders(key, val)
-        })
-        // console.log(`request${event.request.method}:${event.channelId}`, url)
+      const { url } = event;
+      // 是不是资源文件 （index.html,xxx.js）
+      const isAssetsFile = url.pathname.lastIndexOf(".") !== -1
+      // 填充response headers
+      event.request.headers.forEach((val, key) => {
+        event.response.setHeaders(key, val)
+      })
 
-        if (url.pathname.endsWith("/setUi")) {
-          setUiHandle(event)
-          return
-        }
-        if (url.pathname.startsWith("/poll")) {
-          event.response.write("ok") // 操作成功
-          event.response.end()
-          setPollHandle(event)
-          return
-        }
-        // 如果是需要转发的数据请求 pathname: "/getBlockInfo"
-        if (!isAssetsFile) {
-          parseNetData(event, url.pathname, this.importMap)
-          return
-        }
-      } catch (error) {
-        console.error("request", error)
+      if (url.pathname.endsWith("/setUi")) {
+        setUiHandle(event)
+        return
+      }
+      if (url.pathname.startsWith("/poll")) {
+        event.response.write("ok") // 操作成功
+        event.response.end()
+        setPollHandle(event)
+        return
+      }
+      console.log(`request${event.request.method}:${event.channelId}`, url)
+
+      // 如果是需要转发的数据请求 pathname: "/getBlockInfo"
+      if (!isAssetsFile) {
+        parseNetData(event, url.pathname, this.importMap)
+        return
       }
     })
   }
@@ -89,7 +86,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       const stringHex = strPath.substring(strPath.lastIndexOf("=") + 1);
       const buffers = stringHex.split(",").map(v => Number(v))
       // const chunk = (new Uint8Array(buffers))
-      console.log("deno#chunkGateway",channelId,buffers.length)
+      console.log("deno#chunkGateway", channelId, buffers.length)
       await this.chunkHanlder(channelId, buffers)
     }
   }
@@ -123,9 +120,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     // 如果是headers请求
     if (headers_body_id % 2 === 0) {
       const headersId = headers_body_id;
-      console.log("deno#chunkHanlder:",bufferToString(contentBytes))
+      console.log("deno#chunkHanlder:", bufferToString(contentBytes))
       const { url, headers, method } = JSON.parse(bufferToString(contentBytes));
-      console.log("deno#chunkHanlder url:",url)
       let req: Request;
       const body = this._request_body_cache.forceGet(headersId + 1); // 获取body
       if (method === 'POST' || method === 'PUT' || method === 'DELETE') {

@@ -7,7 +7,7 @@ import { Channels, matchOpenChannel, matchBackPressureOpen, matchCommand } from 
 import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util/binary.ts";
 
 ((self: ServiceWorkerGlobalScope) => {
-
+  const date = new Map();
   const CLIENT_FETCH_CHANNEL_ID_WM = EasyWeakMap.from({
     creater(_client: Client) {
       return registerChannel();
@@ -124,7 +124,8 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
 
       const channelId = await CLIENT_FETCH_CHANNEL_ID_WM.forceGet(client);
       const task = FETCH_EVENT_TASK_MAP.forceGet({ event, channelId });
-
+      date.set(channelId, new Date().getTime());
+      console.log(`🥕channelId:${channelId} 发送时间：${date.get(channelId)}`)
       // Build chunks
       const chunks = new HttpRequestBuilder(
         task.reqHeadersId,
@@ -166,6 +167,8 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
     const end = chunk.slice(-1)[0] === 1; // 拿到是否结束的标记
     const bodyId = returnId | 1;
     const headersId = bodyId - 1;
+
+    console.log(`🥕channelId:${channelId},到达时间：${date.get(channelId)},时间差：${new Date().getTime() - date.get(channelId)}`);
 
     console.log(`serviceWorker#returnId=> ${returnId},end:${end},bodyId:${bodyId},headersId:${channelId}-${headersId}`);
     const fetchTask = FETCH_EVENT_TASK_MAP.get(`${channelId}-${headersId}`);
@@ -236,7 +239,7 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
           if (done) {
             break;
           }
-          console.log("有body数据传递2：",value, contactNumber([bodyId], [value.join()], [0]))
+          console.log("有body数据传递2：", value, contactNumber([bodyId], [value.join()], [0]))
           yield contactNumber([bodyId], [value.join()], [0]);
         } while (true);
       }
