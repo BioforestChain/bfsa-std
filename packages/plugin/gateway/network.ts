@@ -4,6 +4,8 @@ import { TNative } from "@bfsx/typings";
 import { sleep } from "../../util/index.ts";
 import { NativeHandle } from "../common/nativeHandle.ts";
 let _serviceWorkerIsRead = false;
+const _encoder = new TextEncoder();
+
 /**
  * 注册serverWorker方法
  */
@@ -34,7 +36,7 @@ export function registerServiceWorker() {
 /**通知deno-js后端serviceworker 已经准备好了 */
 export async function serviceWorkerReady() {
   const message = `{"function":"${NativeHandle.ServiceWorkerReady}","data":""}`;
-  const buffer = new TextEncoder().encode(message);
+  const buffer = _encoder.encode(message);
   const response = await fetch(`/poll?data=${buffer}`, {
     method: "GET",
     headers: {
@@ -62,7 +64,7 @@ export function createMessage(
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
-  const buffer = new TextEncoder().encode(message);
+  const buffer = _encoder.encode(message);
   return getConnectChannel(`/poll?data=${buffer}`);
 }
 
@@ -76,7 +78,7 @@ export function getCallNativeUi(fun: string, data: TNative = ""): Promise<any> {
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
-  const buffer = new TextEncoder().encode(message);
+  const buffer = _encoder.encode(message);
   return getConnectChannel(`/setUi?data=${buffer}`);
 }
 
@@ -93,7 +95,7 @@ export function postCallNativeUi(
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
-  const buffer = new TextEncoder().encode(message);
+  const buffer = _encoder.encode(message);
   return postConnectChannel("/setUi", buffer);
 }
 

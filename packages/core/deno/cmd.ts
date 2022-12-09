@@ -38,10 +38,11 @@ export namespace $Commands {
 let _L = 0;
 export enum Transform_Type {
   /**包含返回值的消息 */
-  HAS_RETURN = 1 << _L++, // 1 
+  NOT_RETURN = 1 << _L++, // 1 
   /**通用的消息 */
-  COMMON = 1 << _L++, // 2
-  // IS_ALL_BUFFER = 1 >> L++,
+  HAS_RETURN = 1 << _L++, // 2
+  /**传递buffer的消息 */
+  IS_ALL_BUFFER = 1 << _L++, // 4
   // IS_ALL_JSON = 1 >> L++,
   // IS_ALL_STRING = 1 >> L++,
   // IS_ALL_U32 = 1 >> L++,

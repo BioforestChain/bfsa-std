@@ -8,7 +8,8 @@ export function js_to_rust_buffer(zerocopybuffer: Uint16Array) {
 }
 /**js 到rust的消息： 传递零拷贝消息 */
 export function send_zero_copy_buffer(req_id: Uint16Array, zerocopybuffer: ArrayBufferView) {
-  Deno.core.opSync("op_send_zero_copy_buffer", contactUint16(req_id,new Uint16Array(zerocopybuffer.buffer)));
+  console.log("deno#send_zero_copy_buffer:", contactUint16(req_id, new Uint16Array(zerocopybuffer.buffer)))
+  Deno.core.opSync("op_send_zero_copy_buffer", contactUint16(req_id, new Uint16Array(zerocopybuffer.buffer)));
 }
 
 /**
@@ -41,7 +42,7 @@ export async function getRustChunk() {
 
 /**循环从rust里拿数据 */
 export function getRustBuffer(ex_head_view: Uint16Array) {
-    const uint8_head = new Uint8Array(ex_head_view.buffer);
+  const uint8_head = new Uint8Array(ex_head_view.buffer);
   const data = `${uint8_head[0]}-${uint8_head[1]}`;
   const buffer = Deno.core.opSync("op_rust_to_js_system_buffer", data); // backSystemDataToRust
   if (buffer[0] === 0 && buffer.length === 1) {

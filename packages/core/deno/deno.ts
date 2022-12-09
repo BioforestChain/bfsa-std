@@ -60,17 +60,15 @@ class Deno {
     return await REQ_CATCH.forceGet(this.reqId).po.promise
   }
 
-  postMessageToKotlin(
-    req_id: Uint16Array,
-    cmd: $Commands.Cmd,
-    type: number,
-    data_string: string,
-    zerocopybuffer_list: ArrayBufferView[],
-    transferable_metadata: number[]) {
+  postMessageToKotlin(req_id: Uint16Array, cmd: $Commands.Cmd, type: number,
+    data_string: string, zerocopybuffer_list: ArrayBufferView[], transferable_metadata: number[]) {
+
+    this.headViewAdd();
+
     console.log("🚓cmd--> %s,req_id: %s, data_string:%s", cmd, req_id, data_string)
     // 发送bufferview
     if (zerocopybuffer_list.length !== 0) {
-      zerocopybuffer_list.forEach((zerocopybuffer) => {
+      zerocopybuffer_list.map((zerocopybuffer) => {
         console.log("deno#zerocopybuffer,req_id: %s, zerocopybuffer: %s", req_id, zerocopybuffer)
         send_zero_copy_buffer(req_id, zerocopybuffer);
       })
@@ -108,7 +106,6 @@ class Deno {
 
   headViewAdd() {
     this.reqId[0]++;
-    
   }
 
 
@@ -118,7 +115,6 @@ class Deno {
    * @param data
    */
   callFunction(handleFn: string, type: number, data = "''", transferable_metadata: number[]) {
-    this.headViewAdd();
     const body = this.structureBinary(handleFn, type, data, transferable_metadata);
     // 发送消息
     js_to_rust_buffer(body); // android - denoOp
@@ -131,46 +127,14 @@ class Deno {
   async loopGetKotlinReturn() {
     do {
       const result = await getRustBuffer(this.reqId); // backSystemDataToRust
-      // console.log(`asyncCallDenoFunction：🚑,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
       if (result.done) {
         continue;
-        // if (RUST_DATA_CATCH.tryHas(headView)) {
-        //   // 拿到缓存里的
-        //   const value = RUST_DATA_CATCH.forceGet(headView)!;
-        //   RUST_DATA_CATCH.tryDelete(headView);
-        //   // console.log("asyncCallDenoFunction：11😄缓存里拿的：", headView[0])
-        //   return value;
-        // }
       }
-
       // console.log(`asyncCallDenoFunction：🚑,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
-
       if (REQ_CATCH.has(this.reqId)) {
         REQ_CATCH.get(this.reqId)?.po.resolve(result.value);
         REQ_CATCH.delete(this.reqId)
       }
-
-      // // 如果请求是返回了是同一个表示头则返回成功
-      // if (headView[0] === result.headView[0]) {
-      //   // console.log("asyncCallDenoFunction：1😃拿到请求：", headView[0])
-      //   return result.value;
-      // }
-
-      // // 如果需要的跟请求返回的不同 先看缓存里有没有
-      // if (RUST_DATA_CATCH.tryHas(headView)) {
-      //   // 拿到缓存里的
-      //   const value = RUST_DATA_CATCH.forceGet(headView)!;
-      //   RUST_DATA_CATCH.tryDelete(headView);
-      //   // 如果是拿缓存里的，并且本次有返回，需要存起来
-      //   if (result.value) {
-      //     RUST_DATA_CATCH.trySet(result.headView, result.value);
-      //   }
-      //   // console.log("asyncCallDenoFunction：1😄缓存里拿的：", headView[0])
-      //   return value;
-      // }
-      // console.log("asyncCallDenoFunction：1😃未命中,存储请求：", result.headView[0], RUST_DATA_CATCH.tryHas(headView))
-      // 如果不存在，则先存起来
-      // RUST_DATA_CATCH.trySet(result.headView, result.value);
     } while (true);
   }
 
