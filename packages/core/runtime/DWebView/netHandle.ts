@@ -1,5 +1,5 @@
 import { network } from "../../deno/network.ts";
-import { hexToBinary, bufferToString, contactUint8 } from '../../../util/binary.ts';
+import { hexToBinary, bufferToString } from '../../../util/binary.ts';
 import { callNative, callDVebView } from "../../native/native.fn.ts";
 import { ECommand, IChannelConfig } from "@bfsx/typings";
 import { EventPollQueue } from "./index.ts";
@@ -53,32 +53,48 @@ export class RequestResponse {
  */
 export async function setUiHandle(event: RequestEvent) {
   const { url } = event;
-  const searchParams = url.searchParams.get("data")
+  const searchParams = url.searchParams.get("data");
   // 处理GET
   if (searchParams) {
-    console.log(`bodyString${event.request.method}:`, bufferToString(searchParams.split(",").map(v => +v)))
-    const data = await network.asyncCallDenoBuffer(
+    // console.log(`deno#setUiHandle,method:${event.request.method},
+    // searchParams:`, bufferToString(searchParams.split(",").map(v => +v)))
+
+    const data = await network.asyncCallbackBuffer(
       callNative.setDWebViewUI,
       searchParams
     );
     console.log("resolveSetUiHandleData:", data)
     event.response.write(data)
     event.response.end()
-    return
+    return;
   }
+
+  const body = event.request.body;
+
   // 如果没有get请求参数，又没有携带body
-  if (!event.request.body) {
+  if (!body) {
     return "Parameter passing cannot be empty！"
   }
-  // 处理POST
-  const result = await readReadableStream(event.request.body)
 
-  const data = await network.asyncCallDenoBuffer(
-    callNative.setDWebViewUI,
-    result
-  );
-  event.response.write(data)
-  event.response.end()
+  const buff = body.getReader();
+  while (true) {
+
+    const { value, done } = await buff.read();
+    if (done) {
+      event.response.end();
+      break;
+    }
+
+    console.log(`deno#setUiHandle,method:${event.request.method},
+    body:`, value.length, ArrayBuffer.isView(value))
+
+    const data = await network.asyncSendBufferNative(
+      callNative.setDWebViewUI,
+      [value]
+    );
+    event.response.write(data);
+  }
+
 }
 
 /**
@@ -98,7 +114,7 @@ export async function setPollHandle(event: RequestEvent) {
     if (!event.request.body) {
       throw new Error("Parameter passing cannot be empty！");// 如果没有任何请求体
     }
-    buffer = (await readReadableStream(event.request.body)).buffer
+    buffer = await event.request.arrayBuffer()
   }
 
   const stringData = bufferToString(buffer)
@@ -121,27 +137,6 @@ export async function setPollHandle(event: RequestEvent) {
   callDwebViewFactory(handler.function, result)
 }
 
-/**
- * 
- * @param body ReadableStream<Uint8Array>
- * @returns Uint8Array
- */
-export function readReadableStream(body: ReadableStream<Uint8Array>): Promise<Uint8Array> {
-  // deno-lint-ignore no-async-promise-executor
-  return new Promise(async (resolve) => {
-    let result = new Uint8Array()
-    const buff = body.getReader()
-    while (true) {
-      const { value, done } = await buff.read()
-      if (done) {
-        resolve(result)
-        break
-      }
-      console.log("bodyStringValue:", value, ArrayBuffer.isView(value));
-      result = contactUint8(result, new Uint8Array(value))
-    }
-  })
-}
 
 /**
  * 数据传递到DwebView
@@ -163,7 +158,7 @@ function callDwebViewFactory(func: string, data: string) {
  */
 function handlerEvalJs(wb: string, data: string) {
   console.log("handlerEvalJs:", wb, data);
-  network.syncCallDenoFunction(
+  network.syncSendMsgNative(
     callNative.evalJsRuntime,
     `"javascript:document.querySelector('${wb}').dispatchStringMessage('${data}')"`
   );
@@ -194,6 +189,6 @@ function getServiceWorkerReady(fun: string) {
  * @returns 
  */
 async function openChannel(data: IChannelConfig) {
-  return await network.syncCallDenoFunction(callNative.evalJsRuntime,
+  await network.syncSendMsgNative(callNative.evalJsRuntime,
     `navigator.serviceWorker.controller.postMessage('${JSON.stringify({ cmd: ECommand.openChannel, data })}')`)
 }

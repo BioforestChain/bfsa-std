@@ -30,22 +30,25 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       const { url } = event;
       // 是不是资源文件 （index.html,xxx.js）
       const isAssetsFile = url.pathname.lastIndexOf(".") !== -1
-      // 填充response headers
-      event.request.headers.forEach((val, key) => {
-        event.response.setHeaders(key, val)
-      })
+
+      console.log(`deno#request: method:${event.request.method},channelId:${event.channelId}`,
+        event.request.url)
+
+      // return directly request headers
+      // event.request.headers.forEach((val, key) => {
+      //   event.response.setHeaders(key, val)
+      // })
 
       if (url.pathname.endsWith("/setUi")) {
         setUiHandle(event)
         return
       }
       if (url.pathname.startsWith("/poll")) {
-        event.response.write("ok") // 操作成功
+        event.response.write("ok") // 操作成功直接返回ok
         event.response.end()
         setPollHandle(event)
         return
       }
-      console.log(`request${event.request.method}:${event.channelId}`, url)
 
       // 如果是需要转发的数据请求 pathname: "/getBlockInfo"
       if (!isAssetsFile) {
@@ -95,8 +98,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   private _request_body_cache = EasyMap.from({
     // deno-lint-ignore no-unused-vars
     creater(boydId: number) {
-      let bodyStreamController: ReadableStreamController<number[]>
-      const bodyStream = new ReadableStream<number[]>({ start(controller) { bodyStreamController = controller } })
+      let bodyStreamController: ReadableStreamController<Uint8Array>
+      const bodyStream = new ReadableStream<Uint8Array>({ start(controller) { bodyStreamController = controller } })
       return {
         bodyStream,
         bodyStreamController: bodyStreamController!
@@ -114,17 +117,18 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     const headers_body_id = chunk.slice(0, 1)[0]
     // 是否结束
     const isEnd = chunk.slice(-1)[0] === 1// 1为发送结束，0为还没结束
-    console.log(`parseChunkBinary headerId:${headers_body_id},isEnd:${isEnd}`)
+    console.log(`deno#chunkHanlder headerId:${headers_body_id},isEnd:${isEnd}`)
     // 拿到请求题
     const contentBytes = chunk.slice(1, -1);
-    // 如果是headers请求
+    // 如果是headers请求，解析请求头
     if (headers_body_id % 2 === 0) {
       const headersId = headers_body_id;
-      console.log("deno#chunkHanlder:", bufferToString(contentBytes))
       const { url, headers, method } = JSON.parse(bufferToString(contentBytes));
       let req: Request;
       const body = this._request_body_cache.forceGet(headersId + 1); // 获取body
       if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
+        console.log("deno#chunkHanlder:", method,
+          url)
         req = new Request(url, { method, headers, body: body.bodyStream });
       } else {
         req = new Request(url, { method, headers });
@@ -173,18 +177,17 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       return;
     }
 
-    // 处理post请求
-    // await sleep(1000)
+    // 为post请求填充数据
     const body_id = headers_body_id;
     // 如果是body 需要填充Request body
     const body = this._request_body_cache.forceGet(body_id); // 获取body
-    console.log("推入body:", channelId, headers_body_id, isEnd, contentBytes.length)
+    console.log("deno#推入body:", channelId, headers_body_id, isEnd, contentBytes.length)
     // body 流结束
     if (isEnd) {
       body.bodyStreamController.close()
       return
     }
-    body.bodyStreamController.enqueue(contentBytes)
+    body.bodyStreamController.enqueue(new Uint8Array(contentBytes)) // 在需要传递二进制数据的时候再转换Uint8
   }
   /**
    * 分发body数据
@@ -210,7 +213,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   */
   // deno-lint-ignore ban-types
   callSWPostMessage(result: object) {
-    network.syncCallDenoFunction(callNative.evalJsRuntime,
+    network.syncSendMsgNative(callNative.evalJsRuntime,
       `navigator.serviceWorker.controller.postMessage('${JSON.stringify(result)}')`);
   }
 
@@ -221,7 +224,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   */
   initAppMetaData(metaData: MetaData) {
     if (Object.keys(metaData).length === 0) return;
-    network.syncCallDenoFunction(
+    network.syncSendMsgNative(
       callNative.initMetaData,
       metaData
     );
@@ -234,7 +237,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   activity(entry: string) {
     // 判断在不在入口文件内
     if (this.entrys.toString().match(RegExp(`${entry}`))) {
-      network.syncCallDenoFunction(callNative.openDWebView, entry);
+      network.syncSendMsgNative(callNative.openDWebView, entry);
       return;
     }
     throw new Error("您传递的入口不在配置的入口内，需要在配置文件里配置入口");

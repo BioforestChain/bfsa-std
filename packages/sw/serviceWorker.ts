@@ -228,22 +228,23 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
         [0],
       );
       const buffer = await request.blob();
-      // console.log("有body数据传递1", request.method, buffer);
-      const body = buffer.stream();
+      console.log("有body数据传递1", request.method, buffer.size);
       // 如果body为空
-      if (body) {
+      if (buffer.size !== 0) {
+        const body = buffer.stream();
+
         // deno-lint-ignore no-explicit-any
         const reader = (body as any).getReader();
         do {
           const { done, value } = await reader.read();
           if (done) {
+            yield contactNumber([bodyId], [1]); // 最后一位拼接1，表示传递数据已经结束
             break;
           }
-          console.log("有body数据传递2：", value, contactNumber([bodyId], [value.join()], [0]))
-          yield contactNumber([bodyId], [value.join()], [0]);
+          console.log("有body数据传递2：", value, bodyId)
+          yield contactNumber([bodyId], hexToBinary(value.join()), [0]);
         } while (true);
       }
-      yield contactNumber([bodyId], [1]);
     }
   }
 

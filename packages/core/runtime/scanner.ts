@@ -5,7 +5,7 @@ import { network } from "../deno/network.ts";
  * @returns Promise<data>
  */
 export const openQrScanner = () => {
-  network.syncCallDenoFunction(callNative.openQrScanner);
+  network.syncSendMsgNative(callNative.openQrScanner);
 };
 
 /**
@@ -13,5 +13,5 @@ export const openQrScanner = () => {
  * @returns Promise<data>
  */
 export const openBarScanner = () => {
-  network.syncCallDenoFunction(callNative.openBarcodeScanner);
+  network.syncSendMsgNative(callNative.openBarcodeScanner);
 };
