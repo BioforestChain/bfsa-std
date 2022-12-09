@@ -96,6 +96,7 @@ export function postCallNativeUi(
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = _encoder.encode(message);
+  // console.log("plugin#postCallNativeUi1:",message)
   return postConnectChannel("/setUi", buffer);
 }
 

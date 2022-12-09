@@ -45,6 +45,25 @@ export const contactNumber = (...arrs: number[][]) => {
 }
 
 /**
+   * 拼接Uint8Array
+   * @param arrays Uint8Array[]
+   * @returns Uint8Array
+   */
+ export const  concatenate = (...arrays: Uint16Array[]) =>{
+  let totalLength = 0;
+  for (const arr of arrays) {
+    totalLength += arr.length;
+  }
+  const result = new Uint16Array(totalLength);
+  let offset = 0;
+  for (const arr of arrays) {
+    result.set(arr, offset);
+    offset += arr.length;
+  }
+  return result;
+}
+
+/**
  * 合并Uint16array
  * @param arrs 
  * @returns 

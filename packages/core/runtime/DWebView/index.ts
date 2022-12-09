@@ -16,6 +16,22 @@ import { EChannelMode } from "@bfsx/typings";
 // deno-lint-ignore no-explicit-any
 export const EventPollQueue: [{ url: string, mode: EChannelMode }] = [] as any;
 
+console.log("deno#request_body_cache 初始化")
+export const request_body_cache = EasyMap.from({
+  // deno-lint-ignore no-unused-vars
+  creater(boydId: number) {
+    let bodyStreamController: ReadableStreamController<Uint8Array>
+    const bodyStream = new ReadableStream<Uint8Array>({ start(controller) { bodyStreamController = controller } })
+    // deno-lint-ignore no-explicit-any
+    const op:any = null;
+    return {
+      bodyStream,
+      bodyStreamController: bodyStreamController!,
+      op
+    }
+  }
+})
+
 export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   entrys: string[];
   importMap: IImportMap[]
@@ -33,11 +49,6 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
 
       console.log(`deno#request: method:${event.request.method},channelId:${event.channelId}`,
         event.request.url)
-
-      // return directly request headers
-      // event.request.headers.forEach((val, key) => {
-      //   event.response.setHeaders(key, val)
-      // })
 
       if (url.pathname.endsWith("/setUi")) {
         setUiHandle(event)
@@ -94,19 +105,6 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     }
   }
 
-
-  private _request_body_cache = EasyMap.from({
-    // deno-lint-ignore no-unused-vars
-    creater(boydId: number) {
-      let bodyStreamController: ReadableStreamController<Uint8Array>
-      const bodyStream = new ReadableStream<Uint8Array>({ start(controller) { bodyStreamController = controller } })
-      return {
-        bodyStream,
-        bodyStreamController: bodyStreamController!
-      }
-    }
-  })
-
   /**
    * 处理chunk
    * @param channelId 
@@ -125,11 +123,14 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       const headersId = headers_body_id;
       const { url, headers, method } = JSON.parse(bufferToString(contentBytes));
       let req: Request;
-      const body = this._request_body_cache.forceGet(headersId + 1); // 获取body
+
       if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-        console.log("deno#chunkHanlder:", method,
-          url)
+      const body = request_body_cache.forceGet(headersId + 1); // 获取body
+        console.log("deno#chunkHanlder:", method,url)
         req = new Request(url, { method, headers, body: body.bodyStream });
+        console.log("deno#body 第一次创建1",channelId,headersId + 1,body.op)
+        body.op = new PromiseOut();
+        console.log("deno#body 第一次创建2",channelId,headersId + 1,body.op)
       } else {
         req = new Request(url, { method, headers });
       }
@@ -146,7 +147,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
           channelId: channelId,
           chunk: stringToByte(JSON.stringify({ statusCode, headers })).join(",") + ",0" // 后面加0 表示发送未结束
         });
-      }), channelId);
+      }), channelId,headersId+1);
       // 触发到kotlin的真正请求
       this.emit("request", event);
 
@@ -176,15 +177,19 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       } while (true)
       return;
     }
-
-    // 为post请求填充数据
-    const body_id = headers_body_id;
     // 如果是body 需要填充Request body
-    const body = this._request_body_cache.forceGet(body_id); // 获取body
-    console.log("deno#推入body:", channelId, headers_body_id, isEnd, contentBytes.length)
+    const body = request_body_cache.get(headers_body_id); // 获取body
+    if (!body) {
+      console.log("deno#body Not Found",channelId,headers_body_id)
+      return
+    }
+
+    console.log("deno#body 推入:", channelId, headers_body_id, isEnd, contentBytes.length)
     // body 流结束
     if (isEnd) {
-      body.bodyStreamController.close()
+      body.bodyStreamController.close();
+      console.log("deno#body 推入完成✅:", headers_body_id)
+      body.op.resolve()
       return
     }
     body.bodyStreamController.enqueue(new Uint8Array(contentBytes)) // 在需要传递二进制数据的时候再转换Uint8
