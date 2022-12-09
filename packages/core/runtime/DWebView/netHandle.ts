@@ -2,11 +2,11 @@ import { network } from "../../deno/network.ts";
 import { hexToBinary, bufferToString } from '../../../util/binary.ts';
 import { callNative, callDVebView } from "../../native/native.fn.ts";
 import { ECommand, IChannelConfig } from "@bfsx/typings";
-import { EventPollQueue } from "./index.ts";
+import { EventPollQueue, request_body_cache } from "./index.ts";
 
 
 export class RequestEvent {
-  constructor(readonly request: Request, readonly response: RequestResponse, readonly channelId: string) {
+  constructor(readonly request: Request, readonly response: RequestResponse, readonly channelId: string,readonly bodyId:number) {
 
   }
   // @cacheGetter
@@ -56,9 +56,6 @@ export async function setUiHandle(event: RequestEvent) {
   const searchParams = url.searchParams.get("data");
   // 处理GET
   if (searchParams) {
-    // console.log(`deno#setUiHandle,method:${event.request.method},
-    // searchParams:`, bufferToString(searchParams.split(",").map(v => +v)))
-
     const data = await network.asyncCallbackBuffer(
       callNative.setDWebViewUI,
       searchParams
@@ -70,22 +67,25 @@ export async function setUiHandle(event: RequestEvent) {
   }
 
   const body = event.request.body;
-
+  //   console.log(`deno#setUiHandle method:${event.request.method},
+  //   body:`, body)
   // 如果没有get请求参数，又没有携带body
   if (!body) {
+    console.log(`deno#setUiHandle Parameter passing cannot be empty！`)
     return "Parameter passing cannot be empty！"
   }
-
+  console.log("deno#body 推入等待:",event.bodyId)
+  await request_body_cache.forceGet(event.bodyId).op.promise; // 等待body的填充
+  console.log("deno#body 推入完成xxx:",event.bodyId)
   const buff = body.getReader();
   while (true) {
-
     const { value, done } = await buff.read();
     if (done) {
       event.response.end();
+      console.log(`deno#body  over :`)
       break;
     }
-
-    console.log(`deno#setUiHandle,method:${event.request.method},
+    console.log(`deno#body  method:${event.request.method},
     body:`, value.length, ArrayBuffer.isView(value))
 
     const data = await network.asyncSendBufferNative(
@@ -94,7 +94,6 @@ export async function setUiHandle(event: RequestEvent) {
     );
     event.response.write(data);
   }
-
 }
 
 /**

@@ -69,8 +69,9 @@ class Deno {
     // 发送bufferview
     if (zerocopybuffer_list.length !== 0) {
       zerocopybuffer_list.map((zerocopybuffer) => {
-        console.log("deno#zerocopybuffer,req_id: %s, zerocopybuffer: %s", req_id, zerocopybuffer)
+        console.log("deno#op_send_zero_copy_buffer1", req_id)
         send_zero_copy_buffer(req_id, zerocopybuffer);
+        console.log("deno#op_send_zero_copy_buffer3", req_id)
       })
     }
     // 发送具体操作消息
@@ -130,11 +131,9 @@ class Deno {
       if (result.done) {
         continue;
       }
-      // console.log(`asyncCallDenoFunction：🚑,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
-      if (REQ_CATCH.has(this.reqId)) {
+      console.log(`deno#loopGetKotlinReturn,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
         REQ_CATCH.get(this.reqId)?.po.resolve(result.value);
         REQ_CATCH.delete(this.reqId)
-      }
     } while (true);
   }
 
@@ -151,25 +150,6 @@ class Deno {
     const body = stringToByte(message);
 
     return contactUint16(this.version_id, this.reqId, body);
-  }
-
-  /**
-   * 拼接Uint8Array
-   * @param arrays Uint8Array[]
-   * @returns Uint8Array
-   */
-  concatenate(...arrays: Uint8Array[]) {
-    let totalLength = 0;
-    for (const arr of arrays) {
-      totalLength += arr.length;
-    }
-    const result = new Uint8Array(totalLength);
-    let offset = 0;
-    for (const arr of arrays) {
-      result.set(arr, offset);
-      offset += arr.length;
-    }
-    return result;
   }
 }
 
