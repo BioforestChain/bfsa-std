@@ -110,7 +110,7 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
       const matchResult = channel.match(request); // 放行系统的，拦截配置的
       console.log("serviceWorker#matchResult:", matchResult);
       if (matchResult) {
-        event.respondWith(channel.handler(request)); // 看看是否匹配了channel通道
+        return event.respondWith(channel.handler(request)); // 看看是否匹配了channel通道
       }
     }
     /// 开始向外发送数据，切片发送
@@ -124,8 +124,10 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
 
       const channelId = await CLIENT_FETCH_CHANNEL_ID_WM.forceGet(client);
       const task = FETCH_EVENT_TASK_MAP.forceGet({ event, channelId });
+
       date.set(channelId, new Date().getTime());
       console.log(`🥕channelId:${channelId} 发送时间：${date.get(channelId)}`)
+
       // Build chunks
       const chunks = new HttpRequestBuilder(
         task.reqHeadersId,
@@ -139,6 +141,7 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
       return await task.po.promise;
     })());
   });
+
   // return data 🐯
   self.addEventListener("message", (event) => {
     if (typeof event.data !== "string") return;

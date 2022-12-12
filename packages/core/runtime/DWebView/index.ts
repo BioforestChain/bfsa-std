@@ -16,14 +16,13 @@ import { EChannelMode } from "@bfsx/typings";
 // deno-lint-ignore no-explicit-any
 export const EventPollQueue: [{ url: string, mode: EChannelMode }] = [] as any;
 
-console.log("deno#request_body_cache 初始化")
 export const request_body_cache = EasyMap.from({
   // deno-lint-ignore no-unused-vars
   creater(boydId: number) {
     let bodyStreamController: ReadableStreamController<Uint8Array>
     const bodyStream = new ReadableStream<Uint8Array>({ start(controller) { bodyStreamController = controller } })
     // deno-lint-ignore no-explicit-any
-    const op:any = null;
+    const op: any = null;
     return {
       bodyStream,
       bodyStreamController: bodyStreamController!,
@@ -34,11 +33,13 @@ export const request_body_cache = EasyMap.from({
 
 export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   entrys: string[];
-  importMap: IImportMap[]
+  importMap: IImportMap[];
+
   constructor(metaData: MetaData) {
     super()
     this.entrys = metaData.manifest.enters;
     this.importMap = metaData.dwebview.importmap
+
     this.initAppMetaData(metaData);
     this.dwebviewToDeno(); // 挂载轮询操作， 这里会自动处理来自前端的请求，并且处理操作返回到前端
 
@@ -125,12 +126,11 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       let req: Request;
 
       if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-      const body = request_body_cache.forceGet(headersId + 1); // 获取body
-        console.log("deno#chunkHanlder:", method,url)
+        const body = request_body_cache.forceGet(headersId + 1)
+        console.log("deno#body 第一次存储 🎬", headers_body_id + 1)
+        // body.op = new PromiseOut();
+        console.log("deno#chunkHanlder:", method, url)
         req = new Request(url, { method, headers, body: body.bodyStream });
-        console.log("deno#body 第一次创建1",channelId,headersId + 1,body.op)
-        body.op = new PromiseOut();
-        console.log("deno#body 第一次创建2",channelId,headersId + 1,body.op)
       } else {
         req = new Request(url, { method, headers });
       }
@@ -147,7 +147,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
           channelId: channelId,
           chunk: stringToByte(JSON.stringify({ statusCode, headers })).join(",") + ",0" // 后面加0 表示发送未结束
         });
-      }), channelId,headersId+1);
+      }), channelId, headersId + 1);
       // 触发到kotlin的真正请求
       this.emit("request", event);
 
@@ -179,19 +179,19 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     }
     // 如果是body 需要填充Request body
     const body = request_body_cache.get(headers_body_id); // 获取body
+
     if (!body) {
-      console.log("deno#body Not Found",channelId,headers_body_id)
+      console.log("deno#body Not Found", headers_body_id, body, contentBytes.length)
       return
     }
 
-    console.log("deno#body 推入:", channelId, headers_body_id, isEnd, contentBytes.length)
     // body 流结束
     if (isEnd) {
       body.bodyStreamController.close();
       console.log("deno#body 推入完成✅:", headers_body_id)
-      body.op.resolve()
       return
     }
+    console.log("deno#body 推入:", headers_body_id, isEnd, contentBytes.length)
     body.bodyStreamController.enqueue(new Uint8Array(contentBytes)) // 在需要传递二进制数据的时候再转换Uint8
   }
   /**

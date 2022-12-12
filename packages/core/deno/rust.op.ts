@@ -1,6 +1,6 @@
 // your OS.
 import "@bfsx/typings";
-import { contactUint8,contactUint16 } from "../../util/binary.ts";
+import { contactUint8, contactUint16 } from "../../util/binary.ts";
 
 /**js 到rust的消息 */
 export function js_to_rust_buffer(zerocopybuffer: Uint16Array) {
@@ -8,15 +8,15 @@ export function js_to_rust_buffer(zerocopybuffer: Uint16Array) {
 }
 /**js 到rust的消息： 传递零拷贝消息 */
 export function send_zero_copy_buffer(req_id: Uint16Array, zerocopybuffer: ArrayBufferView) {
-  console.log("deno#op_send_zero_copy_buffer221", req_id,zerocopybuffer.byteLength)
+  console.log("deno#op_send_zero_copy_buffer221", req_id, zerocopybuffer.byteLength)
   let buffer;
 
   // 需要解析成Uint8
-  if(zerocopybuffer.buffer.byteLength % 2 !== 0 ) { 
-    buffer = contactUint8(new Uint8Array(req_id.buffer),zerocopybuffer as Uint8Array)
+  if (zerocopybuffer.buffer.byteLength % 2 !== 0) {
+    buffer = contactUint8(new Uint8Array(req_id.buffer), zerocopybuffer as Uint8Array)
 
   } else {
-   buffer = contactUint16(req_id,new Uint16Array(zerocopybuffer.buffer))
+    buffer = contactUint16(req_id, new Uint16Array(zerocopybuffer.buffer))
   }
   Deno.core.opSync("op_send_zero_copy_buffer", buffer);
 }

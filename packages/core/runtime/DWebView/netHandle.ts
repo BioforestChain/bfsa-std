@@ -6,7 +6,7 @@ import { EventPollQueue, request_body_cache } from "./index.ts";
 
 
 export class RequestEvent {
-  constructor(readonly request: Request, readonly response: RequestResponse, readonly channelId: string,readonly bodyId:number) {
+  constructor(readonly request: Request, readonly response: RequestResponse, readonly channelId: string, readonly bodyId: number) {
 
   }
   // @cacheGetter
@@ -71,22 +71,20 @@ export async function setUiHandle(event: RequestEvent) {
   //   body:`, body)
   // 如果没有get请求参数，又没有携带body
   if (!body) {
-    console.log(`deno#setUiHandle Parameter passing cannot be empty！`)
+    console.log(`deno#setUiHandle Parameter passing cannot be empty！${body}`)
     return "Parameter passing cannot be empty！"
   }
-  console.log("deno#body 推入等待:",event.bodyId)
-  await request_body_cache.forceGet(event.bodyId).op.promise; // 等待body的填充
-  console.log("deno#body 推入完成xxx:",event.bodyId)
+  // console.log("deno#body 获取数据等待🚥:", event.bodyId)
+  // await request_body_cache.forceGet(event.bodyId).op.promise; // 等待body的填充
+  console.log("deno#body 准备获取数据📚:", event.bodyId)
   const buff = body.getReader();
   while (true) {
     const { value, done } = await buff.read();
     if (done) {
-      event.response.end();
-      console.log(`deno#body  over :`)
+      console.log(`deno#body  传递数据结束`)
       break;
     }
-    console.log(`deno#body  method:${event.request.method},
-    body:`, value.length, ArrayBuffer.isView(value))
+    console.log(`deno#body  传递数据, body:`, value.length, ArrayBuffer.isView(value))
 
     const data = await network.asyncSendBufferNative(
       callNative.setDWebViewUI,
@@ -94,6 +92,9 @@ export async function setUiHandle(event: RequestEvent) {
     );
     event.response.write(data);
   }
+  request_body_cache.delete(event.bodyId);
+  // console.log("deno#body 删除了🏵", event.bodyId)
+  event.response.end();
 }
 
 /**
