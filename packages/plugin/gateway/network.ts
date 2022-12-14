@@ -29,6 +29,9 @@ export function registerServiceWorker() {
         console.log("Service Worker reload 🥳🤩🍐🌽🌶🥒🍟🍚");
         window.location.reload();
       })
+    } else {
+      console.log("没有serviceWorker 🥕")
+      _serviceWorkerIsRead = true; // 没有serviceWorker为ios环境，直接放行
     }
   });
 }

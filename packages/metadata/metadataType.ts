@@ -10,6 +10,9 @@ export interface IManifest {
   name: string;
   // app 图标
   icon: string;
+  // app的类型
+  appType: string;
+  url: string;
   // dweb 引擎
   engines: {
     dwebview: string;

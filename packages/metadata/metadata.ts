@@ -14,6 +14,8 @@ export class Manifest implements IManifest {
   version!: string;
   name!: string;
   icon!: string;
+  appType!: string;
+  url!: string;
   engines!: {
     dwebview: string;
   };
