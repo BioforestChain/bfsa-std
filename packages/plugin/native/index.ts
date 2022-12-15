@@ -63,6 +63,22 @@ export class OpenScanner extends DwebPlugin {
   }
 }
 
+export class DwebClipboard extends DwebPlugin {
+  constructor() {
+    super();
+  }
+
+  // 读取剪贴板内容
+  readClipboardContent(): Promise<string> {
+    return getCallNativeUi(NativeHandle.ReadClipboardContent);
+  }
+
+  // 写入剪切板
+  writeClipboardContent(content: string): Promise<void> {
+    return getCallNativeUi(NativeHandle.WriteClipboardContent, content);
+  }
+}
+
 /**
  * 服务端的用户如果想给全部的dweb-plugin发送广播，需要在evalJs调用dwebPlugin.dispatch
  * 单独给某个webComponent发送消息则使用 组件名称.dispatch，
@@ -76,4 +92,7 @@ if (!customElements.get("dweb-navigation")) {
 }
 if (!customElements.get("dweb-scanner")) {
   customElements.define("dweb-scanner", OpenScanner);
+}
+if (!customElements.get("dweb-clipboard")) {
+  customElements.define("dweb-clipboard", DwebClipboard);
 }

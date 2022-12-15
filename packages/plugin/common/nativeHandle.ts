@@ -1,7 +1,9 @@
 export enum NativeHandle {
   OpenQrScanner = "OpenQrScanner",
   BarcodeScanner = "BarcodeScanner",
-  ServiceWorkerReady = "ServiceWorkerReady"
+  ServiceWorkerReady = "ServiceWorkerReady",
+  ReadClipboardContent = "ReadClipboardContent",
+  WriteClipboardContent = "WriteClipboardContent",
 }
 
 export enum NativeUI {
