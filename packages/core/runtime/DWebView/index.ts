@@ -106,6 +106,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     }
   }
 
+
   /**
    * 处理chunk
    * @param channelId 
@@ -178,30 +179,34 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       return;
     }
     // 如果是body 需要填充Request body
-    const body = request_body_cache.get(headers_body_id); // 获取body
+    this.resolveNetworkBodyRequest(headers_body_id, contentBytes, isEnd)
+  }
+
+
+  /**
+   * 分发body数据
+   * @param path  数据
+   * @param isEnd  如果是true就是消息结束了，如果是false 就是消息未结束
+   */
+  resolveNetworkBodyRequest(body_id: number, contentBytes: number[], isEnd: boolean) {
+    const body = request_body_cache.get(body_id); // 获取body
 
     if (!body) {
-      console.log("deno#body Not Found", headers_body_id, body, contentBytes.length)
+      console.log("deno#body Not Found", body_id, body, contentBytes.length)
       return
     }
 
     // body 流结束
     if (isEnd) {
       body.bodyStreamController.close();
-      console.log("deno#body 推入完成✅:", headers_body_id)
+      console.log("deno#body 推入完成✅:", body_id)
       return
     }
-    console.log("deno#body 推入:", headers_body_id, isEnd, contentBytes.length)
+    console.log("deno#body 推入:", body_id, isEnd, contentBytes.length)
     body.bodyStreamController.enqueue(new Uint8Array(contentBytes)) // 在需要传递二进制数据的时候再转换Uint8
   }
-  /**
-   * 分发body数据
-   * @param path  数据
-   * @param isEnd  如果是true就是消息结束了，如果是false 就是消息未结束
-   */
-  resolveNetworkBodyRequest(path: string, isEnd: boolean) {
-    console.log("resolveNetworkBodyRequest:", path, isEnd)
-  }
+
+
   /**
    * 打开请求通道
    * @param url  api/user/*, api/:method,api/chunkInfo

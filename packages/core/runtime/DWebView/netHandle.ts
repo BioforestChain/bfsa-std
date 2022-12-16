@@ -146,7 +146,7 @@ export async function setPollHandle(event: RequestEvent) {
 function callDwebViewFactory(func: string, data: string) {
   const handler = func as keyof typeof callDVebView;
   if (handler && callDVebView[handler]) {
-    handlerEvalJs(callDVebView[handler], data);
+    handlerEvalJs(handler, callDVebView[handler], data);
   }
 }
 
@@ -156,11 +156,11 @@ function callDwebViewFactory(func: string, data: string) {
  * @param data
  * @returns
  */
-function handlerEvalJs(wb: string, data: string) {
+function handlerEvalJs(handler: string, wb: string, data: string) {
   console.log("handlerEvalJs:", wb, data);
   network.syncSendMsgNative(
     callNative.evalJsRuntime,
-    `"javascript:document.querySelector('${wb}').dispatchStringMessage('${data}')"`
+    `"javascript:document.querySelector('${wb}').dispatchStringMessage('${handler}','${data}')"`
   );
 }
 

@@ -12,6 +12,7 @@ export interface IManifest {
   icon: string;
   // app的类型
   appType: string;
+  // web app的网络地址
   url: string;
   // dweb 引擎
   engines: {

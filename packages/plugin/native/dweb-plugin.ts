@@ -1,80 +1,67 @@
-import { loop } from "../common/index.ts";
 import { createMessage } from "../gateway/network.ts";
-
+import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/event-map_emitter/index.ts';
+import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
+import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
 
 /**
  * 所有的dweb-plugin需要继承这个类
  */
 export class DwebPlugin extends HTMLElement {
 
+
   protected listeners: { [eventName: string]: ListenerCallback[] } = {};
   protected windowListeners: { [eventName: string]: WindowListenerHandle } = {};
 
+  event = new EventEmitter<{ response: [EmitResponse] }>();
+  request_data = EasyMap.from({
+    creater(_func: string) {
+      return {
+        op: new PromiseOut<ArrayBuffer | string>()
+      }
+    }
+  })
+
   private isWaitingData = 0;
-  asyncDataArr: string[] = []; // 存储迭代目标
   /**反压高水位，暴露给开发者控制 */
   hightWaterMark = 10;
   /** 用来区分不同的Dweb-plugin建议使用英文单词，单元测试需要覆盖中文和特殊字符传输情况*/
-  // channelId = "";
   constructor() {
     super();
+    this.event.on("response", ({ func, data }) => {
+      console.log("plguin#EmitResponse:", func, data)
+      this.request_data.forceGet(func).op.resolve(data)
+    })
   }
   /**接收kotlin的evaJs来的string */
-  dispatchStringMessage = (data: string) => {
+  dispatchStringMessage = (func: string, data: string) => {
     console.log("dweb-plugin dispatchStringMessage:", data);
     if (this.isWaitingData > this.hightWaterMark) {
       return;
     }
     this.isWaitingData++;
-    this.asyncDataArr.push(data);
+    this.event.emit("response", { func, data });
   };
-  /**接收kotlin的evaJs来的buffer，转为string */
-  dispatchBinaryMessage = (buf: ArrayBuffer) => {
+  /**接收kotlin的evaJs来的buffer */
+  dispatchBinaryMessage = (func: string, buf: ArrayBuffer) => {
     console.log("dweb-plugin dispatchBinaryMessage:", buf);
-    const data = new TextDecoder("utf-8").decode(new Uint8Array(buf)); // 需要测试特殊字符和截断问题
-    console.log("dweb-plugin dispatchBinaryMessage:", data);
-    this.asyncDataArr.push(data);
+    this.event.emit("response", { func, data: buf });
   };
-  /**迭代器生成函数*/
-  onMesage() {
-    return {
-      next: () => {
-        const data = this.asyncDataArr.shift();
-        if (data) {
-          return {
-            value: data,
-            done: false,
-          };
-        }
-        return { value: "", done: true };
-      },
-    };
-  }
+
   /**
    * @param fun 操作函数
    * @param data 数据
    * @returns Promise<Ok>
    */
-  async onPolling(
+  async onRequest(
     fun: string,
     data = `"''"`,
-    delay = 500,
-  ): Promise<string> {
+  ): Promise<string | ArrayBuffer> {
+    // 发送请求
     const ok = await createMessage(fun, data);
-    let index = 1;
-
     if (ok !== "ok") {
       return `${fun}操作失败`; // todo 记录日志
     }
-    do {
-      const data = await this.onMesage().next();
-      if (data.done === false) {
-        return data.value;
-      }
-      index++;
-      await loop(delay);
-    } while (index < 10);
-    return `${fun}操作超时`
+    return await this.request_data.forceGet(fun).op.promise
   }
 
   addListener(
@@ -141,7 +128,10 @@ export class DwebPlugin extends HTMLElement {
   }
 
 }
-
+type EmitResponse = {
+  func: string,
+  data: string | ArrayBuffer
+}
 
 // deno-lint-ignore no-explicit-any
 export type ListenerCallback = (err: any, ...args: any[]) => void;

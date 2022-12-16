@@ -7,12 +7,12 @@ export class OpenScanner extends DwebPlugin {
   }
   // 打开二维码扫码
   openQrCodeScanner(): Promise<string> {
-    return this.onPolling(NativeHandle.OpenQrScanner);
+    return this.onRequest(NativeHandle.OpenQrScanner) as Promise<string>;
   }
 
   // 打开条形码扫码
   openBarCodeScanner(): Promise<string> {
-    return this.onPolling(NativeHandle.BarcodeScanner);
+    return this.onRequest(NativeHandle.BarcodeScanner) as Promise<string>;
   }
 }
 
