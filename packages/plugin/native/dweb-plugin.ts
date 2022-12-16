@@ -1,5 +1,7 @@
 import { loop } from "../common/index.ts";
 import { createMessage } from "../gateway/network.ts";
+
+
 /**
  * 所有的dweb-plugin需要继承这个类
  */

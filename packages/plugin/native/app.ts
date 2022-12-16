@@ -3,7 +3,6 @@ import { NativeUI } from "../common/nativeHandle.ts";
 import { getCallNative } from "../gateway/network.ts";
 import { DwebPlugin } from "./dweb-plugin.ts";
 
-
 // app控制方法
 export class App extends DwebPlugin {
   constructor() {

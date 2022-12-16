@@ -1,12 +1,12 @@
-import { App } from "../../packages/plugin/native/app.ts";
 import { test } from '../index.ts';
 import { assertEquals } from "https://deno.land/std@0.168.0/testing/asserts.ts";
 import { isIOS } from '../../packages/plugin/util/index.ts';
+import { getCallNative } from "../../packages/plugin/gateway/network.ts";
+import { NativeHandle } from "../../packages/plugin/common/nativeHandle.ts";
 
-const app = new App();
 
 test("app方法退出", async () => {
-  const signal = await app.exitApp()
+  const signal = await getCallNative(NativeHandle.ExitApp);
   assertEquals(signal, true)
 })
 

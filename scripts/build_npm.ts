@@ -55,7 +55,15 @@ export const doBuid = async (config: {
      * 1. TS2691
      */
     typeCheck: true,
-    shims: { deno: "dev" },
+    test: false,
+    shims: {
+      deno: "dev", custom: [
+        // {
+        //   module: "https://cdn.esm.sh/jsdom@20.0.3",
+        //   globalNames: ["HTMLElement"],
+        // }
+      ]
+    },
     compilerOptions: {
       target: "ES2020",
       importHelpers: true,

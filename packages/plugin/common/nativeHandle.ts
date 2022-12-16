@@ -1,11 +1,11 @@
 export enum NativeHandle {
-  OpenQrScanner = "OpenQrScanner",
-  BarcodeScanner = "BarcodeScanner",
-  ServiceWorkerReady = "ServiceWorkerReady",
-  ReadClipboardContent = "ReadClipboardContent",
-  WriteClipboardContent = "WriteClipboardContent",
-  ExitApp = "ExitApp",
-  ListenBackButton = "ListenBackButton", // android only
+  OpenQrScanner = "OpenQrScanner", // 二维码
+  BarcodeScanner = "BarcodeScanner", // 条形码
+  ServiceWorkerReady = "ServiceWorkerReady", // 通知后端，serviceWorker已经初始化好了
+  ReadClipboardContent = "ReadClipboardContent", // 读取剪切板
+  WriteClipboardContent = "WriteClipboardContent", // 写入剪切板
+  ExitApp = "ExitApp", // 退出app
+  ListenBackButton = "ListenBackButton", // 监听后退事件 （android only）
 }
 
 export enum NativeUI {
