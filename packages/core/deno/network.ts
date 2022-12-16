@@ -60,7 +60,7 @@ export class Network {
     if (data instanceof Object && !ArrayBuffer.isView(data)) {
       data = JSON.stringify(data); // stringify 两次转义一下双引号
     }
-    console.log("deno#asyncSendMsgNative request: ", handleFn, data)
+    // console.log("deno#asyncSendMsgNative request: ", handleFn, data)
 
     // 处理IOS，可以不转buffer就不转，少了一道工序
     if (currentPlatform() === "iOS") {
@@ -71,7 +71,7 @@ export class Network {
 
     // 发送请求
     const buffer = await deno.request(handleFn as $THandle, [data], type)
-    console.log("deno#asyncSendMsgNative Response: ", buffer)
+    // console.log("deno#asyncSendMsgNative Response: ", buffer)
     return buffer;
   }
 

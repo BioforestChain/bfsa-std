@@ -76,7 +76,7 @@ export function createMessage(
  * @param url
  * @returns
  */
-export function getCallNativeUi(fun: string, data: TNative = ""): Promise<any> {
+export function getCallNative(fun: string, data: TNative = ""): Promise<any> {
   if (data instanceof Object) {
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
@@ -90,7 +90,7 @@ export function getCallNativeUi(fun: string, data: TNative = ""): Promise<any> {
  * @param url
  * @returns
  */
-export function postCallNativeUi(
+export function postCallNative(
   fun: string,
   data: TNative = ""
 ): Promise<any> {
@@ -99,7 +99,7 @@ export function postCallNativeUi(
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = _encoder.encode(message);
-  // console.log("plugin#postCallNativeUi1:",message)
+  // console.log("plugin#postCallNative1:",message)
   return postConnectChannel("/setUi", buffer);
 }
 

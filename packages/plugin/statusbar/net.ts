@@ -1,5 +1,5 @@
 import { NativeUI } from "../common/nativeHandle.ts";
-import { getCallNativeUi } from "../gateway/network.ts";
+import { getCallNative } from "../gateway/network.ts";
 import { Color } from "../types/colorType.ts";
 import { StatusBar } from "./bfcsStatusBarType.ts";
 
@@ -12,7 +12,7 @@ export class StatusBarNet implements StatusBar.IStatusBarNet {
     let darkIcons: boolean;
 
     if (!colorHex) {
-      await getCallNativeUi(NativeUI.GetStatusBarColor)
+      await getCallNative(NativeUI.GetStatusBarColor)
         .then((res) => {
           colorHex = res;
         })
@@ -22,7 +22,7 @@ export class StatusBarNet implements StatusBar.IStatusBarNet {
     }
 
     if (!barStyle) {
-      const isDarkIcons = await getCallNativeUi(NativeUI.GetStatusBarIsDark);
+      const isDarkIcons = await getCallNative(NativeUI.GetStatusBarIsDark);
       console.log("plugin:GetStatusBarIsDark:", isDarkIcons)
       darkIcons = isDarkIcons;
     } else {
@@ -38,22 +38,22 @@ export class StatusBarNet implements StatusBar.IStatusBarNet {
       }
     }
     console.log("plugin:SetStatusBarColor:", colorHex, darkIcons)
-    getCallNativeUi(NativeUI.SetStatusBarColor, { colorHex, darkIcons });
+    getCallNative(NativeUI.SetStatusBarColor, { colorHex, darkIcons });
     return;
   }
 
   async getStatusBarColor(): Promise<Color.RGBAHex> {
-    const colorHex = await getCallNativeUi(NativeUI.GetStatusBarColor);
+    const colorHex = await getCallNative(NativeUI.GetStatusBarColor);
     return colorHex;
   }
 
   async getStatusBarVisible(): Promise<boolean> {
-    const isVisible = await getCallNativeUi(NativeUI.GetStatusBarVisible);
+    const isVisible = await getCallNative(NativeUI.GetStatusBarVisible);
     return Boolean(isVisible);
   }
 
   async setStatusBarVisible(isVer: boolean): Promise<boolean> {
-    const stringVisible = await getCallNativeUi(
+    const stringVisible = await getCallNative(
       NativeUI.SetStatusBarVisible,
       isVer
     );
@@ -69,12 +69,12 @@ export class StatusBarNet implements StatusBar.IStatusBarNet {
   }
 
   async getStatusBarOverlay(): Promise<boolean> {
-    const stringOverlay = await getCallNativeUi(NativeUI.GetStatusBarOverlay);
+    const stringOverlay = await getCallNative(NativeUI.GetStatusBarOverlay);
     return Boolean(stringOverlay);
   }
 
   async setStatusBarOverlay(isOverlay: boolean): Promise<boolean> {
-    const isOver = await getCallNativeUi(
+    const isOver = await getCallNative(
       NativeUI.SetStatusBarOverlay,
       isOverlay
     );
@@ -86,7 +86,7 @@ export class StatusBarNet implements StatusBar.IStatusBarNet {
    * @returns
    */
   async getStatusBarIsDark(): Promise<StatusBar.StatusBarStyle> {
-    const isDarkIcons = await getCallNativeUi(NativeUI.GetStatusBarIsDark);
+    const isDarkIcons = await getCallNative(NativeUI.GetStatusBarIsDark);
     let barStyle: StatusBar.StatusBarStyle;
     if (isDarkIcons) {
       barStyle = "dark-content" as StatusBar.StatusBarStyle.DARK_CONTENT;

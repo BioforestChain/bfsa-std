@@ -2,7 +2,7 @@
   "tasks": {
     "build": "deno run -A ./scripts/build_npm.ts",
     "pub": "deno run -A ./scripts/pub_npm.ts",
-    "p": "deno run -A ./scripts/build_npm.ts 1.0.0 plugin"
+    "test": "deno test --allow-all"
   },
   "compilerOptions": {
     "allowJs": false,

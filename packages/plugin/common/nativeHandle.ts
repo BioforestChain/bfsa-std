@@ -4,6 +4,8 @@ export enum NativeHandle {
   ServiceWorkerReady = "ServiceWorkerReady",
   ReadClipboardContent = "ReadClipboardContent",
   WriteClipboardContent = "WriteClipboardContent",
+  ExitApp = "ExitApp",
+  ListenBackButton = "ListenBackButton", // android only
 }
 
 export enum NativeUI {
