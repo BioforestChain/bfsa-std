@@ -7,4 +7,5 @@ export enum vfsHandle {
   FileSystemReadBuffer = "FileSystemReadBuffer",
   FileSystemRename = "FileSystemRename",
   FileSystemRm = "FileSystemRm",
+  FileSystemStat = "FileSystemStat",
 }
