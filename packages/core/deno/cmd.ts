@@ -37,7 +37,7 @@ export namespace $Commands {
 }
 let _L = 0;
 export enum Transform_Type {
-  /**包含返回值的消息 */
+  /**不需要返回值的消息 */
   NOT_RETURN = 1 << _L++, // 1 
   /**通用的消息 */
   HAS_RETURN = 1 << _L++, // 2

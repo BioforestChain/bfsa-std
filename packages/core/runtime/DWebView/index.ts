@@ -43,29 +43,29 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
     this.initAppMetaData(metaData);
     this.dwebviewToDeno(); // 挂载轮询操作， 这里会自动处理来自前端的请求，并且处理操作返回到前端
 
-    this.on("request", (event) => {
+    this.on("request", async (event) => {
       const { url } = event;
       // 是不是资源文件 （index.html,xxx.js）
       const isAssetsFile = url.pathname.lastIndexOf(".") !== -1
 
       console.log(`deno#request: method:${event.request.method},channelId:${event.channelId}`,
         event.request.url)
+      // headers
+      event.request.headers.forEach((val, key) => {
+        event.response.setHeaders(key, val)
+      })
 
       if (url.pathname.endsWith("/setUi")) {
-        setUiHandle(event)
-        return
+        return setUiHandle(event) // 处理 system ui
       }
       if (url.pathname.startsWith("/poll")) {
-        event.response.write("ok") // 操作成功直接返回ok
-        event.response.end()
-        setPollHandle(event)
-        return
+        await setPollHandle(event) // 处理真正的请求
+        event.response.end() // 操作成功直接返回
       }
 
       // 如果是需要转发的数据请求 pathname: "/getBlockInfo"
       if (!isAssetsFile) {
-        parseNetData(event, url.pathname, this.importMap)
-        return
+        return parseNetData(event, url.pathname, this.importMap)
       }
     })
   }
@@ -138,10 +138,11 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
 
       let responseBodyCtrl!: ReadableStreamController<Uint8Array>
       const responseBody = new ReadableStream<Uint8Array>({ start: (ctrl) => responseBodyCtrl = ctrl });
+      const postBodyDone = new PromiseOut<void>()
 
       // create request head
-      const event = new RequestEvent(req, new RequestResponse(responseBodyCtrl, async (statusCode, headers) => {
-        await postBodyDone.resolve();
+      const event = new RequestEvent(req, new RequestResponse(responseBodyCtrl, (statusCode, headers) => {
+        postBodyDone.resolve();
         // 发送header头到serviceworker
         this.callSWPostMessage({
           returnId: headersId,
@@ -152,15 +153,14 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       // 触发到kotlin的真正请求
       this.emit("request", event);
 
-      const postBodyDone = new PromiseOut<void>()
       // 等待请求数据填充,保证responseBodyReader有数据
       await postBodyDone.promise;
-
       const responseBodyReader = responseBody.getReader()
       // 填充真正的数据发送到serviceworker
       do {
         const { value: chunk, done } = await responseBodyReader.read();
         if (done) {
+          console.log("dwebView#responseBodyReader:啊我结束了", headersId + 1, chunk, done)
           this.callSWPostMessage({
             returnId: headersId + 1,
             channelId: channelId,
@@ -174,7 +174,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
           channelId: channelId,
           chunk: chunk!.join(",") + ",0" // 后面加0 表示发送未结束
         });
-
+        console.log("dwebView#responseBodyReader:222")
       } while (true)
       return;
     }

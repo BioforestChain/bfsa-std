@@ -7,7 +7,7 @@ import { stringToByte } from "../../util/binary.ts";
 import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
 import { contactUint16 } from "../../util/binary.ts";
-import { $A2BCommands, $Commands } from "./cmd.ts";
+import { $A2BCommands, $Commands, Transform_Type } from "./cmd.ts";
 
 
 
@@ -25,11 +25,6 @@ class Deno {
   version_id = new Uint16Array([1]);
   reqId = new Uint16Array([0]); // 初始化头部标记
 
-  constructor() {
-    // 起一个事件循环读取kotlin返回的数据
-    this.loopGetKotlinReturn()
-  }
-
   async request<C extends $Commands.Cmd>(cmd: C, input: $Commands.Input<C>, type: number): Promise<$Commands.Output<C, $A2BCommands>> {
 
     const zerocopybuffer_list: ArrayBufferView[] = [];
@@ -46,63 +41,37 @@ class Deno {
       return value;
     });
 
-
     this.postMessageToKotlin(this.reqId, cmd, type, JSON.stringify(copy_list), zerocopybuffer_list, transferable_metadata);
-    /// op( sendzerocopybuffer , zerocopybuffer, id) ✅
-    /// kotin_map.set(id,zerocopybytes)✅
-    ///
-    /// op(send , version:number, cmd:string, reqId:number, type:number, data:string, transferable_metadata:number[])✅
-    ///
-    /// JAVA_send()
-    ///     const cmd = [version,cmd,reqId,type, JSON.parse(data).map((value,index)=>transferable_metadata.getKey(index) ?.let{ kotin_map.getAndDelete() } ?? value ) ] ✅
-    /// registry('dweb-channel',({xxx}))
-    /// registry('open-dwebview',({xxx})=>{  deno.call('send', )  })
+
+    // 如果不需要返回值
+    if ((type & Transform_Type.NOT_RETURN) === Transform_Type.NOT_RETURN) {
+      console.log("deno#request,不需要返回值:", cmd)
+      return new ArrayBuffer(1)
+    }
+
     return await REQ_CATCH.forceGet(this.reqId).po.promise
   }
-
+  /** 发送请求 */
   postMessageToKotlin(req_id: Uint16Array, cmd: $Commands.Cmd, type: number,
     data_string: string, zerocopybuffer_list: ArrayBufferView[], transferable_metadata: number[]) {
 
     this.headViewAdd();
 
-    console.log("🚓cmd--> %s,req_id: %s, data_string:%s", cmd, req_id, data_string)
+    console.log("deno#postMessageToKotlin#🚓cmd： %s, data_string:%s，req_id:%s", cmd, data_string, req_id[0])
     // 发送bufferview
     if (zerocopybuffer_list.length !== 0) {
       zerocopybuffer_list.map((zerocopybuffer) => {
-        console.log("deno#op_send_zero_copy_buffer1", req_id)
         send_zero_copy_buffer(req_id, zerocopybuffer);
-        console.log("deno#op_send_zero_copy_buffer3", req_id)
       })
     }
+
     // 发送具体操作消息
     this.callFunction(cmd, type, data_string, transferable_metadata)
-  }
+    // 需要返回值的才需要等待
+    if ((type & Transform_Type.NOT_RETURN) !== Transform_Type.NOT_RETURN) {
+      this.loopGetKotlinReturn(req_id, cmd)
+    }
 
-  dwebviewResponse() {
-    // dwebview.onRequest((req,res)=>{
-    /// 1
-    // res.send(data)
-    // res.end(data)
-
-    /// 2
-    // this.post('dweb-channel',[dwebview.channelId, dwebview.boxReponseChunk( req.id,isEnd,orderId,data) ]);
-
-    /// 3 kotlin
-    // registry('dweb-channel',
-    //   (channleId,chunk)=>{
-    //     const channel = getChannale(channleId)
-    //     channel.postData(chunk)
-    //   }
-    // )
-
-    /// 4 service-worker
-    // channel.onMessage((message)=>{
-    //   const [reqId,isEnd, data] = open(message);
-    //   reqresMap.get(reqId)
-    //     .bodyStream.enquene(data)
-    //     ..isEnd?close()
-    // })
-    // })
   }
 
   headViewAdd() {
@@ -125,15 +94,16 @@ class Deno {
    * 循环获取kotlin system 返回的数据
    * @returns 
    */
-  async loopGetKotlinReturn() {
+  async loopGetKotlinReturn(reqId: Uint16Array, cmd: string) {
     do {
-      const result = await getRustBuffer(this.reqId); // backSystemDataToRust
+      const result = await getRustBuffer(reqId); // backSystemDataToRust
       if (result.done) {
         continue;
       }
-      console.log(`deno#loopGetKotlinReturn,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
-        REQ_CATCH.get(this.reqId)?.po.resolve(result.value);
-        REQ_CATCH.delete(this.reqId)
+      console.log(`deno#loopGetKotlinReturn ✅:${cmd},req_id,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
+      REQ_CATCH.get(this.reqId)?.po.resolve(result.value);
+      REQ_CATCH.delete(this.reqId)
+      break;
     } while (true);
   }
 

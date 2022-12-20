@@ -37,6 +37,7 @@ export class RequestResponse {
   }
 
   end() {
+    console.log("deno#end:", this._closed)
     if (this._closed) {
       return
     }
@@ -118,7 +119,7 @@ export async function setPollHandle(event: RequestEvent) {
   }
 
   const stringData = bufferToString(buffer)
-  console.log("setPollHandlestringData:", stringData)
+  console.log("deno#setPollHandlestring Data:", stringData)
   /// 如果是操作对象，拿出对象的操作函数和数据,传递给Kotlin
   const handler = JSON.parse(stringData);
 
@@ -128,12 +129,13 @@ export async function setPollHandle(event: RequestEvent) {
   }
   // 保证存在操作函数中
   if (!Object.values(callNative).includes(handler.function)) {
-    return
+    return true
   }
   const result = await network.asyncCallDenoFunction(
     handler.function,
     handler.data
   );
+  console.log("deno#setPollHandlestringData result: ", buffer)
   callDwebViewFactory(handler.function, result)
 }
 
@@ -160,7 +162,7 @@ function handlerEvalJs(handler: string, wb: string, data: string) {
   console.log("handlerEvalJs:", wb, data);
   network.syncSendMsgNative(
     callNative.evalJsRuntime,
-    `"javascript:document.querySelector('${wb}').dispatchStringMessage('${handler}','${data}')"`
+    `javascript:document.querySelector('${wb}').dispatchStringMessage('${handler}','${data}')`
   );
 }
 

@@ -8,7 +8,6 @@ export function js_to_rust_buffer(zerocopybuffer: Uint16Array) {
 }
 /**js 到rust的消息： 传递零拷贝消息 */
 export function send_zero_copy_buffer(req_id: Uint16Array, zerocopybuffer: ArrayBufferView) {
-  console.log("deno#op_send_zero_copy_buffer221", req_id, zerocopybuffer.byteLength)
   let buffer;
 
   // 需要解析成Uint8

@@ -21,29 +21,22 @@ export class DwebPlugin extends HTMLElement {
     }
   })
 
-  private isWaitingData = 0;
-  /**反压高水位，暴露给开发者控制 */
-  hightWaterMark = 10;
   /** 用来区分不同的Dweb-plugin建议使用英文单词，单元测试需要覆盖中文和特殊字符传输情况*/
   constructor() {
     super();
     this.event.on("response", ({ func, data }) => {
-      console.log("plguin#EmitResponse:", func, data)
+      console.log("dweb-plugin#EmitResponse:", func, data)
       this.request_data.forceGet(func).op.resolve(data)
     })
   }
   /**接收kotlin的evaJs来的string */
   dispatchStringMessage = (func: string, data: string) => {
-    console.log("dweb-plugin dispatchStringMessage:", data);
-    if (this.isWaitingData > this.hightWaterMark) {
-      return;
-    }
-    this.isWaitingData++;
+    console.log("dweb-plugin#dispatchStringMessage:", func, data);
     this.event.emit("response", { func, data });
   };
   /**接收kotlin的evaJs来的buffer */
   dispatchBinaryMessage = (func: string, buf: ArrayBuffer) => {
-    console.log("dweb-plugin dispatchBinaryMessage:", buf);
+    console.log("dweb-plugin#dispatchBinaryMessage:", func, buf);
     this.event.emit("response", { func, data: buf });
   };
 
@@ -54,20 +47,22 @@ export class DwebPlugin extends HTMLElement {
    */
   async onRequest(
     fun: string,
-    data = `"''"`,
+    data = "''",
   ): Promise<string | ArrayBuffer> {
+    console.log("dweb-plugin#onRequest 1", fun)
     // 发送请求
     const ok = await createMessage(fun, data);
-    if (ok !== "ok") {
-      return `${fun}操作失败`; // todo 记录日志
-    }
-    return await this.request_data.forceGet(fun).op.promise
+    console.log("dweb-plugin#onRequest", fun, ok)
+    const response = await this.request_data.forceGet(fun).op.promise
+    console.log("dweb-plugin#onRequest response", fun, ok)
+    return response
   }
 
   addListener(
     eventName: string,
     listenerFunc: ListenerCallback,
   ): Promise<PluginListenerHandle> & PluginListenerHandle {
+    // 监听一个事件
     const listeners = this.listeners[eventName];
     if (!listeners) {
       this.listeners[eventName] = [];
@@ -94,12 +89,15 @@ export class DwebPlugin extends HTMLElement {
 
     return p;
   }
+
   /**添加一个监听器 */
   private addWindowListener(handle: WindowListenerHandle): void {
     // deno-lint-ignore no-window-prefix
     window.addEventListener(handle.windowEventName, handle.handler);
     handle.registered = true;
   }
+
+  /**移除监听器 */
   private removeListener(
     eventName: string,
     listenerFunc: ListenerCallback,
@@ -118,6 +116,7 @@ export class DwebPlugin extends HTMLElement {
     }
   }
 
+  /**移除全局监听 */
   private removeWindowListener(handle: WindowListenerHandle): void {
     if (!handle) {
       return;

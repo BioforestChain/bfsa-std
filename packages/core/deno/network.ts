@@ -80,7 +80,7 @@ export class Network {
    * @param handleFn
    * @param data
    */
-  syncSendMsgNative(handleFn: string, data: TNative = ""): void {
+  async syncSendMsgNative(handleFn: string, data: TNative = ""): Promise<void> {
     // 发送消息的类型 （标记为不需要返回）
     const type: number = Transform_Type.NOT_RETURN;
     if (data instanceof Object) {
@@ -93,7 +93,8 @@ export class Network {
     }
     console.log("syncSendMsgNative#request: ", handleFn, data)
 
-    deno.request(handleFn as $THandle, [data], type); // 发送请求
+    const result = await deno.request(handleFn as $THandle, [data], type); // 发送请求
+    console.log("syncSendMsgNative#result: ", handleFn, result)
   }
 
   /**

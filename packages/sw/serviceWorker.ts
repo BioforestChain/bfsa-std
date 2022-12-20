@@ -173,10 +173,10 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
 
     console.log(`🥕channelId:${channelId},到达时间：${date.get(channelId)},时间差：${new Date().getTime() - date.get(channelId)}`);
 
-    console.log(`serviceWorker#returnId=> ${returnId},end:${end},bodyId:${bodyId},headersId:${channelId}-${headersId}`);
+    console.log(`serviceWorker#end:${end},bodyId:${bodyId},headersId:${channelId}-${headersId}`);
     const fetchTask = FETCH_EVENT_TASK_MAP.get(`${channelId}-${headersId}`);
 
-    // 如果存在
+    // 如果不存在
     if (fetchTask === undefined) {
       throw new Error("no found fetch task:" + returnId);
     }
@@ -194,7 +194,7 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
         }),
       );
     } else if (returnId === bodyId) { // parse body
-      console.log("serviceWorker#文件流推入", channelId, headersId, bodyId, responseContent.length);
+      console.log("serviceWorker#文件流推入:", channelId, bodyId, new TextDecoder().decode(new Uint8Array(responseContent)));
       fetchTask.responseBody.controller.enqueue(new Uint8Array(responseContent));
     } else {
       throw new Error("should not happen!! NAN? " + returnId);

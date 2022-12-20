@@ -1,9 +1,9 @@
 // deno-lint-ignore-file no-explicit-any
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
-import { sleep } from "../../util/index.ts";
+import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts";
 import { NativeHandle } from "../common/nativeHandle.ts";
-let _serviceWorkerIsRead = false;
+const _serviceWorkerIsRead = new PromiseOut<void>();
 const _encoder = new TextEncoder();
 
 /**
@@ -16,7 +16,7 @@ export function registerServiceWorker() {
       navigator.serviceWorker
         .register("serviceWorker.js", { scope: "/", type: "module" })
         .then(() => {
-          _serviceWorkerIsRead = true;
+          _serviceWorkerIsRead.resolve()
           // 通知serviceWorker已经准备好了
           serviceWorkerReady()
           console.log("Service Worker register success 🤩");
@@ -31,7 +31,7 @@ export function registerServiceWorker() {
       })
     } else {
       console.log("没有serviceWorker 🥕")
-      _serviceWorkerIsRead = true; // 没有serviceWorker为ios环境，直接放行
+      _serviceWorkerIsRead.resolve(); // 没有serviceWorker为ios环境，直接放行
     }
   });
 }
@@ -111,9 +111,7 @@ export function postCallNative(
 
 export async function getConnectChannel(url: string) {
   // 等待serviceWorker准备好
-  while (!_serviceWorkerIsRead) {
-    await sleep(10);
-  }
+  await _serviceWorkerIsRead.promise;
 
   const response = await fetch(url, {
     method: "GET", // dwebview 无法获取post的body
@@ -136,9 +134,8 @@ export async function getConnectChannel(url: string) {
 
 export async function postConnectChannel(url: string, body: Uint8Array) {
   // 等待serviceWorker准备好
-  do {
-    await sleep(10);
-  } while (!_serviceWorkerIsRead);
+  await _serviceWorkerIsRead.promise;
+
   const response = await fetch(url, {
     method: "POST", // dwebview 无法获取post的body,曲线救国，发送到serverWorker去处理成数据片。
     headers: {
