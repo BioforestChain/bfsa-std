@@ -1,4 +1,5 @@
-import { TNative } from "../index.ts";
+// deno-lint-ignore ban-types
+export type TNative = boolean | object | string | number | ArrayBufferView;
 
 /** javascriptCore function */
 export interface PlaocJavascriptBridge {
