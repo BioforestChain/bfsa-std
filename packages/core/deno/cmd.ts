@@ -11,18 +11,6 @@ export type $A2BCommands = {
   asyncBoolHasReturn: $Command<[data: boolean], ArrayBuffer>;
   asyncBuffHasReturn: $Command<[data: ArrayBufferView], ArrayBuffer>;
   syncCallNotReturn: $Command<[], ArrayBuffer>;
-  // [callNative.openDWebView]: $Command<[entry: string], []>;
-  // [callNative.openQrScanner]: $Command<[], [success: string]>;
-  // [callNative.openBarcodeScanner]: $Command<[], [success: string]>;
-  // [callNative.initMetaData]: $Command<[ metaData: string], []>;
-  // [callNative.denoRuntime]: $Command<[entry: string], []>;
-  // [callNative.getBfsAppId]: $Command<[], [app_id: string]>;
-  // [callNative.evalJsRuntime]: $Command<[ js_code: string], []>;
-  // [callNative.getDeviceInfo]: $Command<[], [info: string]>;
-  // [callNative.sendNotification]: $Command<[age: number, name: string], [success: boolean]>;
-  // [callNative.applyPermissions]: $Command<[permissions: string], [success: boolean]>;
-
-  // [callNative.ServiceWorkerReady]: $Command<[age: number, name: string], [success: boolean]>;
 };
 
 // type $B2ACommands = {

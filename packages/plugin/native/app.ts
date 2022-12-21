@@ -13,8 +13,8 @@ export class App extends DwebPlugin {
    * 退出app
    * @returns 
    */
-  async exitApp() {
-    return await getCallNative(NativeHandle.ExitApp);
+  async exitApp(): Promise<void> {
+    await this.onRequest(NativeHandle.ExitApp);
   }
   /**
    * 监听app点击返回（android only）
@@ -26,12 +26,7 @@ export class App extends DwebPlugin {
 }
 
 export interface BackButtonListenerEvent {
-  /**
-   * Indicates whether the browser can go back in history.
-   * False when the history stack is on the first entry.
-   *
-   * @since 1.0.0
-   */
+  // 如果 触发了返回值 这个是个true
   canGoBack: boolean;
 }
 export type BackButtonListener = (event: BackButtonListenerEvent) => void;
@@ -80,4 +75,8 @@ export class Navigation extends DwebPlugin {
 
 if (!customElements.get("dweb-navigation")) {
   customElements.define("dweb-navigation", Navigation);
+}
+
+if (!customElements.get("dweb-app")) {
+  customElements.define("dweb-app", App);
 }

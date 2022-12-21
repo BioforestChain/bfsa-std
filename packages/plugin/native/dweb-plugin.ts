@@ -16,7 +16,7 @@ export class DwebPlugin extends HTMLElement {
   request_data = EasyMap.from({
     creater(_func: string) {
       return {
-        op: new PromiseOut<ArrayBuffer | string>()
+        op: new PromiseOut<ArrayBufferView | string>()
       }
     }
   })
@@ -25,19 +25,19 @@ export class DwebPlugin extends HTMLElement {
   constructor() {
     super();
     this.event.on("response", ({ func, data }) => {
-      console.log("dweb-plugin#EmitResponse:", func, data)
+      console.log("🍙plugin#EmitResponse:", func, data)
       this.request_data.forceGet(func).op.resolve(data)
     })
   }
   /**接收kotlin的evaJs来的string */
   dispatchStringMessage = (func: string, data: string) => {
-    console.log("dweb-plugin#dispatchStringMessage:", func, data);
+    console.log("🍙plugin#dispatchStringMessage:", func, data);
     this.event.emit("response", { func, data });
   };
   /**接收kotlin的evaJs来的buffer */
   dispatchBinaryMessage = (func: string, buf: ArrayBuffer) => {
-    console.log("dweb-plugin#dispatchBinaryMessage:", func, buf);
-    this.event.emit("response", { func, data: buf });
+    console.log("🍙plugin#dispatchBinaryMessage:", func, buf); // 未测试
+    this.event.emit("response", { func, data: new Uint8Array(buf) });
   };
 
   /**
@@ -48,16 +48,18 @@ export class DwebPlugin extends HTMLElement {
   async onRequest(
     fun: string,
     data = "''",
-  ): Promise<string | ArrayBuffer> {
-    console.log("dweb-plugin#onRequest 1", fun)
+  ): Promise<string | ArrayBufferView> {
     // 发送请求
     const ok = await createMessage(fun, data);
-    console.log("dweb-plugin#onRequest", fun, ok)
-    const response = await this.request_data.forceGet(fun).op.promise
-    console.log("dweb-plugin#onRequest response", fun, ok)
-    return response
+    console.log("🍙plugin#onRequest", fun, ok)
+    return await this.request_data.forceGet(fun).op.promise
   }
-
+  /**
+   *  dwebview 注册一个监听事件
+   * @param eventName 
+   * @param listenerFunc 
+   * @returns 
+   */
   addListener(
     eventName: string,
     listenerFunc: ListenerCallback,
@@ -125,11 +127,24 @@ export class DwebPlugin extends HTMLElement {
     window.removeEventListener(handle.windowEventName, handle.handler);
     handle.registered = false;
   }
+  /**移动端通知调用 */
+  // deno-lint-ignore no-explicit-any
+  protected notifyListeners(eventName: string, data: any): void {
+    console.log("🍙plugin#notifyListeners:", eventName, data)
+    const listeners = this.listeners[eventName];
+    if (listeners) {
+      listeners.forEach(listener => listener(data));
+    }
+  }
+  /**是否存在 */
+  protected hasListeners(eventName: string): boolean {
+    return !!this.listeners[eventName].length;
+  }
 
 }
 type EmitResponse = {
   func: string,
-  data: string | ArrayBuffer
+  data: string | ArrayBufferView
 }
 
 // deno-lint-ignore no-explicit-any

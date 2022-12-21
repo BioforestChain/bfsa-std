@@ -119,24 +119,27 @@ export async function setPollHandle(event: RequestEvent) {
   }
 
   const stringData = bufferToString(buffer)
-  console.log("deno#setPollHandlestring Data:", stringData)
+
   /// 如果是操作对象，拿出对象的操作函数和数据,传递给Kotlin
   const handler = JSON.parse(stringData);
+  console.log("deno#setPollHandlestring Data:", stringData)
 
   // 看看是不是serviceWorekr准备好了
   if (getServiceWorkerReady(handler.function)) {
     return true
   }
-  // 保证存在操作函数中
-  if (!Object.values(callNative).includes(handler.function)) {
-    return true
+  console.log("deno#setPollHandlestring need return?:", Object.values(callNative).includes(handler.function))
+  // 在可返回的操作函数中
+  if (Object.values(callNative).includes(handler.function)) {
+    const result = await network.asyncCallDenoFunction(
+      handler.function,
+      handler.data
+    );
+    console.log("deno#setPollHandlestringData result: ", buffer)
+    callDwebViewFactory(handler.function, result)
   }
-  const result = await network.asyncCallDenoFunction(
-    handler.function,
-    handler.data
-  );
-  console.log("deno#setPollHandlestringData result: ", buffer)
-  callDwebViewFactory(handler.function, result)
+  // 不需要返回值的调用
+  network.syncSendMsgNative(handler.function, handler.data)
 }
 
 
@@ -172,8 +175,8 @@ function handlerEvalJs(handler: string, wb: string, data: string) {
  * @returns 
  */
 function getServiceWorkerReady(fun: string) {
-  console.log(`getServiceWorkerReady: ${fun} , ${fun === callNative.ServiceWorkerReady}`)
-  if (fun !== callNative.ServiceWorkerReady) {
+  console.log(`getServiceWorkerReady: ${fun} , ${fun === callNative.serviceWorkerReady}`)
+  if (fun !== callNative.serviceWorkerReady) {
     return false
   }
   // 执行事件

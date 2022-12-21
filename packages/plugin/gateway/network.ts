@@ -2,9 +2,10 @@
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts";
+import { _encoder } from "../common/index.ts";
 import { NativeHandle } from "../common/nativeHandle.ts";
 const _serviceWorkerIsRead = new PromiseOut<void>();
-const _encoder = new TextEncoder();
+
 
 /**
  * 注册serverWorker方法
@@ -25,10 +26,6 @@ export function registerServiceWorker() {
           console.log("Service Worker register error 🤯", e.message);
         });
 
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log("Service Worker reload 🥳🤩🍐🌽🌶🥒🍟🍚");
-        window.location.reload();
-      })
     } else {
       console.log("没有serviceWorker 🥕")
       _serviceWorkerIsRead.resolve(); // 没有serviceWorker为ios环境，直接放行
@@ -99,7 +96,7 @@ export function postCallNative(
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = _encoder.encode(message);
-  // console.log("plugin#postCallNative1:",message)
+  // console.log("🍙plugin#postCallNative1:",message)
   return postConnectChannel("/setUi", buffer);
 }
 
