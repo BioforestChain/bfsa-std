@@ -11,6 +11,7 @@ export {
   getDeviceInfo,
   EDeviceModule,
   EPermissions,
+  EPlatform,
   applyPermissions,
   currentPlatform,
 } from "./runtime/index.ts";

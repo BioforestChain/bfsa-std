@@ -2,7 +2,7 @@ import { callNative } from "../native/native.fn.ts";
 import { setNotification } from "../deno/rust.op.ts";
 import { sendJsCoreNotification } from "../jscore/swift.op.ts";
 import { network } from "../deno/network.ts";
-import { currentPlatform } from "./platform.ts";
+import { currentPlatform, EPlatform } from "./platform.ts";
 import { stringToByte } from "../../util/binary.ts";
 
 /**
@@ -12,7 +12,7 @@ import { stringToByte } from "../../util/binary.ts";
  */
 export async function sendNotification(data: INotification) {
   // 如果是android需要在这里拿到app_id，如果是ios,会在ios端拼接
-  if (data.app_id == undefined && currentPlatform() === "Android") {
+  if (data.app_id == undefined && currentPlatform() === EPlatform.android) {
     const app_id = await network.asyncCallDenoFunction(callNative.getBfsAppId);
     data = Object.assign(data, { app_id: app_id });
   }
@@ -20,11 +20,11 @@ export async function sendNotification(data: INotification) {
   const buffer = stringToByte(message);
 
   switch (currentPlatform()) {
-    case "Android":
+    case EPlatform.android:
       return setNotification(buffer);
-    case "iOS":
+    case EPlatform.ios:
       return sendJsCoreNotification(message);
-    case "desktop-dev":
+    case EPlatform.desktop:
     default:
       return;
   }

@@ -68,8 +68,6 @@ export async function setUiHandle(event: RequestEvent) {
   }
 
   const body = event.request.body;
-  //   console.log(`deno#setUiHandle method:${event.request.method},
-  //   body:`, body)
   // 如果没有get请求参数，又没有携带body
   if (!body) {
     console.log(`deno#setUiHandle Parameter passing cannot be empty！${body}`)

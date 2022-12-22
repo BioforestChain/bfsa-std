@@ -5,7 +5,7 @@ import { TNative } from "@bfsx/typings";
 import { bufferToString } from "../../util/binary.ts";
 import { deno } from "./deno.ts";
 import { $A2BCommands, Transform_Type } from "./cmd.ts";
-import { currentPlatform } from "../runtime/platform.ts";
+import { currentPlatform, EPlatform } from "../runtime/platform.ts";
 import { netCallNativeService } from "../jscore/swift.op.ts";
 
 
@@ -63,7 +63,7 @@ export class Network {
     // console.log("deno#asyncSendMsgNative request: ", handleFn, data)
 
     // 处理IOS，可以不转buffer就不转，少了一道工序
-    if (currentPlatform() === "iOS") {
+    if (currentPlatform() === EPlatform.ios) {
       const msg = await netCallNativeService(handleFn, data);
       return msg;
     }
@@ -88,7 +88,7 @@ export class Network {
     }
 
     // 处理IOS，
-    if (currentPlatform() === "iOS") {
+    if (currentPlatform() === EPlatform.ios) {
       netCallNativeService(handleFn, data);
     }
     console.log("syncSendMsgNative#request: ", handleFn, data)
@@ -107,7 +107,7 @@ export class Network {
     // 发送消息的类型（标记为需要消息返回，并且是二进制传输）
     const type: number = Transform_Type.HAS_RETURN | Transform_Type.IS_ALL_BUFFER;
     // 处理IOS，
-    if (currentPlatform() === "iOS") {
+    if (currentPlatform() === EPlatform.ios) {
       netCallNativeService(handleFn, data);
     }
     // 发送请求

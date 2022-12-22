@@ -6,12 +6,18 @@ export function currentPlatform() {
   let platform = "";
 
   if (jscore) {
-    platform = "iOS";
+    platform = "ios";
   } else if (isDenoRuntime()) {
-    platform = "Android";
+    platform = "android";
   } else {
-    platform = "desktop-dev";
+    platform = "desktop";
   }
 
   return platform;
+}
+
+export enum EPlatform {
+  ios = "ios",
+  android = "android",
+  desktop = "desktop"
 }

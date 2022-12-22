@@ -1,4 +1,4 @@
-// 记得大写开头，跟Native enum  保持一直
+// 记得值需要大写开头，跟Native enum  保持一直
 export enum callNative {
   /**打开dwebView */
   openDWebView = "OpenDWebView",
@@ -20,7 +20,7 @@ export enum callNative {
   sendNotification = "SendNotification",
   /**申请权限 */
   applyPermissions = "ApplyPermissions",
-  /**获取权限 */
+  /**获取权限信息 */
   getPermissions = "GetPermissions",
 
   /** serviceworker 告知已经准备好 */
@@ -29,7 +29,7 @@ export enum callNative {
   setDWebViewUI = "SetDWebViewUI",
 }
 
-
+/**不需要返回的命令 */
 export enum callNotReturnNative {
   /**退出app */
   exitApp = "ExitApp",
