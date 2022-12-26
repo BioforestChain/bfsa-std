@@ -17,13 +17,45 @@ export class DwebClipboard extends DwebPlugin {
   }
 
   // 读取剪贴板内容
-  readClipboardContent(): Promise<string> {
-    return getCallNative(NativeHandle.ReadClipboardContent);
+  async readClipboardContent(): Promise<string> {
+    return await getCallNative(NativeHandle.ReadClipboardContent);
   }
 
   // 写入剪切板
-  writeClipboardContent(content: string): Promise<void> {
-    return getCallNative(NativeHandle.WriteClipboardContent, content);
+  async writeClipboardContent(content: string): Promise<void> {
+    return await getCallNative(NativeHandle.WriteClipboardContent, content);
+  }
+}
+
+export class DwebNetwork extends DwebPlugin {
+  constructor() {
+    super()
+  }
+
+  // 获取网络状态
+  async getNetworkStatus(): Promise<string> {
+    return await getCallNative(NativeHandle.GetNetworkStatus)
+  }
+}
+
+export class DwebHaptics extends DwebPlugin {
+  constructor() {
+    super()
+  }
+
+  // 触碰轻质量物体
+  async hapticsImpactLight(): Promise<void> {
+    return await getCallNative(NativeHandle.HapticsImpactLight);
+  }
+
+  // 警告分隔的振动通知
+  async hapticsNotificationWarning(): Promise<void> {
+    return await getCallNative(NativeHandle.HapticsNotificationWarning);
+  }
+
+  // 反馈振动
+  async hapticsVibrate(duration: string): Promise<void> {
+    return await getCallNative(NativeHandle.HapticsVibrate, duration)
   }
 }
 
@@ -38,6 +70,14 @@ if (!customElements.get("dweb-messager")) {
 
 if (!customElements.get("dweb-clipboard")) {
   customElements.define("dweb-clipboard", DwebClipboard);
+}
+
+if (!customElements.get("dweb-network")) {
+  customElements.define("dweb-network", DwebNetwork);
+}
+
+if(!customElements.get("dweb-haptics")) {
+  customElements.define("dweb-haptics", DwebHaptics)
 }
 
 

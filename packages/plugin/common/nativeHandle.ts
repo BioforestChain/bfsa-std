@@ -6,6 +6,10 @@ export enum NativeHandle {
   WriteClipboardContent = "WriteClipboardContent", // 写入剪切板
   ExitApp = "ExitApp", // 退出app
   ListenBackButton = "ListenBackButton", // 监听后退事件 （android only）
+  GetNetworkStatus = "GetNetworkStatus", // 获取网络状态
+  HapticsImpactLight = "HapticsImpactLight", // 触碰轻质量物体
+  HapticsNotificationWarning = "HapticsNotificationWarning", // 警告分隔的振动通知
+  HapticsVibrate = "HapticsVibrate", // 反馈振动
 }
 
 export enum NativeUI {
