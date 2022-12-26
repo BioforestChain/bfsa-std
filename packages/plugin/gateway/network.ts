@@ -20,6 +20,12 @@ export function registerServiceWorker() {
           _serviceWorkerIsRead.resolve()
           // 通知serviceWorker已经准备好了
           serviceWorkerReady()
+          if (!navigator.serviceWorker.controller) {
+            console.info("controller is still none for some reason.");
+            return;
+          }
+          // 注册serviceWorker监听事件
+          eventIosMessageChannel(navigator)
           console.log("Service Worker register success 🤩");
         })
         .catch((e) => {
@@ -41,12 +47,11 @@ export async function serviceWorkerReady() {
     method: "GET",
     headers: {
       "Access-Control-Allow-Origin": "*", // 客户端开放，不然会报cors
-      "Content-Type": "text/plain",
     },
     mode: "cors",
   });
   const data = await response.text();
-  console.log("xgetConnectChannelx", data);
+  console.log("plugin#serviceWorkerReady: ", data);
   return data
 }
 
@@ -78,6 +83,7 @@ export function getCallNative(fun: string, data: TNative = ""): Promise<any> {
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
+  // console.log("plugin#getCallNative:", message);
   const buffer = _encoder.encode(message);
   return getConnectChannel(`/setUi?data=${buffer}`);
 }
@@ -114,12 +120,11 @@ export async function getConnectChannel(url: string) {
     method: "GET", // dwebview 无法获取post的body
     headers: {
       "Access-Control-Allow-Origin": "*", // 客户端开放，不然会报cors
-      "Content-Type": "text/plain",
     },
     mode: "cors",
   });
   const data = await response.text();
-  console.log("xgetConnectChannelx", data);
+  console.log("plugin#getConnectChannel:", data);
   return data
 }
 
@@ -144,3 +149,16 @@ export async function postConnectChannel(url: string, body: Uint8Array) {
   const data = await response.text();
   return data;
 }
+
+
+function eventIosMessageChannel(navigator: Navigator) {
+  const messageChannel = new MessageChannel();
+  messageChannel.port1.addEventListener('message', (event) => {
+    console.log("iosEmit", event.data);
+    // dnt-shim-ignore
+    (window as any).getConnectChannel(event.data);
+  });
+  console.log("plugin#eventIosMessageChannel:", navigator.serviceWorker)
+  navigator.serviceWorker.controller!.postMessage("data", [messageChannel.port2]);
+}
+

@@ -10,6 +10,8 @@ import { callNative } from "../../native/native.fn.ts";
 import { RequestEvent, RequestResponse, setPollHandle, setUiHandle } from "./netHandle.ts";
 import { parseNetData } from "./dataGateway.ts";
 import { EChannelMode } from "@bfsx/typings";
+import { currentPlatform } from "../platform.ts";
+import { EPlatform } from '../platform.ts';
 
 
 // 存储需要触发前端的事件，需要等待serviceworekr准备好
@@ -74,14 +76,18 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
  * 轮询向rust拿数据，路径为：dwebView-js-(fetch)->kotlin-(ffi)->rust-(op)->deno-js->kotlin(eventJs)->dwebView-js
  * 这里是接收dwebView-js操作系统API转发到后端的请求
  */
-  async dwebviewToDeno() {
+  async dwebviewToDeno(strPath?: string) {
+    if (currentPlatform() === EPlatform.ios && strPath) {
+      return this.chunkGateway(strPath)
+    }
     do {
       const data = await getRustChunk();
       if (data.done) {
         continue
       }
       // console.log("dwebviewToDeno====>", data.value);
-      this.chunkGateway(data.value)
+      const strPath = bufferToString(data.value);
+      this.chunkGateway(strPath)
       /// 这里是重点，使用 do-while ，替代 finally，可以避免堆栈溢出。
     } while (true);
   }
@@ -90,8 +96,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    * 解析网络请求
    * @param strBits 
    */
-  async chunkGateway(strBits: number[]) {
-    const strPath = bufferToString(strBits);
+  async chunkGateway(strPath: string) {
     console.log("strPath :", strPath)
     if (strPath.startsWith("/channel")) {  // /channel/349512662458373/chunk=0002,104,116,116,112,115,58,1
       // 拿到channelId
@@ -245,11 +250,12 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    * @param entry // DwebView入口
    */
   activity(entry: string) {
-    // 判断在不在入口文件内
+    console.log("this.entrys:", this.entrys.toString(), entry, this.entrys.toString().match(RegExp(`${entry}`)))
     if (this.entrys.toString().match(RegExp(`${entry}`))) {
       network.syncSendMsgNative(callNative.openDWebView, entry);
       return;
     }
-    throw new Error("您传递的入口不在配置的入口内，需要在配置文件里配置入口");
+    console.error("您传递的入口不在配置的入口内，需要在配置文件里配置入口");
+    throw new Error("not found entry");
   }
 }

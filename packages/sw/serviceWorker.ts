@@ -5,8 +5,9 @@ import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-m
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
 import { Channels, matchOpenChannel, matchBackPressureOpen, matchCommand } from "./Channel.ts";
 import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util/binary.ts";
-
+import { checkType } from "../util/index.ts";
 ((self: ServiceWorkerGlobalScope) => {
+  let _portMessage: MessagePort;
   const date = new Map();
   const CLIENT_FETCH_CHANNEL_ID_WM = EasyWeakMap.from({
     creater(_client: Client) {
@@ -14,16 +15,16 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
     },
   });
 
-  self.addEventListener("install", () => {
+  self.addEventListener("install", (event) => {
+    console.log("是否是ios:", isIos())
     // 跳过等待
-    return self.skipWaiting();
+    event.waitUntil(self.skipWaiting());
   });
 
-  self.addEventListener("activate", () => {
-    // 卸载所有 Service Worker
-    self.registration.unregister();
+  self.addEventListener("activate", (event) => {
     // 立刻控制整个页面
-    return self.clients.claim();
+    event.waitUntil(self.clients.claim()); // Become available to all pages
+    console.log('Ready!');
   });
 
   const event_id_acc = new Uint16Array(1);
@@ -58,7 +59,8 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
     },
   });
 
-  let back_pressure: PromiseOut<void> | undefined;
+
+  // let back_pressure: PromiseOut<void> | undefined;
   type TQFetch = {
     url: string;
     task: PromiseOut<Response>;
@@ -79,22 +81,33 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
       if (item === undefined) {
         break;
       }
-      if (back_pressure) {
-        // console.log("back_pressure", back_pressure);
-        // await back_pressure.promise
+      // if (back_pressure) {
+      // await back_pressure.promise
+      // }
+      if (isIos()) {
+        console.log("ios#getConnectChannel 发送", item.url)
+        _portMessage.postMessage(item.url)
+        // if (result == true) {
+        //   back_pressure = new PromiseOut();
+        // }
+        item.task.resolve(new Response(item.url));
+        running = false;
+        continue;
       }
+
       await fetch(item.url).then(async (res) => {
         const { success } = await res.json();
-        if (success === true) {
-          back_pressure = new PromiseOut();
-        }
-        item.task.resolve(res);
+        // if (success === true) {
+        // back_pressure = new PromiseOut();
+        // }
+        item.task.resolve(success);
       }).catch((err) => {
-        throw new Error(err);
+        console.error(err)
       });
+
+      running = false;
     }
-    running = false;
-  };
+  }
   const channels: Channels[] = []; // 后端创建的channel通道
 
   // remember event.respondWith must sync call🐰
@@ -144,13 +157,14 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
 
   // return data 🐯
   self.addEventListener("message", (event) => {
+    _portMessage = event.ports[0]
     if (typeof event.data !== "string") return;
     // 如果是cmd命令
     if (matchCommand(event.data)) {
       // 匹配后端打开背压的命令
       if (matchBackPressureOpen(event.data)) {
         console.log(`serviceWorker#matchBackPressureOpen 😺}`);
-        back_pressure?.resolve();
+        // back_pressure?.resolve();
         return true;
       }
       // 匹配后端创建一个channel 线程的命令
@@ -251,8 +265,14 @@ import { stringToNum, contactNumber, hexToBinary, bufferToString } from "../util
     }
   }
 
+  function isIos() {
+    return checkType("webkit", "object")
+  }
+
+
   // 向native层申请channelId
   async function registerChannel() {
     return await fetch(`/channel/registry`).then((res) => res.text());
   }
+
 })(self as never);
