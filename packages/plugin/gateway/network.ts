@@ -2,6 +2,7 @@
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts";
+import { checkType } from "../../util/index.ts";
 import { _encoder } from "../common/index.ts";
 import { NativeHandle } from "../common/nativeHandle.ts";
 const _serviceWorkerIsRead = new PromiseOut<void>();
@@ -14,18 +15,14 @@ export function registerServiceWorker() {
   addEventListener("load", () => {
     // 能力检测
     if ("serviceWorker" in navigator) {
+        // 注册serviceWorker监听事件
+        eventIosMessageChannel(navigator)
       navigator.serviceWorker
         .register("serviceWorker.js", { scope: "/", type: "module" })
         .then(() => {
           _serviceWorkerIsRead.resolve()
           // 通知serviceWorker已经准备好了
           serviceWorkerReady()
-          if (!navigator.serviceWorker.controller) {
-            console.info("controller is still none for some reason.");
-            return;
-          }
-          // 注册serviceWorker监听事件
-          eventIosMessageChannel(navigator)
           console.log("Service Worker register success 🤩");
         })
         .catch((e) => {
@@ -150,15 +147,37 @@ export async function postConnectChannel(url: string, body: Uint8Array) {
   return data;
 }
 
-
+/**
+ * 处理ios事件转发
+ * @param navigator 
+ */
 function eventIosMessageChannel(navigator: Navigator) {
   const messageChannel = new MessageChannel();
-  messageChannel.port1.addEventListener('message', (event) => {
-    console.log("iosEmit", event.data);
-    // dnt-shim-ignore
-    (window as any).getConnectChannel(event.data);
+  messageChannel.port1.onmessage = function(event){
+    if(event.data.error){
+        console.error("messageChannel: ",event.data.error);
+    }else{
+      console.log("iosEmit", event.data);
+      // dnt-shim-ignore
+      (window as any).getConnectChannel(event.data);
+    }
+};
+
+  if (!navigator.serviceWorker.controller) {
+    console.info("controller is still none for some reason.");
+    return;
+  }
+  // 创建消息通道
+  navigator.serviceWorker.controller.postMessage(`{"cmd":"openMessageChannel","data":${isIos}}`, [messageChannel.port2]);
+ 
+
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    console.log("plugin#eventIosMessageChannel response:",event.data.url);
   });
-  console.log("plugin#eventIosMessageChannel:", navigator.serviceWorker)
-  navigator.serviceWorker.controller!.postMessage("data", [messageChannel.port2]);
+  console.log("plugin#eventIosMessageChannel:", navigator.serviceWorker,isIos())
+
 }
 
+function isIos():boolean {
+  return checkType("webkit","object")
+}

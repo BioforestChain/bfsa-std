@@ -1,7 +1,7 @@
-import { network } from "../../deno/network.ts";
-import { hexToBinary, bufferToString } from '../../../util/binary.ts';
-import { callNative, callDVebView } from "../../native/native.fn.ts";
 import { ECommand, IChannelConfig } from "@bfsx/typings";
+import { bufferToString, hexToBinary } from '../../../util/binary.ts';
+import { network } from "../../deno/network.ts";
+import { callDVebView, callNative } from "../../native/native.fn.ts";
 import { EventPollQueue, request_body_cache } from "./index.ts";
 
 
@@ -15,7 +15,7 @@ export class RequestEvent {
   }
 }
 export class RequestResponse {
-  constructor(private _bodyCtrl: ReadableStreamController<Uint8Array | string | ArrayBuffer | Blob>, private _onClose: (statusCode: number, headers: Record<string, string>) => void) {
+  constructor(private _bodyCtrl: ReadableStreamController<ArrayBufferView | string | ArrayBuffer | Blob>, private _onClose: (statusCode: number, headers: Record<string, string>) => void) {
   }
   public statusCode = 200
   public headers: Record<string, string> = {}
@@ -26,14 +26,14 @@ export class RequestResponse {
     return this.headers[key]
   }
   private _closed = false
-  write(data: Uint8Array | string | ArrayBuffer | Blob) {
+  write(data: ArrayBufferView | string | ArrayBuffer | Blob) {
     if (this._closed) {
       throw new Error('closed')
     }
     // if (typeof data === 'string') {
     //   data = stringToByte(data)
     // }
-    this._bodyCtrl.enqueue(data)
+    this._bodyCtrl.enqueue(data as ArrayBufferView)
   }
 
   end() {

@@ -11,10 +11,12 @@
 
 change code for you expect and build core to npm packages
 
+Put 'plaoc' and 'bfsa-std' in the same directory and run npmlink.sh。
+
 ### Build core
 
 ```shell
-deno task build
+deno task build 1.0.5 all
 ```
 
 ### Npm publish

@@ -18,7 +18,6 @@ export const stringToNum = (s: string) => {
       res[ i]= u
     }
   }
-  console.log("stringToByte:", res)
   return res
 }
 

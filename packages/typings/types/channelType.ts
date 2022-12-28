@@ -14,5 +14,6 @@ export enum EChannelMode {
 
 export enum ECommand {
   openBackPressure = "openBackPressure",
-  openChannel = "openChannel" // 判断是否是打开一个Channel通道
+  openChannel = "openChannel", // 判断是否是打开一个Channel通道
+  openMessageChannel = "openMessageChannel"
 }

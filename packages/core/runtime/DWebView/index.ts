@@ -1,17 +1,16 @@
 import { MetaData } from "@bfsx/metadata";
-import { network } from "../../deno/network.ts";
-import { getRustChunk } from "../../deno/rust.op.ts";
-import { stringToByte, bufferToString } from "../../../util/index.ts";
-import { IImportMap } from "../../../metadata/metadataType.ts";
+import { EChannelMode } from "@bfsx/typings";
+import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/event-map_emitter/index.ts';
 import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
 import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
-import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/event-map_emitter/index.ts';
+import { IImportMap } from "../../../metadata/metadataType.ts";
+import { bufferToString, stringToByte } from "../../../util/index.ts";
+import { network } from "../../deno/network.ts";
+import { getRustChunk } from "../../deno/rust.op.ts";
 import { callNative } from "../../native/native.fn.ts";
-import { RequestEvent, RequestResponse, setPollHandle, setUiHandle } from "./netHandle.ts";
+import { currentPlatform, EPlatform } from "../platform.ts";
 import { parseNetData } from "./dataGateway.ts";
-import { EChannelMode } from "@bfsx/typings";
-import { currentPlatform } from "../platform.ts";
-import { EPlatform } from '../platform.ts';
+import { RequestEvent, RequestResponse, setPollHandle, setUiHandle } from "./netHandle.ts";
 
 
 // 存储需要触发前端的事件，需要等待serviceworekr准备好
@@ -21,8 +20,8 @@ export const EventPollQueue: [{ url: string, mode: EChannelMode }] = [] as any;
 export const request_body_cache = EasyMap.from({
   // deno-lint-ignore no-unused-vars
   creater(boydId: number) {
-    let bodyStreamController: ReadableStreamController<Uint8Array>
-    const bodyStream = new ReadableStream<Uint8Array>({ start(controller) { bodyStreamController = controller } })
+    let bodyStreamController: ReadableStreamController<ArrayBufferView>
+    const bodyStream = new ReadableStream<ArrayBufferView>({ start(controller) { bodyStreamController = controller } })
     // deno-lint-ignore no-explicit-any
     const op: any = null;
     return {

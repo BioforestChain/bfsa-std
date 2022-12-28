@@ -1,21 +1,38 @@
 import { EChannelMode, ECommand, IChannelConfig } from "@bfsx/typings";
 
+// deno-lint-ignore no-explicit-any
+type TCmd = {cmd:string,data:any};
 
-export function matchBackPressureOpen(data: string) {
-  const command = JSON.parse(data)
-  if (command.cmd === ECommand.openBackPressure) {
+function matchRule(command: TCmd,cmd:ECommand) {
+  if (command.cmd === cmd) {
     return true
   }
   return false
 }
 
+/**
+ * 后端控制背压策略
+ * @param data 
+ * @returns 
+ */
+export function matchBackPressureOpen(command: TCmd) {
+  return matchRule(command,ECommand.openBackPressure)
+}
 
-export function matchOpenChannel(data: string) {
-  const command = JSON.parse(data)
+/**
+ * 判断是否是后端打开一个通道
+ * @param data 
+ * @returns 
+ */
+export function matchOpenChannel(command: TCmd) {
   if (command.cmd === ECommand.openChannel) {
     return command
   }
   return false
+}
+
+export function matchOpenMsgChannel(command:TCmd) {
+  return matchRule(command,ECommand.openMessageChannel)
 }
 
 /**
@@ -24,8 +41,8 @@ export function matchOpenChannel(data: string) {
  * @param cmd 
  * @returns 
  */
-export function matchCommand(data: string) {
-  if (/(cmd)/.test(data)) return true
+export function matchCommand(data: string):false|TCmd {
+  if (/(cmd)/.test(data)) return JSON.parse(data)
   return false
 }
 
