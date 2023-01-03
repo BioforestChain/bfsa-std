@@ -233,12 +233,12 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, matchO
       console.log("serviceWorker#接收到了channelId:", cmd.data, cmd.cmd)
       channelIdOp.resolve(cmd.data)
     }
+     console.log("serviceWorker#matchOpenMsgChannel:", JSON.stringify(cmd))
     // 打开一个channelMessagePort 用于传递ios消息
     if (matchOpenMsgChannel(cmd)) {
       msgPost = event.ports[0]
       msgPoop.resolve(msgPost)
       isIos = cmd.data
-      console.log("matchOpenMsgChannel:", JSON.stringify(cmd))
       msgPost.postMessage("这条消息来自service Worker Message: " + JSON.stringify(cmd));
       return true;
     }
@@ -304,9 +304,14 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, matchO
 
   // 向native层申请channelId
   function registerChannel() {
-    fetch(`/chunk/registryChannelId`).then(async (res) => {
-      console.log("注册channelID：", await res.text())
-    });
+   if (isIos) {
+    msgPost.postMessage("ios 申请channelId")
+    msgPost.postMessage({
+      url: `/chunk/registryChannelId`
+    })
+   } else {
+    fetch(`/chunk/registryChannelId`)
+   }
     return channelIdOp.promise
   }
 

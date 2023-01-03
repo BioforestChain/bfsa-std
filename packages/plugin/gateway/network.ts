@@ -168,12 +168,12 @@ function eventIosMessageChannel(navigator: Navigator) {
   };
 
   if (!navigator.serviceWorker.controller) {
-    console.info("controller is still none for some reason.");
+    console.log("controller is still none for some reason.");
     return;
   }
+  console.log("打开一个message channel",isIos());
   // 创建消息通道
   navigator.serviceWorker.controller.postMessage(`{"cmd":"openMessageChannel","data":${isIos}}`, [messageChannel.port2]);
-
 
   navigator.serviceWorker.addEventListener('message', (event) => {
     console.log("plugin#eventIosMessageChannel response:", event.data.url);
