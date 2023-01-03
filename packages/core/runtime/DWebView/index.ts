@@ -10,7 +10,8 @@ import { getRustChunk } from "../../deno/rust.op.ts";
 import { callNative } from "../../native/native.fn.ts";
 import { currentPlatform, EPlatform } from "../platform.ts";
 import { parseNetData } from "./dataGateway.ts";
-import { RequestEvent, RequestResponse, setPollHandle, setUiHandle } from "./netHandle.ts";
+import { RequestEvent, RequestResponse, setPollHandle, setUiHandle, callSWPostMessage, applyChannelId } from "./netHandle.ts";
+import { Channels } from './channel.ts';
 
 
 // 存储需要触发前端的事件，需要等待serviceworekr准备好
@@ -35,11 +36,13 @@ export const request_body_cache = EasyMap.from({
 export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   entrys: string[];
   importMap: IImportMap[];
+  channel: Channels
 
   constructor(metaData: MetaData) {
     super()
     this.entrys = metaData.manifest.enters;
     this.importMap = metaData.dwebview.importmap
+    this.channel = new Channels()
 
     this.initAppMetaData(metaData);
     this.dwebviewToDeno(); // 挂载轮询操作， 这里会自动处理来自前端的请求，并且处理操作返回到前端
@@ -97,6 +100,12 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    */
   async chunkGateway(strPath: string) {
     console.log("strPath :", strPath)
+    // 注册channelID
+    if (strPath.startsWith("/chunk/registryChannelId")) {
+      const channelId = this.channel.getChannelId()
+      return applyChannelId(channelId)
+    }
+    // 转发请求
     if (strPath.startsWith("/channel")) {  // /channel/349512662458373/chunk=0002,104,116,116,112,115,58,1
       // 拿到channelId
       const channelId = strPath.substring(
@@ -148,7 +157,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       const event = new RequestEvent(req, new RequestResponse(responseBodyCtrl, (statusCode, headers) => {
         postBodyDone.resolve();
         // 发送header头到serviceworker
-        this.callSWPostMessage({
+        callSWPostMessage({
           returnId: headersId,
           channelId: channelId,
           chunk: stringToByte(JSON.stringify({ statusCode, headers })).join(",") + ",0" // 后面加0 表示发送未结束
@@ -165,7 +174,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         const { value: chunk, done } = await responseBodyReader.read();
         if (done) {
           console.log("dwebView#responseBodyReader:啊我结束了", headersId + 1, chunk, done)
-          this.callSWPostMessage({
+          callSWPostMessage({
             returnId: headersId + 1,
             channelId: channelId,
             chunk: "1" // 后面加1 表示发送结束
@@ -173,7 +182,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
           break
         }
         console.log("dwebView#responseBodyReader:", headersId + 1, chunk, done)
-        this.callSWPostMessage({
+        callSWPostMessage({
           returnId: headersId + 1,
           channelId: channelId,
           chunk: chunk!.join(",") + ",0" // 后面加0 表示发送未结束
@@ -219,16 +228,6 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   openRequest(url: string, mode: EChannelMode) {
     EventPollQueue.push({ url, mode })
     // await this.openChannel({ url, mode })
-  }
-
-  /**
-  * 发送消息给serviceWorker message
-  * @param hexResult 
-  */
-  // deno-lint-ignore ban-types
-  callSWPostMessage(result: object) {
-    network.syncSendMsgNative(callNative.evalJsRuntime,
-      `navigator.serviceWorker.controller.postMessage('${JSON.stringify(result)}')`);
   }
 
   /**

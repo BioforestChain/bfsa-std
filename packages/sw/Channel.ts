@@ -1,9 +1,9 @@
 import { EChannelMode, ECommand, IChannelConfig } from "@bfsx/typings";
 
 // deno-lint-ignore no-explicit-any
-type TCmd = {cmd:string,data:any};
+export type TCmd = { cmd: string, data: any };
 
-function matchRule(command: TCmd,cmd:ECommand) {
+function matchRule(command: TCmd, cmd: ECommand) {
   if (command.cmd === cmd) {
     return true
   }
@@ -16,7 +16,7 @@ function matchRule(command: TCmd,cmd:ECommand) {
  * @returns 
  */
 export function matchBackPressureOpen(command: TCmd) {
-  return matchRule(command,ECommand.openBackPressure)
+  return matchRule(command, ECommand.openBackPressure)
 }
 
 /**
@@ -30,9 +30,17 @@ export function matchOpenChannel(command: TCmd) {
   }
   return false
 }
+/**
+ * 打开一个message channel port 通道，用于ios跟serviceworker传递消息
+ * @param command 
+ * @returns 
+ */
+export function matchOpenMsgChannel(command: TCmd) {
+  return matchRule(command, ECommand.openMessageChannel)
+}
 
-export function matchOpenMsgChannel(command:TCmd) {
-  return matchRule(command,ECommand.openMessageChannel)
+export function registerChannelId(command: TCmd) {
+  return matchRule(command, ECommand.registerChannelId)
 }
 
 /**
@@ -41,7 +49,7 @@ export function matchOpenMsgChannel(command:TCmd) {
  * @param cmd 
  * @returns 
  */
-export function matchCommand(data: string):false|TCmd {
+export function matchCommand(data: string): false | TCmd {
   if (/(cmd)/.test(data)) return JSON.parse(data)
   return false
 }

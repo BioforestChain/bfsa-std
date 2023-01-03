@@ -191,7 +191,32 @@ function getServiceWorkerReady(fun: string) {
  * @param data 
  * @returns 
  */
-async function openChannel(data: IChannelConfig) {
-  await network.syncSendMsgNative(callNative.evalJsRuntime,
-    `navigator.serviceWorker.controller.postMessage('${JSON.stringify({ cmd: ECommand.openChannel, data })}')`)
+function openChannel(config: IChannelConfig) {
+  callSWPostMessage({ cmd: ECommand.openChannel, data: config })
+}
+/**
+ * 申请一个channelId
+ * @param channelId 
+ */
+export function applyChannelId(channelId: string) {
+  callSWPostMessage({ cmd: ECommand.registerChannelId, data: channelId })
+}
+
+/**
+* 发送消息给serviceWorker message
+* @param hexResult 
+*/
+export function callSWPostMessage(result: TSWMessage) {
+  network.syncSendMsgNative(callNative.evalJsRuntime,
+    `navigator.serviceWorker.controller.postMessage('${JSON.stringify(result)}')`);
+}
+
+type TSWMessage = {
+  returnId: number,
+  channelId: string,
+  chunk: string,
+} | {
+  cmd: ECommand,
+  // deno-lint-ignore no-explicit-any
+  data: any
 }

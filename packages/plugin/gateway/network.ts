@@ -15,8 +15,12 @@ export function registerServiceWorker() {
   addEventListener("load", () => {
     // 能力检测
     if ("serviceWorker" in navigator) {
-        // 注册serviceWorker监听事件
+      console.log("是否是ios环境：", isIos())
+      if (isIos()) {
+        // 注册ios serviceWorker监听事件
         eventIosMessageChannel(navigator)
+      }
+
       navigator.serviceWorker
         .register("serviceWorker.js", { scope: "/", type: "module" })
         .then(() => {
@@ -153,15 +157,15 @@ export async function postConnectChannel(url: string, body: Uint8Array) {
  */
 function eventIosMessageChannel(navigator: Navigator) {
   const messageChannel = new MessageChannel();
-  messageChannel.port1.onmessage = function(event){
-    if(event.data.error){
-        console.error("messageChannel: ",event.data.error);
-    }else{
+  messageChannel.port1.onmessage = function (event) {
+    if (event.data.error) {
+      console.error("messageChannel: ", event.data.error);
+    } else {
       console.log("iosEmit", event.data);
       // dnt-shim-ignore
       (window as any).getConnectChannel(event.data);
     }
-};
+  };
 
   if (!navigator.serviceWorker.controller) {
     console.info("controller is still none for some reason.");
@@ -169,15 +173,13 @@ function eventIosMessageChannel(navigator: Navigator) {
   }
   // 创建消息通道
   navigator.serviceWorker.controller.postMessage(`{"cmd":"openMessageChannel","data":${isIos}}`, [messageChannel.port2]);
- 
+
 
   navigator.serviceWorker.addEventListener('message', (event) => {
-    console.log("plugin#eventIosMessageChannel response:",event.data.url);
+    console.log("plugin#eventIosMessageChannel response:", event.data.url);
   });
-  console.log("plugin#eventIosMessageChannel:", navigator.serviceWorker,isIos())
-
 }
 
-function isIos():boolean {
-  return checkType("webkit","object")
+function isIos(): boolean {
+  return checkType("webkit", "object")
 }
