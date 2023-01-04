@@ -31,6 +31,7 @@ export class Permissions extends DwebPlugin {
     const result = await this.onRequest(NativeHandle.ApplyPermissions, per);
     return result
   }
+
 }
 
 if (!customElements.get("dweb-permission")) {

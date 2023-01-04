@@ -2,6 +2,7 @@ import { ECommand, IChannelConfig } from "@bfsx/typings";
 import { bufferToString, hexToBinary } from '../../../util/binary.ts';
 import { network } from "../../deno/network.ts";
 import { callDVebView, callNative } from "../../native/native.fn.ts";
+import { warpPermissions } from "../permission.ts";
 import { EventPollQueue, request_body_cache } from "./index.ts";
 
 
@@ -127,17 +128,26 @@ export async function setPollHandle(event: RequestEvent) {
     return true
   }
   console.log("deno#setPollHandlestring need return?:", Object.values(callNative).includes(handler.function))
-  // 在可返回的操作函数中
-  if (Object.values(callNative).includes(handler.function)) {
-    const result = await network.asyncCallDenoFunction(
+
+  if (!Object.values(callNative).includes(handler.function)) {
+    // 不需要返回值的调用
+    network.syncSendMsgNative(handler.function, handler.data)
+    return true
+  }
+  let result = "";
+  // 权限相关
+  if (/Permission/.test(handler.function)) {
+    result = await warpPermissions(handler.function, handler.data)
+  } else {
+    result = await network.asyncCallDenoFunction(
       handler.function,
       handler.data
     );
-    console.log("deno#setPollHandlestringData result: ", buffer)
-    callDwebViewFactory(handler.function, result)
   }
-  // 不需要返回值的调用
-  network.syncSendMsgNative(handler.function, handler.data)
+
+  console.log("deno#setPollHandlestringData result: ", result)
+  callDwebViewFactory(handler.function, result)
+
 }
 
 

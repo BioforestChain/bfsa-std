@@ -1,6 +1,21 @@
 import { network } from "../deno/network.ts";
 import { callNative } from "../native/native.fn.ts";
-import { currentPlatform, EPlatform } from './platform.ts';
+import { currentPlatform } from './platform.ts';
+
+
+export async function warpPermissions(cmd: string, permissions: string) {
+  console.log("deno#warpPermissions 权限申请:", cmd, permissions)
+  if (cmd === callNative.applyPermissions) {
+    return await applyPermissions(permissions)
+  }
+  if (cmd === callNative.checkCameraPermission) {
+    return await applyPermissions(EPermissions.CAMERA)
+  }
+  if (cmd === callNative.getPermissions) {
+    return await getPermissions()
+  }
+  return ""
+}
 
 /**
  * 申请权限(如果没有或者被拒绝，那么会强制请求打开权限（设置）)
@@ -9,22 +24,22 @@ import { currentPlatform, EPlatform } from './platform.ts';
  */
 export async function applyPermissions(permissions: string) {
   // 处理映射为ios
-  if (currentPlatform() === EPlatform.ios) {
-    const permission = permissions as keyof typeof EIosPermissions;
-    console.log("deno#applyPermissions：", permission)
-    // 映射为ios权限
-    if (permission && EIosPermissions[permission]) {
-      permissions = EIosPermissions[permission]
-    }
-  }
+  // if (currentPlatform() === EPlatform.ios) {
+  //   const permission = permissions as keyof typeof EIosPermissions;
+  //   console.log("deno#applyPermissions：", permission)
+  //   // 映射为ios权限
+  //   if (permission && EIosPermissions[permission]) {
+  //     permissions = EIosPermissions[permission]
+  //   }
+  // }
   console.log("deno#applyPermissions：", permissions, currentPlatform());
-  const per = await network.asyncCallDenoFunction(
+  await network.syncSendMsgNative(
     callNative.applyPermissions,
     {
       permissions,
     }
   );
-  return per;
+  return "";
 }
 
 /**

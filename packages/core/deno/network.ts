@@ -96,8 +96,7 @@ export class Network {
     }
     console.log("syncSendMsgNative#request: ", handleFn, data)
 
-    const result = await deno.request(handleFn as $THandle, [data], type); // 发送请求
-    console.log("syncSendMsgNative#result: ", handleFn, result)
+    await deno.request(handleFn as $THandle, [data], type); // 发送请求
   }
 
   /**

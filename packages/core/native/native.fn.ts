@@ -18,8 +18,11 @@ export enum callNative {
   getDeviceInfo = "GetDeviceInfo",
   /**发送消息 */
   sendNotification = "SendNotification",
+
   /**申请权限 */
   applyPermissions = "ApplyPermissions",
+  /**检查是否有摄像头权限，如果没有或者被拒绝，那么会强制请求打开权限（设置） */
+  checkCameraPermission = "CheckCameraPermission",
   /**获取权限信息 */
   getPermissions = "GetPermissions",
 
@@ -42,5 +45,9 @@ export enum callDVebView {
   OpenQrScanner = "dweb-scanner",
   OpenDWebView = "dweb-view",
   ExitApp = "dweb-app",
+
+  ApplyPermissions = "dweb-permission",
+  CheckCameraPermission = "dweb-permission",
+  GetPermissions = "dweb-permission"
 }
 // const callDeno
