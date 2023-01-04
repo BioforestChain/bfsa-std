@@ -13,6 +13,7 @@ export {
   EPermissions,
   EPlatform,
   applyPermissions,
+  getPermissions,
   currentPlatform,
 } from "./runtime/index.ts";
 export { network } from "./deno/network.ts";

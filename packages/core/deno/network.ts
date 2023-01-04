@@ -23,6 +23,9 @@ export class Network {
     data: TNative = "",
   ): Promise<string> {
     return await this.asyncSendMsgNative(handleFn, data).then((data) => {
+      if (currentPlatform() === EPlatform.ios) {
+        return data
+      }
       const result = bufferToString(data);
       return result;
     }).catch((err) => {

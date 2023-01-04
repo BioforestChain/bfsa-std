@@ -1,9 +1,10 @@
 /// <reference lib="dom" />
 import { DwebPlugin } from "./dweb-plugin.ts";
-import { OpenScanner } from "./scanner.ts"
-import { Navigation, App } from "./app.ts"
 import { NativeHandle } from "../common/nativeHandle.ts";
 import { getCallNative } from "../gateway/network.ts";
+export { EPermissions, Permissions } from "./permissions.ts"
+export { OpenScanner } from "./scanner.ts"
+export { Navigation, App } from "./app.ts"
 
 export class DWebMessager extends DwebPlugin {
   constructor() {
@@ -76,9 +77,8 @@ if (!customElements.get("dweb-network")) {
   customElements.define("dweb-network", DwebNetwork);
 }
 
-if(!customElements.get("dweb-haptics")) {
+if (!customElements.get("dweb-haptics")) {
   customElements.define("dweb-haptics", DwebHaptics)
 }
 
 
-export { OpenScanner, Navigation, App }

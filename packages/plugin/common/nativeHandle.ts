@@ -6,6 +6,10 @@ export enum NativeHandle {
   WriteClipboardContent = "WriteClipboardContent", // 写入剪切板
   ExitApp = "ExitApp", // 退出app
   ListenBackButton = "ListenBackButton", // 监听后退事件 （android only）
+
+  CheckCameraPermission = "CheckCameraPermission", // 检查是否有摄像头权限，如果没有或者被拒绝，那么会强制请求打开权限（设置）
+  ApplyPermissions = "ApplyPermissions", // 申请摄像头权限
+
   GetNetworkStatus = "GetNetworkStatus", // 获取网络状态
   HapticsImpactLight = "HapticsImpactLight", // 触碰轻质量物体
   HapticsNotificationWarning = "HapticsNotificationWarning", // 警告分隔的振动通知

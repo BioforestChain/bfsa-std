@@ -88,6 +88,9 @@ export class BfcsBottomBar extends DwebPlugin {
   /**获取bottomBar高度 */
   async getHeight(): Promise<number> {
     const height = await this.net.getHeight();
+    if (Number.isNaN(height)) {
+      return 0
+    }
     return height;
   }
   /**

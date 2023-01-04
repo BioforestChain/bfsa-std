@@ -1,3 +1,5 @@
+import { checkType } from "../../util/index.ts";
+
 /**
  * 等待函数
  * @param delay
@@ -9,3 +11,11 @@ export const loop = (delay: number) =>
 export const _encoder = new TextEncoder();
 
 export const _decoder = new TextDecoder();
+
+/**
+ * 是否是ios
+ * @returns 
+ */
+export function isIos(): boolean {
+  return checkType("webkit", "object")
+}

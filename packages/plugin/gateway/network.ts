@@ -2,8 +2,7 @@
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts";
-import { checkType } from "../../util/index.ts";
-import { _encoder } from "../common/index.ts";
+import { isIos, _encoder } from "../common/index.ts";
 import { NativeHandle } from "../common/nativeHandle.ts";
 const _serviceWorkerIsRead = new PromiseOut<void>();
 
@@ -52,6 +51,9 @@ export async function serviceWorkerReady() {
     mode: "cors",
   });
   const data = await response.text();
+  if (data.startsWith("<!DOCTYPE")) {
+    return false
+  }
   console.log("plugin#serviceWorkerReady: ", data);
   return data
 }
@@ -124,7 +126,10 @@ export async function getConnectChannel(url: string) {
     },
     mode: "cors",
   });
-  const data = await response.text();
+  const data = await response.text()
+  if (data.startsWith("<!DOCTYPE")) {
+    return ""
+  }
   console.log("plugin#getConnectChannel:", data);
   return data
 }
@@ -171,7 +176,7 @@ function eventIosMessageChannel(navigator: Navigator) {
     console.log("controller is still none for some reason.");
     return;
   }
-  console.log("打开一个message channel",isIos());
+  console.log("打开一个message channel", isIos());
   // 创建消息通道
   navigator.serviceWorker.controller.postMessage(`{"cmd":"openMessageChannel","data":${isIos}}`, [messageChannel.port2]);
 
@@ -180,6 +185,3 @@ function eventIosMessageChannel(navigator: Navigator) {
   });
 }
 
-function isIos(): boolean {
-  return checkType("webkit", "object")
-}

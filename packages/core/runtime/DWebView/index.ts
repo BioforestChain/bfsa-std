@@ -79,7 +79,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
  * 这里是接收dwebView-js操作系统API转发到后端的请求
  */
   async dwebviewToDeno(strPath?: string) {
-    if (currentPlatform() === EPlatform.ios && strPath) {
+    if (currentPlatform() === EPlatform.ios) {
+      if (!strPath) return;
       return this.chunkGateway(strPath)
     }
     do {
