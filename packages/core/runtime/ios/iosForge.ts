@@ -10,7 +10,7 @@ import { basePollHandle } from "../DWebView/netHandle.ts";
  */
 export async function iosRequestFanctory(url: URL, buffer?: string) {
   const pathname = url.pathname;
-  console.log("deno#iosRequestFanctory:", pathname)
+  // console.log("deno#iosRequestFanctory:", pathname)
   if (pathname.endsWith("/setUi")) {
     return setIosUiHandle(url, buffer) // 处理 system ui
   }
@@ -53,7 +53,7 @@ async function setIosUiHandle(url: URL, hexBuffer?: string) {
  */
 function setIosPollHandle(url: URL, hexBuffer?: string) {
   const bufferData = url.searchParams.get("data")
-  console.log("deno#setIosUiHandle:", bufferData, hexBuffer);
+  console.log("deno#setIosPollHandle:", bufferData, hexBuffer);
   let buffer: ArrayBuffer | number[];
   // 如果是get
   if (bufferData) {

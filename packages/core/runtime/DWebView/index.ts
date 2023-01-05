@@ -81,8 +81,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    */
   getIosMessage(strPath: string, buffer?: string) {
     if (!strPath) return;
-    const url = new URL(strPath)
-    console.log(`deno#iosRequestFanctory url:${url}`)
+    const url = new URL(`https://a${strPath}`)
+    // console.log(`deno#getIosMessage url:${url}`)
     iosRequestFanctory(url, buffer)
   }
 

@@ -35,6 +35,7 @@ export class IosListen {
  * @param url 
  */
   async eventIosGetSetUi(cmd: string, url: string) {
+    // dnt-shim-ignore
     // deno-lint-ignore no-explicit-any
     (window as any).getConnectChannel(url);
     return await this.request_data.forceGet(cmd).op.promise
@@ -45,6 +46,7 @@ export class IosListen {
 * @param url 
 */
   async eventIosGetPoll(url: string) {
+    // dnt-shim-ignore
     // deno-lint-ignore no-explicit-any
     await (window as any).getConnectChannel(url);
     return "ok"
@@ -61,12 +63,14 @@ export class IosListen {
   async eventIosPostChannel(cmd: string, url: string, buffer: Blob) {
     console.log("plugin#eventIosPostChannel:", url, buffer.size)
     const body = buffer.stream();
-    const reader = body.getReader();
+    // deno-lint-ignore no-explicit-any
+    const reader = (body as any).getReader();
     do {
       const { done, value } = await reader.read();
       if (done) {
         break;
       }
+      // dnt-shim-ignore
       // deno-lint-ignore no-explicit-any
       (window as any).postConnectChannel(url, value);
     } while (true);
