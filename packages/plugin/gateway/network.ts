@@ -5,6 +5,7 @@ import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.2/packages/extend
 import { _encoder } from "../../util/binary.ts";
 import { isIos } from "../common/index.ts";
 import { NativeHandle } from "../common/nativeHandle.ts";
+import { iosListen } from "./iosListen.ts";
 const _serviceWorkerIsRead = new PromiseOut<void>();
 
 
@@ -70,6 +71,9 @@ export function createMessage(
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = _encoder.encode(message);
+  if (isIos()) {
+    return iosListen.eventIosGetPoll(`/poll?data=${buffer}`)
+  }
   return getConnectChannel(`/poll?data=${buffer}`);
 }
 
@@ -85,6 +89,9 @@ export function getCallNative(fun: string, data: TNative = ""): Promise<any> {
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   // console.log("plugin#getCallNative:", message);
   const buffer = _encoder.encode(message);
+  if (isIos()) {
+    return iosListen.eventIosGetSetUi(fun, `/setUi?data=${buffer}`)
+  }
   return getConnectChannel(`/setUi?data=${buffer}`);
 }
 
@@ -93,7 +100,7 @@ export function getCallNative(fun: string, data: TNative = ""): Promise<any> {
  * @param url
  * @returns
  */
-export function postCallNative(
+export async function postCallNative(
   fun: string,
   data: TNative = ""
 ): Promise<any> {
@@ -102,6 +109,9 @@ export function postCallNative(
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = _encoder.encode(message);
+  if (isIos()) {
+    return await iosListen.eventIosPostChannel(fun, "/setUi", new Blob([buffer]))
+  }
   // console.log("🍙plugin#postCallNative1:",message)
   return postConnectChannel("/setUi", buffer);
 }
@@ -115,10 +125,6 @@ export function postCallNative(
 export async function getConnectChannel(url: string) {
   // 等待serviceWorker准备好
   await _serviceWorkerIsRead.promise;
-
-  if (isIos()) {
-    return eventIosGetChannel(url)
-  }
 
   const response = await fetch(url, {
     method: "GET", // dwebview 无法获取post的body
@@ -144,9 +150,6 @@ export async function getConnectChannel(url: string) {
 export async function postConnectChannel(url: string, body: Uint8Array) {
   // 等待serviceWorker准备好
   await _serviceWorkerIsRead.promise;
-  if (isIos()) {
-    return eventIosPostChannel(url, new Blob([body.buffer]))
-  }
 
   const response = await fetch(url, {
     method: "POST", // dwebview 无法获取post的body,曲线救国，发送到serverWorker去处理成数据片。
@@ -158,33 +161,6 @@ export async function postConnectChannel(url: string, body: Uint8Array) {
   });
   const data = await response.text();
   return data;
-}
-
-/**
- * 处理ios事件转发
- * @param url 
- */
-async function eventIosGetChannel(url: string) {
-  return await (window as any).getConnectChannel(url);
-}
-
-/**
- * 处理ios事件转发
- * @param url 
- * @param body 
- */
-async function eventIosPostChannel(url: string, buffer: Blob) {
-  console.log("plugin#eventIosPostChannel:", url, buffer.size)
-  const body = buffer.stream();
-  const reader = (body as any).getReader();
-  do {
-    const { done, value } = await reader.read();
-    if (done) {
-      (window as any).postConnectChannel(url, 0);
-      break;
-    }
-    (window as any).postConnectChannel(url, value);
-  } while (true);
 }
 
 
