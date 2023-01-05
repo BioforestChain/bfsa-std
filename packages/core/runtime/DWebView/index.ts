@@ -8,10 +8,10 @@ import { bufferToString, stringToByte } from "../../../util/index.ts";
 import { network } from "../../deno/network.ts";
 import { getRustChunk } from "../../deno/rust.op.ts";
 import { callNative } from "../../native/native.fn.ts";
-import { currentPlatform, EPlatform } from "../platform.ts";
 import { parseNetData } from "./dataGateway.ts";
 import { RequestEvent, RequestResponse, setPollHandle, setUiHandle, callSWPostMessage, applyChannelId } from "./netHandle.ts";
 import { Channels } from './channel.ts';
+import { iosRequestFanctory } from "../ios/iosForge.ts";
 
 
 // 存储需要触发前端的事件，需要等待serviceworekr准备好
@@ -75,14 +75,22 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
   }
 
   /**
+   * ios转发信息都会到这里
+   * @param strPath 
+   * @returns 
+   */
+  getIosMessage(strPath: string, buffer?: string) {
+    if (!strPath) return;
+    const url = new URL(strPath)
+    console.log(`deno#iosRequestFanctory url:${url}`)
+    iosRequestFanctory(url, buffer)
+  }
+
+  /**
  * 轮询向rust拿数据，路径为：dwebView-js-(fetch)->kotlin-(ffi)->rust-(op)->deno-js->kotlin(eventJs)->dwebView-js
  * 这里是接收dwebView-js操作系统API转发到后端的请求
  */
-  async dwebviewToDeno(strPath?: string) {
-    if (currentPlatform() === EPlatform.ios) {
-      if (!strPath) return;
-      return this.chunkGateway(strPath)
-    }
+  async dwebviewToDeno() {
     do {
       const data = await getRustChunk();
       if (data.done) {

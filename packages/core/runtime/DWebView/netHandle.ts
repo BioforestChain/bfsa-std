@@ -127,27 +127,37 @@ export async function setPollHandle(event: RequestEvent) {
   if (getServiceWorkerReady(handler.function)) {
     return true
   }
-  console.log("deno#setPollHandlestring need return?:", Object.values(callNative).includes(handler.function))
 
-  if (!Object.values(callNative).includes(handler.function)) {
+  basePollHandle(handler.function, handler.data)
+}
+
+/**
+ * systemAPI逻辑相关操作
+ * @param cmd 
+ * @param data 
+ * @returns 
+ */
+export async function basePollHandle(cmd: callNative, data: string) {
+  console.log("deno#basePollHandle need return?:", Object.values(callNative).includes(cmd))
+
+  if (!Object.values(callNative).includes(cmd)) {
     // 不需要返回值的调用
-    network.syncSendMsgNative(handler.function, handler.data)
+    network.syncSendMsgNative(cmd, data)
     return true
   }
   let result = "";
   // 权限相关
-  if (/Permission/.test(handler.function)) {
-    result = await warpPermissions(handler.function, handler.data)
+  if (/Permission/.test(cmd)) {
+    result = await warpPermissions(cmd, data)
   } else {
     result = await network.asyncCallDenoFunction(
-      handler.function,
-      handler.data
+      cmd,
+      data
     );
   }
 
-  console.log("deno#setPollHandlestringData result: ", result)
-  callDwebViewFactory(handler.function, result)
-
+  console.log("deno#basePollHandle result: ", result)
+  callDwebViewFactory(cmd, result)
 }
 
 

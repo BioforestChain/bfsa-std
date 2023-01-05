@@ -23,15 +23,6 @@ export async function warpPermissions(cmd: string, permissions: string) {
  * @returns boolean
  */
 export async function applyPermissions(permissions: string) {
-  // 处理映射为ios
-  // if (currentPlatform() === EPlatform.ios) {
-  //   const permission = permissions as keyof typeof EIosPermissions;
-  //   console.log("deno#applyPermissions：", permission)
-  //   // 映射为ios权限
-  //   if (permission && EIosPermissions[permission]) {
-  //     permissions = EIosPermissions[permission]
-  //   }
-  // }
   console.log("deno#applyPermissions：", permissions, currentPlatform());
   await network.syncSendMsgNative(
     callNative.applyPermissions,
@@ -71,58 +62,16 @@ export enum EPermissions {
   /**蓝牙 */
   BLUETOOTH = "PERMISSION_BLUETOOTH",
 
-  /**日历 */
+  /**日历(android only) */
   CALENDAR = "PERMISSION_CALENDAR",
-  /**传感器（重力，陀螺仪） */
+  /**传感器（重力，陀螺仪）(android only) */
   BODY_SENSORS = "PERMISSION_BODY_SENSORS",
-  /**存储 */
+  /**存储(android only) */
   STORAGE = "PERMISSION_STORAGE",
-  /**短信 */
+  /**短信(android only) */
   SMS = "PERMISSION_SMS",
-  /**电话 */
+  /**电话(android only) */
   CALL = "PERMISSION_CALL",
-  /**手机状态 */
+  /**手机状态(android only) */
   DEVICE = "PERMISSION_DEVICE",
-}
-
-export enum EAndroidPermissions {
-  /**相机 */
-  CAMERA = "PERMISSION_CAMERA",
-  /**相册 */
-  PHOTO = "PERMISSION_PHOTO",
-  /**位置 */
-  LOCATION = "PERMISSION_LOCATION",
-  /**网络 */
-  NETWORK = "PERMISSION_NETWORK",
-  /**录音 */
-  RECORD_AUDIO = "PERMISSION_RECORD_AUDIO",
-  /**媒体库 */
-  MEDIA = "PERMISSION_MEDIA",
-  /**联系人 */
-  CONTACTS = "PERMISSION_CONTACTS",
-  /**通知 */
-  NOTIFICATION = "PERMISSION_NOTIFICATION",
-  /**蓝牙 */
-  BLUETOOTH = "PERMISSION_BLUETOOTH",
-}
-
-export enum EIosPermissions {
-  /**相机 */
-  CAMERA = "camera",
-  /**相册 */
-  PHOTO = "photo",
-  /**定位 */
-  LOCATION = "location",
-  /**网络 */
-  NETWORK = "network",
-  /**麦克风 */
-  RECORD_AUDIO = "microphone",
-  /**媒体库 */
-  MEDIA = "media",
-  /**通讯录 */
-  CONTACTS = "contact",
-  /**通知 */
-  PNOTIFICATION = "notification",
-  /**蓝牙 */
-  BLUETOOTH = "bluetooth"
 }

@@ -30,14 +30,6 @@ export function matchOpenChannel(command: TCmd) {
   }
   return false
 }
-/**
- * 打开一个message channel port 通道，用于ios跟serviceworker传递消息
- * @param command 
- * @returns 
- */
-export function matchOpenMsgChannel(command: TCmd) {
-  return matchRule(command, ECommand.openMessageChannel)
-}
 
 export function registerChannelId(command: TCmd) {
   return matchRule(command, ECommand.registerChannelId)

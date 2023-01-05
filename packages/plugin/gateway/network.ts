@@ -15,10 +15,6 @@ export function registerServiceWorker() {
     // 能力检测
     if ("serviceWorker" in navigator) {
       console.log("是否是ios环境：", isIos())
-      if (isIos()) {
-        // 注册ios serviceWorker监听事件
-        eventIosMessageChannel(navigator)
-      }
 
       navigator.serviceWorker
         .register("serviceWorker.js", { scope: "/", type: "module" })
@@ -119,6 +115,10 @@ export async function getConnectChannel(url: string) {
   // 等待serviceWorker准备好
   await _serviceWorkerIsRead.promise;
 
+  if (isIos()) {
+    return eventIosGetChannel(url)
+  }
+
   const response = await fetch(url, {
     method: "GET", // dwebview 无法获取post的body
     headers: {
@@ -143,6 +143,9 @@ export async function getConnectChannel(url: string) {
 export async function postConnectChannel(url: string, body: Uint8Array) {
   // 等待serviceWorker准备好
   await _serviceWorkerIsRead.promise;
+  if (isIos()) {
+    return eventIosPostChannel(url, new Blob([body.buffer]))
+  }
 
   const response = await fetch(url, {
     method: "POST", // dwebview 无法获取post的body,曲线救国，发送到serverWorker去处理成数据片。
@@ -158,30 +161,29 @@ export async function postConnectChannel(url: string, body: Uint8Array) {
 
 /**
  * 处理ios事件转发
- * @param navigator 
+ * @param url 
  */
-function eventIosMessageChannel(navigator: Navigator) {
-  const messageChannel = new MessageChannel();
-  messageChannel.port1.onmessage = function (event) {
-    if (event.data.error) {
-      console.error("messageChannel: ", event.data.error);
-    } else {
-      console.log("iosEmit", event.data);
-      // dnt-shim-ignore
-      (window as any).getConnectChannel(event.data);
-    }
-  };
-
-  if (!navigator.serviceWorker.controller) {
-    console.log("controller is still none for some reason.");
-    return;
-  }
-  console.log("打开一个message channel", isIos());
-  // 创建消息通道
-  navigator.serviceWorker.controller.postMessage(`{"cmd":"openMessageChannel","data":${isIos}}`, [messageChannel.port2]);
-
-  navigator.serviceWorker.addEventListener('message', (event) => {
-    console.log("plugin#eventIosMessageChannel response:", event.data.url);
-  });
+async function eventIosGetChannel(url: string) {
+  return await (window as any).getConnectChannel(url);
 }
+
+/**
+ * 处理ios事件转发
+ * @param url 
+ * @param body 
+ */
+async function eventIosPostChannel(url: string, buffer: Blob) {
+  console.log("plugin#eventIosPostChannel:", url, buffer.size)
+  const body = buffer.stream();
+  const reader = (body as any).getReader();
+  do {
+    const { done, value } = await reader.read();
+    if (done) {
+      (window as any).postConnectChannel(url, 0);
+      break;
+    }
+    (window as any).postConnectChannel(url, value);
+  } while (true);
+}
+
 

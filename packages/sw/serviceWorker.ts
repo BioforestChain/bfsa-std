@@ -4,14 +4,10 @@ import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-m
 import { EasyWeakMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyWeakMap.ts";
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-promise-out/PromiseOut.ts";
 import { bufferToString, contactNumber, hexToBinary, stringToNum } from "../util/binary.ts";
-import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, matchOpenMsgChannel, registerChannelId, TCmd } from "./Channel.ts";
+import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, registerChannelId, TCmd } from "./Channel.ts";
 
 
 ((self: ServiceWorkerGlobalScope) => {
-  let isIos = false;
-  let msgPost: MessagePort // messagePort
-  const msgPoop = new PromiseOut<MessagePort>() // 等待messagePort创建
-
   const channelIdOp = new PromiseOut<string>()
 
   const CLIENT_FETCH_CHANNEL_ID_WM = EasyWeakMap.from({
@@ -139,19 +135,9 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, matchO
         task.reqBodyId,
         request,
       );
-      if (isIos) {
-        msgPost = await msgPoop.promise // 等待msg port 创建
-      }
       // 迭代发送
       for await (const chunk of chunks) {
-        if (isIos) {
-          msgPost.postMessage("ios#getConnectChannel 发送")
-          msgPost.postMessage({
-            url: `/channel/${channelId}/chunk=${chunk}`
-          })
-        } else {
-          queueFetch(`/channel/${channelId}/chunk=${chunk}`);
-        }
+        queueFetch(`/channel/${channelId}/chunk=${chunk}`);
       }
       return await task.po.promise;
     })());
@@ -163,7 +149,7 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, matchO
     // 如果是cmd命令
     const cmd = matchCommand(event.data);
     if (cmd) {
-      matchMsgCommand(event, cmd)
+      matchMsgCommand(cmd)
       return false;
     }
 
@@ -175,12 +161,8 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, matchO
     const bodyId = returnId | 1;
     const headersId = bodyId - 1;
 
-    if (isIos) {
-      console.log("isIos:", isIos)
-      msgPost.postMessage(`serviceWorker#end:${end},bodyId:${bodyId},headersId:${channelId}-${headersId}`);
-    } else {
-      console.log(`serviceWorker#end:${end},bodyId:${bodyId},headersId:${channelId}-${headersId}`)
-    }
+
+    console.log(`serviceWorker#end:${end},bodyId:${bodyId},headersId:${channelId}-${headersId}`)
     const fetchTask = FETCH_EVENT_TASK_MAP.get(`${channelId}-${headersId}`);
 
     // 如果不存在
@@ -201,22 +183,14 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, matchO
         }),
       );
     } else if (returnId === bodyId) { // parse body
-      if (isIos) {
-        msgPost.postMessage(`serviceWorker#文件流推入:${channelId},${bodyId}`);
-      } else {
-        console.log(`serviceWorker#文件流推入:${channelId},${bodyId}`)
-      }
+      console.log(`serviceWorker#文件流推入:${channelId},${bodyId}`)
       fetchTask.responseBody.controller.enqueue(new Uint8Array(responseContent))
     } else {
       throw new Error("should not happen!! NAN? " + returnId);
     }
 
     if (end) {
-      if (isIos) {
-        msgPost.postMessage(`serviceWorker#文件流关闭${channelId},${headersId},${bodyId}`);
-      } else {
-        console.log(`serviceWorker#文件流关闭${channelId},${headersId},${bodyId}`);
-      }
+      console.log(`serviceWorker#文件流关闭${channelId},${headersId},${bodyId}`);
       fetchTask.responseBody.controller.close();
     }
 
@@ -227,21 +201,14 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, matchO
    * @param cmd 
    * @returns 
    */
-  function matchMsgCommand(event: ExtendableMessageEvent, cmd: TCmd) {
+  function matchMsgCommand(cmd: TCmd) {
     // 申请注册到了一个channelId
     if (registerChannelId(cmd)) {
       console.log("serviceWorker#接收到了channelId:", cmd.data, cmd.cmd)
       channelIdOp.resolve(cmd.data)
     }
-     console.log("serviceWorker#matchOpenMsgChannel:", JSON.stringify(cmd))
-    // 打开一个channelMessagePort 用于传递ios消息
-    if (matchOpenMsgChannel(cmd)) {
-      msgPost = event.ports[0]
-      msgPoop.resolve(msgPost)
-      isIos = cmd.data
-      msgPost.postMessage("这条消息来自service Worker Message: " + JSON.stringify(cmd));
-      return true;
-    }
+    console.log("serviceWorker#matchOpenMsgChannel:", JSON.stringify(cmd))
+
     // 匹配后端打开背压的命令
     if (matchBackPressureOpen(cmd)) {
       console.log(`serviceWorker#matchBackPressureOpen 😺}`);
@@ -304,14 +271,7 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, matchO
 
   // 向native层申请channelId
   function registerChannel() {
-   if (isIos) {
-    msgPost.postMessage("ios 申请channelId")
-    msgPost.postMessage({
-      url: `/chunk/registryChannelId`
-    })
-   } else {
     fetch(`/chunk/registryChannelId`)
-   }
     return channelIdOp.promise
   }
 
