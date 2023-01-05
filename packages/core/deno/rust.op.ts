@@ -65,9 +65,9 @@ export function getRustBuffer(ex_head_view: Uint16Array) {
     buffer.splice(0, 2); //拿到版本号
     buffer.splice(0, 2); // 拿到头部标记
   }
-  // const buff = new Uint8Array(buffer);
+  const buff = new Uint8Array(buffer);
   return {
-    value: buffer,
+    value: buff,
     done: false,
   };
 

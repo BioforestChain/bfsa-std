@@ -2,7 +2,8 @@
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts";
-import { isIos, _encoder } from "../common/index.ts";
+import { _encoder } from "../../util/binary.ts";
+import { isIos } from "../common/index.ts";
 import { NativeHandle } from "../common/nativeHandle.ts";
 const _serviceWorkerIsRead = new PromiseOut<void>();
 

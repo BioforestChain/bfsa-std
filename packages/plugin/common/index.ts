@@ -8,10 +8,6 @@ import { checkType } from "../../util/index.ts";
 export const loop = (delay: number) =>
   new Promise((resolve) => setTimeout(resolve, delay));
 
-export const _encoder = new TextEncoder();
-
-export const _decoder = new TextDecoder();
-
 /**
  * 是否是ios
  * @returns 

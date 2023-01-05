@@ -2,11 +2,11 @@
 /// 这里封装后端调用的异步方法
 /////////////////////////////
 import { TNative } from "@bfsx/typings";
-import { bufferToString } from "../../util/binary.ts";
 import { deno } from "./deno.ts";
 import { $A2BCommands, Transform_Type } from "./cmd.ts";
 import { currentPlatform, EPlatform } from "../runtime/platform.ts";
 import { netCallNativeService } from "../jscore/swift.op.ts";
+import { _decoder } from '../../util/binary.ts';
 
 
 type $THandle = keyof $A2BCommands;
@@ -26,7 +26,7 @@ export class Network {
       if (currentPlatform() === EPlatform.ios) {
         return data
       }
-      const result = bufferToString(data);
+      const result = _decoder.decode(data)
       return result;
     }).catch((err) => {
       console.log("deno#asyncCallDenoFunction err", err);

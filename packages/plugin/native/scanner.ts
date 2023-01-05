@@ -1,4 +1,4 @@
-import { _decoder } from "../common/index.ts";
+import { _decoder } from "../../util/binary.ts";
 import { NativeHandle } from "../common/nativeHandle.ts";
 import { DwebPlugin } from "./dweb-plugin.ts";
 

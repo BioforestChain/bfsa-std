@@ -1,10 +1,14 @@
 
+export const _encoder = new TextEncoder();
+
+export const _decoder = new TextDecoder();
+
 export const stringToByte = (s: string) => {
   const res = new Uint16Array(s.length);
   for (let i = 0; i < s.length; i += 1) {
     const u = s.codePointAt(i);
     if (u) {
-      res[i]= u
+      res[i] = u
     }
   }
   return res
@@ -15,7 +19,7 @@ export const stringToNum = (s: string) => {
   for (let i = 0; i < s.length; i += 1) {
     const u = s.codePointAt(i);
     if (u) {
-      res[ i]= u
+      res[i] = u
     }
   }
   return res
@@ -48,7 +52,7 @@ export const contactNumber = (...arrs: number[][]) => {
    * @param arrays Uint8Array[]
    * @returns Uint8Array
    */
- export const  concatenate = (...arrays: Uint16Array[]) =>{
+export const concatenate = (...arrays: Uint16Array[]) => {
   let totalLength = 0;
   for (const arr of arrays) {
     totalLength += arr.length;
