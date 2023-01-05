@@ -13,7 +13,7 @@ const _serviceWorkerIsRead = new PromiseOut<void>();
 export function registerServiceWorker() {
   addEventListener("load", () => {
     // 能力检测
-    if ("serviceWorker" in navigator) {
+    if ("serviceWorker" in navigator && isIos() === false) {
       console.log("是否是ios环境：", isIos())
 
       navigator.serviceWorker
