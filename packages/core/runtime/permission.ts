@@ -24,12 +24,7 @@ export async function warpPermissions(cmd: string, permissions: string) {
  */
 export async function applyPermissions(permissions: string) {
   console.log("deno#applyPermissions：", permissions, currentPlatform());
-  await network.syncSendMsgNative(
-    callNative.applyPermissions,
-    {
-      permissions,
-    }
-  );
+  await network.syncSendMsgNative(callNative.applyPermissions, permissions);
   return "";
 }
 
@@ -45,21 +40,22 @@ export async function getPermissions() {
 export enum EPermissions {
   /**相机 */
   CAMERA = "PERMISSION_CAMERA",
-  /**相册 */
-  PHOTO = "PERMISSION_PHOTO",
   /**位置 */
   LOCATION = "PERMISSION_LOCATION",
-  /**网络 */
-  NETWORK = "PERMISSION_NETWORK",
-  /**录音 */
-  RECORD_AUDIO = "PERMISSION_RECORD_AUDIO",
-  /**媒体库 */
-  MEDIA = "PERMISSION_MEDIA",
   /**联系人 */
   CONTACTS = "PERMISSION_CONTACTS",
-  /**通知 */
+  /**录音 */
+  RECORD_AUDIO = "PERMISSION_RECORD_AUDIO",
+
+  /**相册(ios only) */
+  PHOTO = "PERMISSION_PHOTO",
+  /**网络(ios only) */
+  NETWORK = "PERMISSION_NETWORK",
+  /**媒体库(ios only) */
+  MEDIA = "PERMISSION_MEDIA",
+  /**通知(ios only) */
   NOTIFICATION = "PERMISSION_NOTIFICATION",
-  /**蓝牙 */
+  /**蓝牙(ios only) */
   BLUETOOTH = "PERMISSION_BLUETOOTH",
 
   /**日历(android only) */

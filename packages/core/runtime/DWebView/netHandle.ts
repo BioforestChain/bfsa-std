@@ -138,7 +138,7 @@ export async function setPollHandle(event: RequestEvent) {
  * @returns 
  */
 export async function basePollHandle(cmd: callNative, data: string) {
-  console.log("deno#basePollHandle need return?:", Object.values(callNative).includes(cmd))
+  console.log("deno#basePollHandle need return?:", cmd, Object.values(callNative).includes(cmd))
 
   if (!Object.values(callNative).includes(cmd)) {
     // 不需要返回值的调用
