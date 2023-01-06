@@ -1,4 +1,4 @@
-import { bufferToString, hexToBinary } from "../../../util/binary.ts";
+import { bufferToString, hexToBinary, _decoder } from "../../../util/binary.ts";
 import { network } from "../../deno/network.ts";
 import { callNative } from "../../native/native.fn.ts";
 import { basePollHandle } from "../DWebView/netHandle.ts";
@@ -27,13 +27,16 @@ export async function iosRequestFanctory(url: URL, buffer?: string) {
  */
 async function setIosUiHandle(url: URL, hexBuffer?: string) {
   const searchParams = url.searchParams.get("data");
-  console.log("deno#setIosUiHandle:", searchParams, hexBuffer)
+  // console.log("deno#setIosUiHandle:", searchParams, hexBuffer)
   if (searchParams) {
-    const data = await network.asyncCallbackBuffer(
+    const result = await network.asyncCallDenoFunction(
       callNative.setDWebViewUI,
       searchParams
     );
-    return data
+    console.log("deno#setIosUiHandle result:",result);
+    const {cmd , data } = JSON.parse(result)
+    callWKWebView(cmd,data)
+    return result
   }
   if (!hexBuffer) {
     console.error("Parameter passing cannot be empty！");// 如果没有任何请求体
@@ -70,6 +73,15 @@ function setIosPollHandle(url: URL, hexBuffer?: string) {
   const handler = JSON.parse(stringData);
   console.log("deno#setIosPollHandle Data:", stringData)
   basePollHandle(handler.function, handler.data)
+}
+
+/**
+* 发送消息给serviceWorker message
+* @param hexResult 
+*/
+export function callWKWebView(cmd:string,data: string) {
+  network.syncSendMsgNative(callNative.evalJsRuntime,
+    `iosListen.listerIosSetUiCallback('${cmd}','${data}')`);
 }
 
 

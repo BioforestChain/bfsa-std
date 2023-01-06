@@ -87,6 +87,8 @@ export function getCallNative(fun: string, data: TNative = ""): Promise<any> {
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
+  console.log("getCallNative message");
+  console.log(message);
   // console.log("plugin#getCallNative:", message);
   const buffer = _encoder.encode(message);
   if (isIos()) {

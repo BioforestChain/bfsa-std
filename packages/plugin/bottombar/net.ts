@@ -63,6 +63,8 @@ export class BottomBarNet implements BottomBar.IBottomBarNet {
   }
 
   async setActions(actionList: BottomBar.BottomBarItem[]): Promise<void> {
+    console.log("bottomNet setAction");
+    console.log(actionList);
     return await getCallNative(NativeUI.SetBottomBarActions, actionList);
   }
 }

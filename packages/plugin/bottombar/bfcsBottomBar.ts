@@ -17,6 +17,7 @@ export class BfcsBottomBar extends DwebPlugin {
 
     this.net = new BottomBarNet();
     this._observer = new MutationObserver(async () => {
+      console.log("MutationObserver: collectActions");
       await this.collectActions();
     });
   }
@@ -52,10 +53,13 @@ export class BfcsBottomBar extends DwebPlugin {
   }
 
   private async _init() {
+    console.log("init start" );
     const height = await this.getHeight();
+    console.log("init: " + height);
     if (height != 0) {
       this.setAttribute("height", `${height}`);
     } else {
+      console.log("init collectActions");
       await this.collectActions();
     }
   }
@@ -136,12 +140,15 @@ export class BfcsBottomBar extends DwebPlugin {
   }
 
   async setActions(): Promise<void> {
+    console.log("this._actionList");
+    console.log(this._actionList);
     await this.net.setActions(this._actionList);
 
     return;
   }
 
   async collectActions() {
+    console.log("collectActions start");
     this._actionList = [];
     this.querySelectorAll("dweb-bottom-bar-button").forEach((childNode) => {
       const icon: Icon.IPlaocIcon = {
@@ -221,6 +228,7 @@ export class BfcsBottomBar extends DwebPlugin {
       });
     });
 
+    console.log("setActions start");
     await this.setActions();
   }
 

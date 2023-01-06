@@ -35,6 +35,7 @@ export class IosListen {
  * @param url 
  */
   async eventIosGetSetUi(cmd: string, url: string) {
+    console.log("eventIosGetUi: " + cmd + " url: " + url);
     // dnt-shim-ignore
     // deno-lint-ignore no-explicit-any
     (window as any).getConnectChannel(url);
@@ -82,6 +83,11 @@ type EmitResponse = {
   cmd: string,
   data: string | ArrayBufferView
 }
+// dnt-shim-ignore
+// deno-lint-ignore no-explicit-any
+(window as any).iosListen =  new IosListen()
 
+// dnt-shim-ignore
+// deno-lint-ignore no-explicit-any
+export const iosListen = (window as any).iosListen
 
-export const iosListen = new IosListen()

@@ -92,7 +92,8 @@ export class Network {
 
     // 处理IOS，
     if (currentPlatform() === EPlatform.ios) {
-      netCallNativeService(handleFn, data);
+       netCallNativeService(handleFn, data);
+       return
     }
     console.log("syncSendMsgNative#request: ", handleFn, data)
 
