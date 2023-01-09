@@ -24,8 +24,7 @@ export async function warpPermissions(cmd: string, permissions: string) {
  */
 export async function applyPermissions(permissions: string) {
   console.log("deno#applyPermissions：", permissions, currentPlatform());
-  await network.syncSendMsgNative(callNative.applyPermissions, permissions);
-  return "";
+  return await network.asyncCallDenoFunction(callNative.applyPermissions, permissions);
 }
 
 /**

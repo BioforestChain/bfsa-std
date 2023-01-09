@@ -1,8 +1,9 @@
 import { ECommand, IChannelConfig } from "@bfsx/typings";
 import { bufferToString, hexToBinary } from '../../../util/binary.ts';
 import { network } from "../../deno/network.ts";
-import { callDVebView, callNative } from "../../native/native.fn.ts";
+import { callDVebView, callNative, callIOSAsyncFunc } from "../../native/native.fn.ts";
 import { warpPermissions } from "../permission.ts";
+import { currentPlatform, EPlatform } from "../platform.ts";
 import { EventPollQueue, request_body_cache } from "./index.ts";
 
 
@@ -154,6 +155,11 @@ export async function basePollHandle(cmd: callNative, data: string) {
       cmd,
       data
     );
+  }
+
+  // 需要ios异步返回结果，直接返回，在ios端通过jscore主动调用 callDwebViewFactory
+  if(currentPlatform() === EPlatform.ios && cmd in callIOSAsyncFunc) {
+    return
   }
 
   console.log("deno#basePollHandle result: ", result)

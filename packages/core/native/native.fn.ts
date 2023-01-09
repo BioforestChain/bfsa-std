@@ -51,3 +51,10 @@ export enum callDVebView {
   GetPermissions = "dweb-permission"
 }
 // const callDeno
+
+// 需要ios异步返回结果方法
+export enum callIOSAsyncFunc {
+  ApplyPermissions = callNative.applyPermissions,
+  OpenQrScanner = callNative.openQrScanner,
+  BarcodeScanner = callNative.openBarcodeScanner,
+}

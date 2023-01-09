@@ -62,14 +62,15 @@ function setIosPollHandle(url: URL, hexBuffer?: string) {
   // 如果是get
   if (bufferData) {
     buffer = hexToBinary(bufferData);
+  } else {
+     // 处理post
+    if (!hexBuffer) {
+      console.error("Parameter passing cannot be empty！");
+      throw new Error("Parameter passing cannot be empty！");// 如果没有任何请求体
+    }
+    buffer = hexToBinary(hexBuffer)
   }
-  // 处理post 
-  if (!hexBuffer) {
-    console.error("Parameter passing cannot be empty！");
-    throw new Error("Parameter passing cannot be empty！");// 如果没有任何请求体
-  }
-  buffer = hexToBinary(hexBuffer)
-
+ 
   const stringData = bufferToString(buffer);
   const handler = JSON.parse(stringData);
   console.log("deno#setIosPollHandle Data:", stringData)

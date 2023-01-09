@@ -10,10 +10,10 @@ export function sendJsCoreNotification(data: string) {
   return jscore.callJavaScriptWithFunctionNameParam(callNative.sendNotification, data);
 }
 
-export function netCallNativeService(fn: string, data: TNative = "") {
+export  function netCallNativeService(fn: string, data: TNative = "") {
   console.log("🥳deno#netCallNativeService:",fn,data)
-  const uint8 = jscore.callJavaScriptWithFunctionNameParam(fn, data);
+  const uint8 =  jscore.callJavaScriptWithFunctionNameParam(fn, data);
   if (!uint8) return new Uint8Array(0);
-  console.log("netCallNativeService:==>", uint8)
+  console.log("netCallNativeService:==>",fn, uint8)
   return uint8
 }

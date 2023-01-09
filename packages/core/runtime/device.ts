@@ -10,7 +10,7 @@ export async function getDeviceInfo(): Promise<IDeviceInfo> {
   if (isDenoRuntime()) {
     info = await network.asyncCallDenoFunction(callNative.getDeviceInfo);
   } else {
-    const data = netCallNativeService(callNative.getDeviceInfo);
+    const data = await netCallNativeService(callNative.getDeviceInfo);
     info = bufferToString(data.buffer);
   }
   console.log("device:", info);
