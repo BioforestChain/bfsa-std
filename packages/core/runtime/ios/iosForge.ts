@@ -42,9 +42,10 @@ async function setIosUiHandle(url: URL, hexBuffer?: string) {
     console.error("Parameter passing cannot be empty！");// 如果没有任何请求体
     throw new Error("Parameter passing cannot be empty！")
   }
-  const data = await network.asyncSendBufferNative(
+  const data = await network.asyncCallDenoFunction(
     callNative.setDWebViewUI,
-    [new Uint8Array(hexToBinary(hexBuffer))]
+    // [new Uint8Array(hexToBinary(hexBuffer))]
+    hexBuffer
   );
   return data
 }

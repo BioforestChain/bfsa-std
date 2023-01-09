@@ -65,15 +65,18 @@ export class IosListen {
     console.log("plugin#eventIosPostChannel:", url, buffer.size)
     const body = buffer.stream();
     // deno-lint-ignore no-explicit-any
-    const reader = (body as any).getReader();
+    const reader: ReadableStreamDefaultReader<Uint8Array> = (body as any).getReader();
     do {
       const { done, value } = await reader.read();
       if (done) {
+        // dnt-shim-ignore
+        // deno-lint-ignore no-explicit-any
+        (window as any).postConnectChannel(url, cmd, "0");
         break;
       }
       // dnt-shim-ignore
       // deno-lint-ignore no-explicit-any
-      (window as any).postConnectChannel(url, value);
+      (window as any).postConnectChannel(url, cmd, value.join(","));
     } while (true);
     return await this.request_data.forceGet(cmd).op.promise
   }
