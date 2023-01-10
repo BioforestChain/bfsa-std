@@ -14,6 +14,9 @@ export enum NativeHandle {
   HapticsImpactLight = "HapticsImpactLight", // 触碰轻质量物体
   HapticsNotificationWarning = "HapticsNotificationWarning", // 警告分隔的振动通知
   HapticsVibrate = "HapticsVibrate", // 反馈振动
+
+  ShowToast = "ShowToast", // 提示
+  SystemShare = "SystemShare", // 系统分享
 }
 
 export enum NativeUI {
