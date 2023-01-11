@@ -31,8 +31,8 @@ export class TopBarNet implements TopBar.ITopBarNet {
     return Boolean(isOverlay);
   }
 
-  async setTopBarOverlay(alpha: string): Promise<boolean> {
-    return await getCallNative(NativeUI.SetTopBarOverlay, Number(alpha));
+  async setTopBarOverlay(isOverlay: boolean): Promise<void> {
+    return await getCallNative(NativeUI.SetTopBarOverlay, Boolean(isOverlay));
   }
 
   async getTopBarAlpha(): Promise<number> {

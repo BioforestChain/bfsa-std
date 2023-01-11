@@ -19,6 +19,7 @@ export class BfcsStatusBar extends DwebPlugin {
   disconnectedCallback() { }
 
   private async _init() {
+    if (this.getAttribute("bar-style")) return;
     // this.setAttribute("background-color", colorHex);
     const barStyle = await this.getStatusBarIsDark();
     this.setAttribute("bar-style", barStyle);
@@ -29,17 +30,16 @@ export class BfcsStatusBar extends DwebPlugin {
    * @param barStyle enum(light-content,dark-content)
    * @returns
    */
-  async setStatusBarColor(
-    color?: string,
-    barStyle?: StatusBar.StatusBarStyle
+  async setStatusBarBackgroundColor(
+    color: string,
   ): Promise<void> {
     const colorHex = convertToRGBAHex(color ?? "");
-    await this.net.setStatusBarColor(colorHex, barStyle);
+    await this.net.setStatusBarBackgroundColor(colorHex);
     return;
   }
   /**获取状态栏颜色 */
-  async getStatusBarColor(): Promise<Color.RGBAHex> {
-    const colorHex = await this.net.getStatusBarColor();
+  async getStatusBarBackgroundColor(): Promise<Color.RGBAHex> {
+    const colorHex = await this.net.getStatusBarBackgroundColor();
     return colorHex;
   }
   /**查看状态栏是否可见 */
@@ -66,6 +66,10 @@ export class BfcsStatusBar extends DwebPlugin {
     const barStyle = await this.net.getStatusBarIsDark();
     return barStyle;
   }
+  /** 设置状态栏效果 */
+  async setStatusBarStyle(barStyle: StatusBar.StatusBarStyle): Promise<void> {
+    return await this.net.setStatusBarStyle(barStyle);
+  }
 
   static get observedAttributes() {
     return ["overlay", "hidden", "bar-style", "background-color"];
@@ -82,15 +86,9 @@ export class BfcsStatusBar extends DwebPlugin {
     } else if (attrName === "hidden") {
       this.net.setStatusBarHidden();
     } else if (attrName === "bar-style") {
-      this.setStatusBarColor(
-        this.getAttribute("background-color") ?? "",
-        newVal ? (newVal as StatusBar.StatusBarStyle) : undefined
-      );
+      this.setStatusBarStyle(newVal as StatusBar.StatusBarStyle)
     } else if (attrName === "background-color") {
-      const barStyle = this.getAttribute("bar-style")
-        ? (this.getAttribute("bar-style") as StatusBar.StatusBarStyle)
-        : undefined;
-      this.setStatusBarColor(newVal as string, barStyle);
+      this.setStatusBarBackgroundColor(newVal as string);
     }
   }
 }

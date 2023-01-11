@@ -80,6 +80,15 @@ export class BfcsTopBar extends DwebPlugin {
     const has = await this.net.hasTopBarTitle();
     return has;
   }
+  /** 获取是否开启遮罩 */
+  async getTopBarOverlay(): Promise<boolean> {
+    const isOverlay = await this.net.getTopBarOverlay();
+    return isOverlay;
+  }
+  /** 设置是否开启遮罩 */
+  async setTopBarOverlay(isOverlay: boolean): Promise<void> {
+    return await this.net.setTopBarOverlay(isOverlay);
+  }
   /**
    * 获取状态栏的透明度
    * @returns number
@@ -196,7 +205,7 @@ export class BfcsTopBar extends DwebPlugin {
       await this.setTopBarForegroundColor(newVal as string);
     } else if (attrName === "overlay") {
       if (this.hasAttribute(attrName)) {
-        await this.net.setTopBarAlpha(newVal as string);
+        await this.setTopBarOverlay(true);
       }
     } else if (attrName === "hidden") {
       if (this.hasAttribute(attrName)) {

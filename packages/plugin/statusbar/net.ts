@@ -4,46 +4,13 @@ import { Color } from "../types/colorType.ts";
 import { StatusBar } from "./bfcsStatusBarType.ts";
 
 export class StatusBarNet implements StatusBar.IStatusBarNet {
-
-  async setStatusBarColor(
-    colorHex?: Color.RGBAHex,
-    barStyle?: StatusBar.StatusBarStyle
-  ): Promise<void> {
-    let darkIcons: boolean;
-
-    if (!colorHex) {
-      await getCallNative(NativeUI.GetStatusBarColor)
-        .then((res) => {
-          colorHex = res;
-        })
-        .catch((_err) => {
-          colorHex = "#fff"; // 适配ios没有设置statsBar的情况
-        });
-    }
-
-    if (!barStyle) {
-      const isDarkIcons = await getCallNative(NativeUI.GetStatusBarIsDark);
-      console.log("plugin:GetStatusBarIsDark:", isDarkIcons)
-      darkIcons = isDarkIcons;
-    } else {
-      switch (barStyle) {
-        case "light-content":
-          darkIcons = false;
-          break;
-        case "dark-content":
-          darkIcons = true;
-          break;
-        default:
-          darkIcons = false;
-      }
-    }
-    console.log("plugin:SetStatusBarColor:", colorHex, darkIcons)
-    getCallNative(NativeUI.SetStatusBarColor, { colorHex, darkIcons });
+  async setStatusBarBackgroundColor(colorHex: Color.RGBAHex) {
+    await getCallNative(NativeUI.SetStatusBarBackgroundColor, colorHex)
     return;
   }
 
-  async getStatusBarColor(): Promise<Color.RGBAHex> {
-    const colorHex = await getCallNative(NativeUI.GetStatusBarColor);
+  async getStatusBarBackgroundColor(): Promise<Color.RGBAHex> {
+    const colorHex = await getCallNative(NativeUI.GetStatusBarBackgroundColor);
     return colorHex;
   }
 
@@ -94,5 +61,26 @@ export class StatusBarNet implements StatusBar.IStatusBarNet {
       barStyle = "light-content" as StatusBar.StatusBarStyle.LIGHT_CONTENT;
     }
     return barStyle;
+  }
+
+  /**
+   * 设置状态栏效果
+   * @param barStyle 
+   */
+  async setStatusBarStyle(barStyle: StatusBar.StatusBarStyle) {
+    let statusBarStyle = StatusBar.StatusBarStyle.DEFAULT;
+
+    switch (barStyle) {
+      case StatusBar.StatusBarStyle.LIGHT_CONTENT:
+        statusBarStyle = StatusBar.StatusBarStyle.LIGHT_CONTENT
+        break;
+      case StatusBar.StatusBarStyle.DARK_CONTENT:
+        statusBarStyle = StatusBar.StatusBarStyle.DARK_CONTENT;
+        break;
+      default:
+        break;
+    }
+
+    await getCallNative(NativeUI.SetStatusBarStyle, statusBarStyle)
   }
 }

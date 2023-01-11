@@ -77,8 +77,18 @@ export class BfcsBottomBar extends DwebPlugin {
 
     return isEnabled;
   }
+  /** 获取bottombar遮罩 */
+  async getOverlay(): Promise<boolean> {
+    const isOverlay = await this.net.getBottomBarOverlay();
+
+    return isOverlay;
+  }
+  /** 设置bottombar遮罩 */
+  async setOverlay(isOverlay: boolean): Promise<void> {
+    return await this.net.setBottomBarOverlay(isOverlay);
+  }
   /**获取bottomBar透明度 */
-  async getOverlay(): Promise<number> {
+  async getAlpha(): Promise<number> {
     return await this.net.getBottomBarAlpha();
   }
   /**
@@ -86,7 +96,7 @@ export class BfcsBottomBar extends DwebPlugin {
    * @param alpha 默认1不透明
    * @returns
    */
-  async setOverlay(alpha = "1"): Promise<number> {
+  async setAlpha(alpha = "1"): Promise<number> {
     return await this.net.setBottomBarAlpha(alpha);
   }
   /**获取bottomBar高度 */
@@ -259,7 +269,7 @@ export class BfcsBottomBar extends DwebPlugin {
       await this.setHeight(newVal as number);
     } else if (attrName === "overlay") {
       if (this.hasAttribute(attrName)) {
-        await this.setOverlay(newVal as string);
+        await this.setOverlay(true);
       }
     } else if (attrName === "hidden") {
       if (this.hasAttribute(attrName)) {

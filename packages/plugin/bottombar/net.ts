@@ -11,6 +11,14 @@ export class BottomBarNet implements BottomBar.IBottomBarNet {
     return await getCallNative(NativeUI.SetBottomBarEnabled, isEnabled);
   }
 
+  async getBottomBarOverlay(): Promise<boolean> {
+    return await getCallNative(NativeUI.GetBottomBarOverlay);
+  }
+
+  async setBottomBarOverlay(isOverlay: boolean): Promise<void> {
+    return await getCallNative(NativeUI.SetBottomBarOverlay, isOverlay);
+  }
+
   async getBottomBarAlpha(): Promise<number> {
     return await getCallNative(NativeUI.GetBottomBarAlpha);
   }

@@ -59,6 +59,8 @@ export namespace BottomBar {
   export interface IBottomBarNet {
     getHidden(): Promise<boolean>;
     setHidden(isEnabled: boolean): Promise<boolean>;
+    getBottomBarOverlay(): Promise<boolean>;
+    setBottomBarOverlay(isOverlay: boolean): Promise<void>;
     getBottomBarAlpha(): Promise<number>;
     setBottomBarAlpha(alpha: string): Promise<number>;
     getHeight(): Promise<number>;

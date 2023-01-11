@@ -27,13 +27,14 @@ export enum NativeUI {
   SetNavigationBarOverlay = "SetNavigationBarOverlay",
   GetNavigationBarOverlay = "GetNavigationBarOverlay",
   // Status Bar
-  SetStatusBarColor = "SetStatusBarColor",
-  GetStatusBarColor = "GetStatusBarColor",
+  SetStatusBarBackgroundColor = "SetStatusBarBackgroundColor",
+  GetStatusBarBackgroundColor = "GetStatusBarBackgroundColor",
   GetStatusBarIsDark = "GetStatusBarIsDark",
   GetStatusBarVisible = "GetStatusBarVisible",
   GetStatusBarOverlay = "GetStatusBarOverlay",
   SetStatusBarOverlay = "SetStatusBarOverlay",
   SetStatusBarVisible = "SetStatusBarVisible",
+  SetStatusBarStyle = "SetStatusBarStyle",
   // keyboard
   GetKeyBoardSafeArea = "GetKeyBoardSafeArea",
   GetKeyBoardHeight = "GetKeyBoardHeight",
@@ -62,6 +63,8 @@ export enum NativeUI {
   // Bottom bar
   GetBottomBarEnabled = "GetBottomBarEnabled",
   SetBottomBarEnabled = "SetBottomBarEnabled",
+  GetBottomBarOverlay = "GetBottomBarOverlay",
+  SetBottomBarOverlay = "SetBottomBarOverlay",
   GetBottomBarAlpha = "GetBottomBarAlpha",
   SetBottomBarAlpha = "SetBottomBarAlpha",
   GetBottomBarHeight = "GetBottomBarHeight",
