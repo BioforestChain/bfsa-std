@@ -3,6 +3,26 @@ import { NativeUI } from "../common/nativeHandle.ts";
 import { getCallNative } from "../gateway/network.ts";
 import { DwebPlugin } from "./dweb-plugin.ts";
 
+export interface IReadResult {
+  value: string;
+  type: string;
+}
+export interface IWriteOption {
+  str?: string;
+  image?: string;
+  url?: string;
+  label?: string; // (android only)
+}
+
+export interface IShareOption {
+  title?: string;
+  text?: string;
+  url?: string;
+  files: string[];
+  dialogTitle?: string;
+  imageData?: string;
+}
+
 // app控制方法
 export class App extends DwebPlugin {
   constructor() {
@@ -22,6 +42,63 @@ export class App extends DwebPlugin {
    */
   listenBackButton(backButtonListener: BackButtonListener) {
     this.addListener(NativeHandle.ListenBackButton, backButtonListener)
+  }
+
+  // 读取剪贴板内容
+  async readClipboardContent(): Promise<IReadResult> {
+    const result = await this.onRequest(NativeHandle.ReadClipboardContent);
+    console.log("readClipboardContent: ", result);
+    const readResult = JSON.parse(result as string) as IReadResult;
+    return readResult;
+  }
+
+  // 写入剪切板
+  async writeClipboardContent(writeOption: IWriteOption): Promise<boolean> {
+    // return await getCallNative(NativeHandle.WriteClipboardContent, writeOption);
+    const result = await this.onRequest(NativeHandle.WriteClipboardContent, JSON.stringify(writeOption));
+    return result === "true"
+  }
+
+  // 获取网络状态
+  async getNetworkStatus(): Promise<string> {
+    return await this.onRequest(NativeHandle.GetNetworkStatus, "") as string;
+  }
+
+  // 触碰轻质量物体
+  async hapticsImpactLight(): Promise<void> {
+    await this.onRequest(NativeHandle.HapticsImpactLight, "");
+    return;
+  }
+
+  // 警告分隔的振动通知
+  async hapticsNotificationWarning(): Promise<void> {
+    await this.onRequest(NativeHandle.HapticsNotificationWarning, "");
+    return;
+  }
+
+  // 反馈振动
+  async hapticsVibrate(duration: string): Promise<void> {
+    await this.onRequest(NativeHandle.HapticsVibrate, duration);
+    return;
+  }
+
+  // 提示
+  async showToast(
+    text: string,
+    duration: string = "short",
+    position: string = "bottom"
+  ) {
+    const param = {
+      text,
+      duration,
+      position,
+    };
+
+    return await this.onRequest(NativeHandle.ShowToast, JSON.stringify(param));
+  }
+
+  async systemShare(shareOption: IShareOption) {
+    return await this.onRequest(NativeHandle.SystemShare, JSON.stringify(shareOption));
   }
 }
 

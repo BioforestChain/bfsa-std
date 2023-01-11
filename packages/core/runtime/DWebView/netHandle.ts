@@ -106,7 +106,7 @@ export async function setUiHandle(event: RequestEvent) {
 export async function setPollHandle(event: RequestEvent) {
   const { url } = event;
   const bufferData = url.searchParams.get("data")
-  let buffer: ArrayBuffer | number[];
+  let buffer: ArrayBuffer | Uint8Array;
   // 如果是get
   if (bufferData) {
     buffer = hexToBinary(bufferData);

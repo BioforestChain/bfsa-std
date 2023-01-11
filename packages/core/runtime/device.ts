@@ -11,7 +11,7 @@ export async function getDeviceInfo(): Promise<IDeviceInfo> {
     info = await network.asyncCallDenoFunction(callNative.getDeviceInfo);
   } else {
     const data = await netCallNativeService(callNative.getDeviceInfo);
-    info = bufferToString(data.buffer);
+    info = bufferToString(data);
   }
   console.log("device:", info);
   return JSON.parse(info);

@@ -30,12 +30,27 @@ export enum callNative {
   serviceWorkerReady = "ServiceWorkerReady",
   /**设置dwebview的ui */
   setDWebViewUI = "SetDWebViewUI",
+
+  /** 剪切板 */
+  writeClipboardContent = "WriteClipboardContent",
+  readClipboardContent = "ReadClipboardContent",
+
+  /** 获取网络状态 */
+  getNetworkStatus = "GetNetworkStatus",
 }
 
 /**不需要返回的命令 */
 export enum callNotReturnNative {
   /**退出app */
   exitApp = "ExitApp",
+  /** toast 提示 */
+  showToast = "ShowToast",
+  /** share 系统分享 */
+  systemShare = "SystemShare",
+  /** haptics 交互 */
+  hapticsImpactLight = "HapticsImpactLight",
+  hapticsNotificationWarning = "HapticsNotificationWarning",
+  hapticsVibrate = "HapticsVibrate",
 }
 
 
@@ -48,7 +63,17 @@ export enum callDVebView {
 
   ApplyPermissions = "dweb-permission",
   CheckCameraPermission = "dweb-permission",
-  GetPermissions = "dweb-permission"
+  GetPermissions = "dweb-permission",
+
+  ShowToast = "dweb-app",
+  SystemShare = "dweb-app",
+  GetNetworkStatus = "dweb-app",
+  HapticsImpactLight = "dweb-app",
+  HapticsNotificationWarning = "dweb-app",
+  HapticsVibrate = "dweb-app",
+  ReadClipboardContent = "dweb-app",
+  WriteClipboardContent = "dweb-app",
+
 }
 // const callDeno
 

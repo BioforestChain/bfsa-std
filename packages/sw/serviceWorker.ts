@@ -254,7 +254,7 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, regist
         const body = buffer.stream();
 
         // deno-lint-ignore no-explicit-any
-        const reader = (body as any).getReader();
+        const reader: ReadableStreamDefaultReader<Uint8Array> = (body as any).getReader();
         do {
           const { done, value } = await reader.read();
           if (done) {
@@ -262,7 +262,7 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, regist
             break;
           }
           // _post.postMessage("有body数据传递2：", value, bodyId)
-          yield contactNumber([bodyId], hexToBinary(value.join()), [0]);
+          yield contactNumber([bodyId], [...value], [0]);
         } while (true);
       }
     }

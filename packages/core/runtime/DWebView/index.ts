@@ -4,7 +4,7 @@ import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@
 import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
 import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
 import { IImportMap } from "../../../metadata/metadataType.ts";
-import { bufferToString, stringToByte } from "../../../util/index.ts";
+import { bufferToString, stringToByte, hexToBinary } from "../../../util/index.ts";
 import { network } from "../../deno/network.ts";
 import { getRustChunk } from "../../deno/rust.op.ts";
 import { callNative } from "../../native/native.fn.ts";
@@ -97,7 +97,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         continue
       }
       // console.log("dwebviewToDeno====>", data.value);
-      const strPath = bufferToString(data.value);
+      const strPath = bufferToString(Uint8Array.from(data.value));
       this.chunkGateway(strPath)
       /// 这里是重点，使用 do-while ，替代 finally，可以避免堆栈溢出。
     } while (true);
@@ -121,7 +121,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
         strPath.lastIndexOf("/channel/") + 9, strPath.lastIndexOf("/chunk")
       );
       const stringHex = strPath.substring(strPath.lastIndexOf("=") + 1);
-      const buffers = stringHex.split(",").map(v => Number(v))
+      // const buffers = stringHex.split(",").map(v => Number(v))
+      const buffers = hexToBinary(strPath);
       // const chunk = (new Uint8Array(buffers))
       console.log("deno#chunkGateway", channelId, buffers.length)
       await this.chunkHanlder(channelId, buffers)
@@ -134,7 +135,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    * @param channelId 
    * @param chunk 
    */
-  async chunkHanlder(channelId: string, chunk: number[]) {
+  async chunkHanlder(channelId: string, chunk: Uint8Array) {
     // 拿到头部
     const headers_body_id = chunk.slice(0, 1)[0]
     // 是否结束
@@ -210,7 +211,7 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
    * @param path  数据
    * @param isEnd  如果是true就是消息结束了，如果是false 就是消息未结束
    */
-  resolveNetworkBodyRequest(body_id: number, contentBytes: number[], isEnd: boolean) {
+  resolveNetworkBodyRequest(body_id: number, contentBytes: Uint8Array, isEnd: boolean) {
     const body = request_body_cache.get(body_id); // 获取body
 
     if (!body) {

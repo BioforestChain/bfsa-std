@@ -1,7 +1,7 @@
 
 export const _encoder = new TextEncoder();
 
-export const _decoder = new TextDecoder();
+export const _decoder = new TextDecoder("utf-8");
 
 export const stringToByte = (s: string) => {
   const res = new Uint16Array(s.length);
@@ -30,8 +30,17 @@ export const stringToNum = (s: string) => {
  * @param buffer 
  * @returns 
  */
-export const bufferToString = (buffer: ArrayBuffer | number[]) => {
-  return String.fromCharCode.apply(null, buffer as number[])
+export const bufferToString = (buffer: ArrayBuffer | Uint8Array) => {
+  
+  if(ArrayBuffer.isView(buffer)) {
+    // return String.fromCharCode.apply(null, buffer as number[])
+    return _decoder.decode(buffer.buffer)
+  }
+  console.log("bufferToString");
+  console.log(buffer);
+
+  return _decoder.decode(buffer)
+
 }
 
 /**
@@ -138,5 +147,5 @@ export const binaryToHex = (binary: Uint16Array) => {
  * @returns Uint8Array
  */
 export const hexToBinary = (hex: string) => {
-  return hex.split(",").map(v => +v)
+  return Uint8Array.from(hex.split(",").map(v => +v))
 }
