@@ -36,11 +36,8 @@ export const bufferToString = (buffer: ArrayBuffer | Uint8Array) => {
     // return String.fromCharCode.apply(null, buffer as number[])
     return _decoder.decode(buffer.buffer)
   }
-  console.log("bufferToString");
-  console.log(buffer);
 
   return _decoder.decode(buffer)
-
 }
 
 /**

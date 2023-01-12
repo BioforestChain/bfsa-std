@@ -88,9 +88,9 @@ export class BfcsBottomBar extends DwebPlugin {
     return await this.net.setBottomBarOverlay(isOverlay);
   }
   /**获取bottomBar透明度 */
-  async getAlpha(): Promise<number> {
-    return await this.net.getBottomBarAlpha();
-  }
+  // async getAlpha(): Promise<number> {
+  //   return await this.net.getBottomBarAlpha();
+  // }
   /**
    * 设置bottomBar是否透明
    * @param alpha 默认1不透明
@@ -249,6 +249,7 @@ export class BfcsBottomBar extends DwebPlugin {
       "foreground-color", // 前景色
       "overlay", // 是否开启bottombar遮罩。
       "height",
+      "alpha",
     ];
   }
 
@@ -271,6 +272,8 @@ export class BfcsBottomBar extends DwebPlugin {
       if (this.hasAttribute(attrName)) {
         await this.setOverlay(true);
       }
+    } else if (attrName === "alpha") {
+      await this.setAlpha(newVal as string);
     } else if (attrName === "hidden") {
       if (this.hasAttribute(attrName)) {
         await this.setHidden();

@@ -93,16 +93,16 @@ export class BfcsTopBar extends DwebPlugin {
    * 获取状态栏的透明度
    * @returns number
    */
-  async getTopBarAlpha(): Promise<number> {
-    const alpha = await this.net.getTopBarAlpha();
-    return alpha;
-  }
+  // async getTopBarAlpha(): Promise<number> {
+  //   const alpha = await this.net.getTopBarAlpha();
+  //   return alpha;
+  // }
   /**
    * 设置状态栏的透明度
    * @param alpha
    * @returns
    */
-  async setTopBarAlpha(alpha: string): Promise<boolean> {
+  async setTopBarAlpha(alpha = "1"): Promise<boolean> {
     return await this.net.setTopBarAlpha(alpha);
   }
   /**获取状态栏高度 */
@@ -185,6 +185,7 @@ export class BfcsTopBar extends DwebPlugin {
       "background-color",
       "foreground-color",
       "overlay",
+      "alpha",
     ];
   }
 
@@ -207,6 +208,8 @@ export class BfcsTopBar extends DwebPlugin {
       if (this.hasAttribute(attrName)) {
         await this.setTopBarOverlay(true);
       }
+    } else if (attrName === "alpha") {
+      await this.setTopBarAlpha(newVal as string);
     } else if (attrName === "hidden") {
       if (this.hasAttribute(attrName)) {
         await this.net.setTopBarHidden();

@@ -122,9 +122,8 @@ export class DWebView extends EventEmitter<{ request: [RequestEvent] }>{
       );
       const stringHex = strPath.substring(strPath.lastIndexOf("=") + 1);
       // const buffers = stringHex.split(",").map(v => Number(v))
-      const buffers = hexToBinary(strPath);
+      const buffers = hexToBinary(stringHex);
       // const chunk = (new Uint8Array(buffers))
-      console.log("deno#chunkGateway", channelId, buffers.length)
       await this.chunkHanlder(channelId, buffers)
     }
   }

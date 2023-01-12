@@ -38,7 +38,7 @@ import { Channels, matchBackPressureOpen, matchCommand, matchOpenChannel, regist
     transformKey(key: { event: FetchEvent; channelId: string }) {
       return key.channelId + "-" + EVENT_ID_WM.forceGet(key.event);
     },
-    creater(key) {
+    creater(key, _) {
       let bodyStreamController: ReadableStreamController<ArrayBufferView>;
       const bodyStream = new ReadableStream<ArrayBufferView>({
         start(controller) {
