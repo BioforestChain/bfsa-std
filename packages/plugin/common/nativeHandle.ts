@@ -17,6 +17,10 @@ export enum NativeHandle {
 
   ShowToast = "ShowToast", // 提示
   SystemShare = "SystemShare", // 系统分享
+
+  TakeCameraPhoto = "TakeCameraPhoto", // 拍摄照片
+  PickCameraPhoto = "PickCameraPhoto", // 从图库获取单张照片
+  PickCameraPhotos = "PickCameraPhotos", // 从图库获取多张照片
 }
 
 export enum NativeUI {

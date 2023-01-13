@@ -37,6 +37,11 @@ export enum callNative {
 
   /** 获取网络状态 */
   getNetworkStatus = "GetNetworkStatus",
+
+  /** camera */
+  takeCameraPhoto = "TakeCameraPhoto",
+  pickCameraPhoto = "PickCameraPhoto",
+  pickCameraPhotos = "PickCameraPhotos",
 }
 
 /**不需要返回的命令 */
@@ -74,6 +79,9 @@ export enum callDVebView {
   ReadClipboardContent = "dweb-app",
   WriteClipboardContent = "dweb-app",
 
+  TakeCameraPhoto = "dweb-camera",
+  PickCameraPhoto = "dweb-camera",
+  PickCameraPhotos = "dweb-camera",
 }
 // const callDeno
 
@@ -82,4 +90,7 @@ export enum callIOSAsyncFunc {
   ApplyPermissions = callNative.applyPermissions,
   OpenQrScanner = callNative.openQrScanner,
   BarcodeScanner = callNative.openBarcodeScanner,
+  TakeCameraPhoto = callNative.takeCameraPhoto,
+  PickCameraPhoto = callNative.pickCameraPhoto,
+  PickCameraPhotos = callNative.pickCameraPhotos,
 }
