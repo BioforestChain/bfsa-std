@@ -2,7 +2,7 @@
 import { DwebPlugin } from "./dweb-plugin.ts";
 export { EPermissions, Permissions } from "./permissions.ts";
 export { OpenScanner } from "./scanner.ts";
-export { Navigation, App } from "./app.ts";
+export { Navigation, App, ImpactStyle, NotificationType } from "./app.ts";
 export { DwebCamera, CameraDirection, CameraResultType, CameraSource } from "./camera.ts";
 
 export class DWebMessager extends DwebPlugin {

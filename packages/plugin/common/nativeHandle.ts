@@ -11,8 +11,8 @@ export enum NativeHandle {
   ApplyPermissions = "ApplyPermissions", // 申请摄像头权限
 
   GetNetworkStatus = "GetNetworkStatus", // 获取网络状态
-  HapticsImpactLight = "HapticsImpactLight", // 触碰轻质量物体
-  HapticsNotificationWarning = "HapticsNotificationWarning", // 警告分隔的振动通知
+  HapticsImpact = "HapticsImpact", // 触碰物体
+  HapticsNotification = "HapticsNotification", // 振动通知
   HapticsVibrate = "HapticsVibrate", // 反馈振动
 
   ShowToast = "ShowToast", // 提示

@@ -53,8 +53,8 @@ export enum callNotReturnNative {
   /** share 系统分享 */
   systemShare = "SystemShare",
   /** haptics 交互 */
-  hapticsImpactLight = "HapticsImpactLight",
-  hapticsNotificationWarning = "HapticsNotificationWarning",
+  hapticsImpact = "HapticsImpact",
+  hapticsNotification = "HapticsNotification",
   hapticsVibrate = "HapticsVibrate",
 }
 
@@ -73,8 +73,8 @@ export enum callDVebView {
   ShowToast = "dweb-app",
   SystemShare = "dweb-app",
   GetNetworkStatus = "dweb-app",
-  HapticsImpactLight = "dweb-app",
-  HapticsNotificationWarning = "dweb-app",
+  HapticsImpact = "dweb-app",
+  HapticsNotification = "dweb-app",
   HapticsVibrate = "dweb-app",
   ReadClipboardContent = "dweb-app",
   WriteClipboardContent = "dweb-app",
