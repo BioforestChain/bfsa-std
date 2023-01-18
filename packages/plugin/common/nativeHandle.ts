@@ -14,6 +14,7 @@ export enum NativeHandle {
   HapticsImpact = "HapticsImpact", // 触碰物体
   HapticsNotification = "HapticsNotification", // 振动通知
   HapticsVibrate = "HapticsVibrate", // 反馈振动
+  HapticsVibratePreset = "HapticsVibratePreset", // 反馈振动预设
 
   ShowToast = "ShowToast", // 提示
   SystemShare = "SystemShare", // 系统分享

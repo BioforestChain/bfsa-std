@@ -93,6 +93,19 @@ export enum NotificationType {
   Error = 'ERROR',
 }
 
+export interface VibratePresetOption {
+  type: VibratePresetType
+}
+
+// 预设的五种振动类型
+export enum VibratePresetType {
+  CLICK = "CLICK",
+  DOUBLE_CLICK = "DOUBLE_CLICK",
+  HEAVY_CLICK = "HEAVY_CLICK",
+  TICK = "TICK",
+  DISABLED= "DISABLED"
+}
+
 export type durationOption = {duration: number} | number[]
 
 // app控制方法
@@ -152,6 +165,12 @@ export class App extends DwebPlugin {
   async hapticsVibrate(option: durationOption): Promise<void> {
     await this.onRequest(NativeHandle.HapticsVibrate, JSON.stringify(option));
     return;
+  }
+
+  // 反馈振动预设
+  async hapticsVibratePreset(option: VibratePresetOption): Promise<void> {
+    await this.onRequest(NativeHandle.HapticsVibratePreset, option.type);
+    return
   }
 
   // 提示

@@ -56,6 +56,7 @@ export enum callNotReturnNative {
   hapticsImpact = "HapticsImpact",
   hapticsNotification = "HapticsNotification",
   hapticsVibrate = "HapticsVibrate",
+  HapticsVibratePreset = "HapticsVibratePreset",
 }
 
 
@@ -76,6 +77,7 @@ export enum callDVebView {
   HapticsImpact = "dweb-app",
   HapticsNotification = "dweb-app",
   HapticsVibrate = "dweb-app",
+  HapticsVibratePreset = "dweb-app",
   ReadClipboardContent = "dweb-app",
   WriteClipboardContent = "dweb-app",
 
