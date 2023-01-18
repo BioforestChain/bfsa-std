@@ -18,7 +18,7 @@ export interface IShareOption {
   title?: string;
   text?: string;
   url?: string;
-  files: string[];
+  files?: string[];
   dialogTitle?: string;
   imageData?: string;
 }
