@@ -42,6 +42,9 @@ export enum callNative {
   takeCameraPhoto = "TakeCameraPhoto",
   pickCameraPhoto = "PickCameraPhoto",
   pickCameraPhotos = "PickCameraPhotos",
+
+  /** 打开文件 */
+  FileOpener = "FileOpener",
 }
 
 /**不需要返回的命令 */
@@ -80,6 +83,7 @@ export enum callDVebView {
   HapticsVibratePreset = "dweb-app",
   ReadClipboardContent = "dweb-app",
   WriteClipboardContent = "dweb-app",
+  FileOpener = "dweb-app",
 
   TakeCameraPhoto = "dweb-camera",
   PickCameraPhoto = "dweb-camera",
@@ -95,4 +99,5 @@ export enum callIOSAsyncFunc {
   TakeCameraPhoto = callNative.takeCameraPhoto,
   PickCameraPhoto = callNative.pickCameraPhoto,
   PickCameraPhotos = callNative.pickCameraPhotos,
+  FileOpener = callDVebView.FileOpener,
 }

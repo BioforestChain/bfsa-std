@@ -22,6 +22,8 @@ export enum NativeHandle {
   TakeCameraPhoto = "TakeCameraPhoto", // 拍摄照片
   PickCameraPhoto = "PickCameraPhoto", // 从图库获取单张照片
   PickCameraPhotos = "PickCameraPhotos", // 从图库获取多张照片
+
+  FileOpener = "FileOpener", // 打开文件
 }
 
 export enum NativeUI {
