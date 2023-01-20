@@ -22,6 +22,16 @@ export class OpenScanner extends DwebPlugin {
   async openBarCodeScanner(): Promise<string> {
     return await this.scanner(NativeHandle.BarcodeScanner)
   }
+
+  // 打开/关闭手电筒
+  async toggleTorch() {
+    return await this.onRequest(NativeHandle.ToggleTorch);
+  }
+
+  // 获取手电筒状态
+  async getTorchState() {
+    return await this.onRequest(NativeHandle.GetTorchState)
+  }
 }
 
 if (!customElements.get("dweb-scanner")) {

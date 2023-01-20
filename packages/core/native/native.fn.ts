@@ -6,6 +6,10 @@ export enum callNative {
   openQrScanner = "OpenQrScanner",
   /**条形码 */
   openBarcodeScanner = "BarcodeScanner",
+  /** 打开/关闭手电筒 */
+  toggleTorch = "ToggleTorch",
+  /** 获取手电筒状态 */
+  getTorchState = "GetTorchState",
   /**初始化app数据 */
   initMetaData = "InitMetaData",
   /**初始化运行时 */
@@ -84,6 +88,7 @@ export enum callDVebView {
   ReadClipboardContent = "dweb-app",
   WriteClipboardContent = "dweb-app",
   FileOpener = "dweb-app",
+  GetTorchState = "dweb-app",
 
   TakeCameraPhoto = "dweb-camera",
   PickCameraPhoto = "dweb-camera",

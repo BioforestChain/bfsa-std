@@ -1,6 +1,8 @@
 export enum NativeHandle {
   OpenQrScanner = "OpenQrScanner", // 二维码
   BarcodeScanner = "BarcodeScanner", // 条形码
+  ToggleTorch = "ToggleTorch", // 打开关闭手电筒
+  GetTorchState = "GetTorchState", // 获取手电筒状态
   ServiceWorkerReady = "ServiceWorkerReady", // 通知后端，serviceWorker已经初始化好了
   ReadClipboardContent = "ReadClipboardContent", // 读取剪切板
   WriteClipboardContent = "WriteClipboardContent", // 写入剪切板
