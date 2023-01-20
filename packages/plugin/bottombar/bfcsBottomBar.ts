@@ -11,14 +11,20 @@ export class BfcsBottomBar extends DwebPlugin {
   private net: BottomBarNet;
   private _observer: MutationObserver;
   private _actionList: BottomBar.BottomBarItem[] = [];
+  private timeout: number | undefined;
 
   constructor() {
     super();
 
     this.net = new BottomBarNet();
-    this._observer = new MutationObserver(async () => {
+    // this._observer = new MutationObserver(async (mutationsList: MutationRecord[], observe: MutationObserver) => {
+    this._observer = new MutationObserver(() => {
       console.log("MutationObserver: collectActions");
-      await this.collectActions();
+      
+      this.clearTimeout()
+      // dnt-shim-ignore
+      // deno-lint-ignore no-explicit-any
+      this.timeout = (globalThis as any).setTimeout(async () => await this.collectActions(), 0);
     });
   }
 
@@ -50,6 +56,15 @@ export class BfcsBottomBar extends DwebPlugin {
 
   disconnectedCallback() {
     this._observer.disconnect();
+    this.clearTimeout()
+  }
+
+  private clearTimeout() {
+    if (this.timeout) {
+      // dnt-shim-ignore
+    // deno-lint-ignore no-explicit-any
+      (globalThis as any).clearTimeout(this.timeout)
+    }
   }
 
   private async _init() {
