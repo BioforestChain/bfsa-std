@@ -1,37 +1,11 @@
 // deno-lint-ignore-file no-explicit-any
 /// <reference lib="dom" />
 import { TNative } from "@bfsx/typings";
-import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/event-map_emitter/index.ts';
-import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
-import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
 import { _encoder } from "../../util/binary.ts";
-import { isIos } from "../common/index.ts";
-import { iosListen } from "./iosListen.ts";
+import { nativeListen, NativeListen } from "./nativeListen.ts";
 // const _serviceWorkerIsRead = new PromiseOut<void>();
-type EmitPluginResponse = {
-  func: string,
-  data: string | ArrayBufferView
-}
-const pluginEvent = new EventEmitter<{ response: [EmitPluginResponse] }>();
-const plugin_request_data = EasyMap.from({
-  creater(_func: string) {
-    return {
-      op: new PromiseOut<ArrayBufferView | string>()
-    }
-  }
-});
 
-pluginEvent.on("response", ({ func, data }) => {
-  console.log("🍙plugin#EmitPluginResponse:", func, data)
-  plugin_request_data.forceGet(func).op.resolve(data)
-});
-
-/**接收kotlin的evaJs来的string */
-// dnt-shim-ignore
-(window as any).dispatchStringMessage = function (func: string, data: string) {
-  console.log("🍙plugin#dispatchStringMessage:", func, data);
-  pluginEvent.emit("response", { func, data });
-};
+const netListen = nativeListen as NativeListen
 
 /**
  * 创建消息发送请求给 Kotlin 转发 dwebView-to-deno
@@ -48,10 +22,7 @@ export function createMessage(
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = _encoder.encode(message);
-  if (isIos()) {
-    return iosListen.eventIosGetPoll(`/poll?data=${buffer}`)
-  }
-  return getConnectChannel(`/poll?data=${buffer}`);
+  return netListen.eventGetPoll(`/poll?data=${buffer}`)
 }
 
 /**
@@ -59,7 +30,7 @@ export function createMessage(
  * @param url
  * @returns
  */
-export async function getCallNative(fun: string, data: TNative = ""): Promise<string | ArrayBufferView> {
+export async function getCallNative(fun: string, data: TNative = ""): Promise<any> {
   if (data instanceof Object) {
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
@@ -67,12 +38,7 @@ export async function getCallNative(fun: string, data: TNative = ""): Promise<st
   // console.log("plugin#getCallNative:", message);
   const buffer = _encoder.encode(message);
   // ios和android的请求都会先返回ok
-  if (isIos()) {
-    iosListen.eventIosGetSetUi(fun, `/setUi?data=${buffer}`)
-  }
-  getConnectChannel(`/setUi?data=${buffer}`);
-
-  return await plugin_request_data.forceGet(fun).op.promise
+  return await netListen.eventGetSetUi(fun, `/setUi?data=${buffer}`)
 }
 
 /**
@@ -90,12 +56,7 @@ export async function postCallNative(
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = _encoder.encode(message);
   // console.log("🍙plugin#postCallNative1:",message)
-  // ios和android的请求都会先返回ok
-  if (isIos()) {
-    iosListen.eventIosPostChannel(fun, "/setUi", new Blob([buffer]))
-  }
-  postConnectChannel("/setUi", buffer);
-  return await plugin_request_data.forceGet(fun).op.promise
+  return await netListen.eventPostChannel(fun, "/setUi", new Blob([buffer]))
 }
 
 /**

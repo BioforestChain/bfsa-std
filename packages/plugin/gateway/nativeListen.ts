@@ -6,11 +6,12 @@ import { MapEventEmitter as EventEmitter } from 'https://deno.land/x/bnqkl_util@
 import { PromiseOut } from "https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts";
 import { EasyMap } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-map/EasyMap.ts';
 
+
 /**
  * ios 回调触发listerIosSetUiCallback函数，来返回真正的值
  * 
  */
-export class IosListen {
+export class NativeListen {
   event = new EventEmitter<{ response: [EmitResponse] }>();
   request_data = EasyMap.from({
     creater(_func: string) {
@@ -34,11 +35,12 @@ export class IosListen {
  * 处理ios事件转发
  * @param url 
  */
-  async eventIosGetSetUi(cmd: string, url: string) {
+  async eventGetSetUi(cmd: string, url: string) {
     console.log("eventIosGetUi: " + cmd + " url: " + url);
     // dnt-shim-ignore
     // deno-lint-ignore no-explicit-any
     (window as any).getConnectChannel(url);
+
     return await this.request_data.forceGet(cmd).op.promise
   }
 
@@ -46,7 +48,7 @@ export class IosListen {
 * 处理ios事件转发
 * @param url 
 */
-  async eventIosGetPoll(url: string) {
+  async eventGetPoll(url: string) {
     // dnt-shim-ignore
     // deno-lint-ignore no-explicit-any
     await (window as any).getConnectChannel(url);
@@ -61,7 +63,7 @@ export class IosListen {
    * @param url 
    * @param body 
    */
-  async eventIosPostChannel(cmd: string, url: string, buffer: Blob) {
+  async eventPostChannel(cmd: string, url: string, buffer: Blob) {
     console.log("plugin#eventIosPostChannel:", url, buffer.size)
     const body = buffer.stream();
     // deno-lint-ignore no-explicit-any
@@ -88,9 +90,9 @@ type EmitResponse = {
 }
 // dnt-shim-ignore
 // deno-lint-ignore no-explicit-any
-(window as any).iosListen =  new IosListen()
+(window as any).nativeListen = new NativeListen()
 
 // dnt-shim-ignore
 // deno-lint-ignore no-explicit-any
-export const iosListen = (window as any).iosListen
+export const nativeListen = (window as any).nativeListen
 
