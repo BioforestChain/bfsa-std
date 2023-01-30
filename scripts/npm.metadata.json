@@ -1,0 +1,13 @@
+[
+  {
+    "buildFromRootDir": "./packages/metadata",
+    "mainExports": ".",
+    "buildToRootDir": "./build/metadata",
+    "importMap": "./import_map.json",
+    "name": "@bfsx/metadata",
+    "version": "0.2.6",
+    "lib": [
+      "es2020"
+    ]
+  }
+]

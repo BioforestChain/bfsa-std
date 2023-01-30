@@ -1,6 +1,7 @@
 // your OS.
 import "@bfsx/typings";
 import { contactUint8, contactUint16 } from "../../util/binary.ts";
+import { REQ_CATCH } from "./deno.ts";
 
 /**js 到rust的消息 */
 export function js_to_rust_buffer(zerocopybuffer: Uint16Array) {
@@ -48,11 +49,10 @@ export async function getRustChunk() {
   };
 }
 
-/**循环从rust里拿数据 */
-export function getRustBuffer(ex_head_view: Uint16Array) {
-  const uint8_head = new Uint8Array(ex_head_view.buffer);
-  const data = `${uint8_head[0]}-${uint8_head[1]}`;
-  const buffer = Deno.core.opSync("op_rust_to_js_system_buffer", data); // backSystemDataToRust
+// dnt-shim-ignore
+// deno-lint-ignore no-explicit-any
+(globalThis as any)._getRustBuffer = function _getRustBuffer(head_view: string, buffer: number[]) {
+  console.log("deno#getRustBuffer: ", head_view, buffer);
   if (buffer[0] === 0 && buffer.length === 1) {
     return {
       value: buffer,
@@ -66,9 +66,7 @@ export function getRustBuffer(ex_head_view: Uint16Array) {
     buffer.splice(0, 2); // 拿到头部标记
   }
   const buff = new Uint8Array(buffer);
-  return {
-    value: buff,
-    done: false,
-  };
-
+  REQ_CATCH.get(head_view)?.po.resolve(buff);
+  REQ_CATCH.delete(head_view)
 }
+

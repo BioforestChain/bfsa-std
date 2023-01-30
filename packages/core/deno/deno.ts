@@ -2,7 +2,7 @@
 /// 这里封装调用deno的方法，然后暴露出去
 /////////////////////////////
 
-import { send_zero_copy_buffer, js_to_rust_buffer, getRustBuffer } from "./rust.op.ts";
+import { send_zero_copy_buffer, js_to_rust_buffer } from "./rust.op.ts";
 import { stringToByte } from "../../util/binary.ts";
 import { PromiseOut } from 'https://deno.land/x/bnqkl_util@1.1.2/packages/extends-promise-out/PromiseOut.ts';
 import { EasyMap } from "https://deno.land/x/bnqkl_util@1.1.1/packages/extends-map/EasyMap.ts";
@@ -12,7 +12,10 @@ import { $A2BCommands, $Commands, Transform_Type } from "./cmd.ts";
 
 
 type $TCmd = $Commands.Output<$Commands.Cmd, $A2BCommands>;
-const REQ_CATCH = EasyMap.from({
+export const REQ_CATCH = EasyMap.from({
+  transformKey(key: Uint16Array) {
+    return `${key[0]}-${key[1]}`;
+  },
   creater(_req_id: Uint16Array) {
     return {
       po: new PromiseOut<$TCmd>()
@@ -68,9 +71,9 @@ class Deno {
     // 发送具体操作消息
     this.callFunction(cmd, type, data_string, transferable_metadata)
     // 需要返回值的才需要等待
-    if ((type & Transform_Type.NOT_RETURN) !== Transform_Type.NOT_RETURN) {
-      this.loopGetKotlinReturn(req_id, cmd)
-    }
+    // if ((type & Transform_Type.NOT_RETURN) !== Transform_Type.NOT_RETURN) {
+    //   this.loopGetKotlinReturn(req_id, cmd)
+    // }
 
   }
 
@@ -90,22 +93,22 @@ class Deno {
     js_to_rust_buffer(body); // android - denoOp
   }
 
-  /**
-   * 循环获取kotlin system 返回的数据
-   * @returns 
-   */
-  async loopGetKotlinReturn(reqId: Uint16Array, cmd: string) {
-    do {
-      const result = await getRustBuffer(reqId); // backSystemDataToRust
-      if (result.done) {
-        continue;
-      }
-      console.log(`deno#loopGetKotlinReturn ✅:${cmd},req_id,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
-      REQ_CATCH.get(this.reqId)?.po.resolve(result.value);
-      REQ_CATCH.delete(this.reqId)
-      break;
-    } while (true);
-  }
+  // /**
+  //  * 循环获取kotlin system 返回的数据
+  //  * @returns 
+  //  */
+  // async loopGetKotlinReturn(reqId: Uint16Array, cmd: string) {
+  //   do {
+  //     const result = await getRustBuffer(reqId); // backSystemDataToRust
+  //     if (result.done) {
+  //       continue;
+  //     }
+  //     console.log(`deno#loopGetKotlinReturn ✅:${cmd},req_id,当前请求的：${this.reqId[0]},是否存在请求：${REQ_CATCH.has(this.reqId)}`);
+  //     REQ_CATCH.get(this.reqId)?.po.resolve(result.value);
+  //     REQ_CATCH.delete(this.reqId)
+  //     break;
+  //   } while (true);
+  // }
 
   /** 针对64位
    * 第一块分区：版本号 2^8 8位，一个字节 1：表示消息，2：表示广播，4：心跳检测
