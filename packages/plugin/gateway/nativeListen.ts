@@ -47,7 +47,7 @@ export class NativeListen {
     console.log(`plugin#eventGetSetUi: ${cmd}`);
     // dnt-shim-ignore
     // deno-lint-ignore no-explicit-any
-    (window as any).getConnectChannel(url);
+    (window as any).BFSGetConnectChannel(url);
 
     return await this.request_data.forceGet(cmd).op.promise
   }
@@ -60,7 +60,7 @@ export class NativeListen {
     console.log(`plugin#eventGetPoll: ${cmd}`);
     // dnt-shim-ignore
     // deno-lint-ignore no-explicit-any
-    await (window as any).getConnectChannel(url);
+    await (window as any).BFSGetConnectChannel(url);
     return await this.request_data.forceGet(cmd).op.promise
   }
 
@@ -82,12 +82,12 @@ export class NativeListen {
       if (done) {
         // dnt-shim-ignore
         // deno-lint-ignore no-explicit-any
-        (window as any).postConnectChannel(url, cmd, "0");
+        (window as any).BFSPostConnectChannel(url, cmd, "0");
         break;
       }
       // dnt-shim-ignore
       // deno-lint-ignore no-explicit-any
-      (window as any).postConnectChannel(url, cmd, value.join(","));
+      (window as any).BFSPostConnectChannel(url, cmd, value.join(","));
     } while (true);
     return await this.request_data.forceGet(cmd).op.promise
   }
