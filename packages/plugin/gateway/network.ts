@@ -16,13 +16,13 @@ const netListen = nativeListen as NativeListen
 export function createMessage(
   fun: string,
   data: TNative = ""
-): Promise<string> {
+): Promise<string | ArrayBufferView> {
   if (data instanceof Object) {
     data = JSON.stringify(data); // stringify 两次转义一下双引号
   }
   const message = `{"function":"${fun}","data":${JSON.stringify(data)}}`;
   const buffer = _encoder.encode(message);
-  return netListen.eventGetPoll(`/poll?data=${buffer}`)
+  return netListen.eventGetPoll(fun, `/poll?data=${buffer}`)
 }
 
 /**

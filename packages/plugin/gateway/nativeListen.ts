@@ -27,16 +27,24 @@ export class NativeListen {
     })
   }
 
-  listerIosSetUiCallback(cmd: string, data: string) {
+  /**接收native的evaJs来的string */
+  dispatchStringMessage = (cmd: string, data: string) => {
+    console.log("🍙plugin#dispatchStringMessage:", cmd, data);
     this.event.emit("response", { cmd, data });
-  }
+  };
+  /**接收native的evaJs来的buffer */
+  dispatchBinaryMessage = (cmd: string, buf: ArrayBuffer) => {
+    console.log("🍙plugin#dispatchBinaryMessage:", cmd, buf); // 未测试
+    this.event.emit("response", { cmd, data: new Uint8Array(buf) });
+  };
+
 
   /**
- * 处理ios事件转发
+ * 处理native事件转发
  * @param url 
  */
   async eventGetSetUi(cmd: string, url: string) {
-    console.log("eventIosGetUi: " + cmd + " url: " + url);
+    console.log(`plugin#eventGetSetUi: ${cmd}`);
     // dnt-shim-ignore
     // deno-lint-ignore no-explicit-any
     (window as any).getConnectChannel(url);
@@ -45,14 +53,15 @@ export class NativeListen {
   }
 
   /**
-* 处理ios事件转发
+* 处理native事件转发
 * @param url 
 */
-  async eventGetPoll(url: string) {
+  async eventGetPoll(cmd: string, url: string) {
+    console.log(`plugin#eventGetPoll: ${cmd}`);
     // dnt-shim-ignore
     // deno-lint-ignore no-explicit-any
     await (window as any).getConnectChannel(url);
-    return "ok"
+    return await this.request_data.forceGet(cmd).op.promise
   }
 
 

@@ -20,7 +20,7 @@ export class BfcsBottomBar extends DwebPlugin {
     // this._observer = new MutationObserver(async (mutationsList: MutationRecord[], observe: MutationObserver) => {
     this._observer = new MutationObserver(() => {
       console.log("MutationObserver: collectActions");
-      
+
       this.clearTimeout()
       // dnt-shim-ignore
       // deno-lint-ignore no-explicit-any
@@ -62,13 +62,12 @@ export class BfcsBottomBar extends DwebPlugin {
   private clearTimeout() {
     if (this.timeout) {
       // dnt-shim-ignore
-    // deno-lint-ignore no-explicit-any
+      // deno-lint-ignore no-explicit-any
       (globalThis as any).clearTimeout(this.timeout)
     }
   }
 
   private async _init() {
-    console.log("init start" );
     const height = await this.getHeight();
     console.log("init: " + height);
     if (height != 0) {
